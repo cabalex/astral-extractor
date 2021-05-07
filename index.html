@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Astral Extractor</title>
+</head>
+<body>
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons"rel="stylesheet">
+	<link rel="stylesheet" href="styles.css">
+	<div id="topBar">
+		<ul style="list-style: none; display: flex; flex-direction: row; align-items: center; padding-left:0">
+			<li class="heading" style="padding: 1em">
+				<a style="color: #ffffff; text-decoration: none; background-color: #0063db; padding: 1em" href="https://cabalex.github.io"><b>cabalex.github.io</b></a>
+			</li>
+			<li>
+				<a href="https://astralchain.nintendo.com/introduction/"><image src="https://www.nintendo.co.jp/switch/ab48a/assets/images/common/logo/software_flat.png" height="40px"></image></a>
+			</li>
+			<a href="https://cabalex.github.io/astral-extractor/index.html" id="homepage"><li class="heading" style="padding: 1em">
+				<b id='name'>astral extractor</b>
+			</li></a>
+		</ul>
+	</div>
+	<div style="margin-top: 75px"></div>
+	<div id="workspace">
+		<div id="content"></div>
+		<div id="initial">
+			<input type="file" id="upload" multiple style="display:none"/> 
+			<div id="drop_zone" ondrop="dropHandler(event);" onclick="$('#upload').trigger('click');" ondragover="dragOverHandler(event);">
+				<div id="drop_zone_headings">
+					<h1>Astral Extractor</h1>
+					<h4>A web based, client-side extractor for Astral Chain</h4>
+					<h3>Astral Extractor is still in alpha! It probably doesn't work great.</h3>
+				</div>
+				<p id="dropMessage">Drag and drop or click to upload...</p>
+				<br>
+				<p>Supported files: <p style="font-family: Consolas, sans-serif">.pkz</p>
+				<p>Planned files: <p style="font-family: Consolas, sans-serif">.dat, .dtt, .wta, .wtp, .wtb, .bin</p>
+			</div>
+			<br>
+			<p style="margin-left: 10px">Thanks to <a href="https://gildas-lormeau.github.io/zip.js/index.html">ZIPJS</a>, <a href="https://github.com/eligrey/FileSaver.js/">FileSaver.js</a>, <a href="https://github.com/donmccurdy/zstddec">zstddec</a>, and countless Astral Chain related repositories</p>
+		</div>
+	</div>
+	<dialog open id="alert">
+		<dialog open id="alert-title">
+			<h1>Hold on...</h1>
+		</dialog>
+	</dialog>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+	<script src="scripts/loader.js" type="text/javascript"></script>
+	<script src="scripts/zstd.js" type="text/javascript"></script>
+	<script src="scripts/zip.min.js" type="text/javascript"></script>
+	<script src="scripts/filesaver.min.js" type="text/javascript"></script>
+	<script type="text/javascript">
+		function minimize(elem) {
+			$(elem).closest('div').find('div').css('display', 'none')
+			$(elem).replaceWith("<a class='maximize' onclick='maximize(this)'><span class='material-icons'>expand_more</span></a>")
+		}
+		function maximize(elem) {
+			$(elem).closest('div').find('div').css('display', '')
+			$(elem).replaceWith("<a class='minimize' onclick='minimize(this)'><span class='material-icons'>expand_less</span></a>")
+		}
+
+
+		$("#name").text('astral extractor v0.1.0') // VERSION NUMBER
+
+		
+	</script>
+</body>
+</html>	
