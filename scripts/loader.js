@@ -108,6 +108,9 @@ function loadInitial(fileType, file) {
           for (var i = 0; i < substring.length; i++) {
             tmpstr += substring[i]
             if (tmpstr.charAt(tmpstr.length-4) == ".") {
+              if (tmpstr.endsWith(".bnv")) {
+                tmpstr += "ib"
+              }
               names.push(tmpstr)
               tmpstr = ""
             }
@@ -345,7 +348,6 @@ async function loadFiles(files) {
   $('#dropMessage').replaceWith('<p id="dropMessage"><b>More files?</b> Drag and drop or click to upload...</p>')
   $('html, body').css('overflow', 'inherit')
   for (var i = 0; i < files.length; i++) {
-    console.log(Object.keys(globalFiles))
     if (Object.keys(globalFiles).includes(files[i].name)) {
       continue;
     }
