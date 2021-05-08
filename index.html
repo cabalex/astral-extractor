@@ -4,11 +4,12 @@
 	<title>Astral Extractor</title>
 </head>
 <body>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link href="https://fonts.googleapis.com/icon?family=Material+Icons"rel="stylesheet">
 	<link rel="stylesheet" href="styles.css">
 	<div id="topBar">
 		<ul style="list-style: none; display: flex; flex-direction: row; align-items: center; padding-left:0">
-			<li class="heading" style="padding: 1em">
+			<li class="heading" id="title" style="padding: 1em">
 				<a style="color: #ffffff; text-decoration: none; background-color: #0063db; padding: 1em" href="https://cabalex.github.io"><b>cabalex.github.io</b></a>
 			</li>
 			<li>
@@ -19,10 +20,23 @@
 			</li></a>
 		</ul>
 	</div>
-	<div style="margin-top: 75px"></div>
+	<div class="sideBar" style="width: 180px; left: 0;">
+		<div class="newHeading">
+			<a href="https://cabalex.github.io"><b>cabalex.github.io</b></a>
+		</div>
+		<ul id="sideBarContents" style="list-style: none; padding-left:5px">
+			<li><a href="#content"><img src="assets/marker-1.png" height="30px">Top</a></li>
+		</ul>
+		<div class="newFooter">
+			<a ondrop="dropHandler(event);" onclick="$('#upload').trigger('click');" ondragover="dragOverHandler(event);" href="#initial"><b><span class="material-icons">add</span>add more</b></a>
+		</div>
+	</div>
+	<div style="margin-top: 50px"></div>
 	<div id="workspace">
-		<div id="content"></div>
-		<div id="initial">
+		<div id="content">
+			<div style="margin-top: 25px"></div>
+		</div>
+		<div id="initial" style="margin-top: 100px">
 			<input type="file" id="upload" multiple style="display:none"/> 
 			<div id="drop_zone" ondrop="dropHandler(event);" onclick="$('#upload').trigger('click');" ondragover="dragOverHandler(event);">
 				<div id="drop_zone_headings">
@@ -32,11 +46,12 @@
 				</div>
 				<p id="dropMessage">Drag and drop or click to upload...</p>
 				<br>
-				<p>Supported files: <p style="font-family: Consolas, sans-serif">.pkz</p>
-				<p>Planned files: <p style="font-family: Consolas, sans-serif">.dat, .dtt, .wta, .wtp, .wtb, .bin</p>
+				<p>Supported files: <p id="supportedFiles" style="font-family: Consolas, sans-serif"></p></p>
+				<p>Planned files: <p style="font-family: Consolas, sans-serif">.bxm, .wta, .wtp, .wtb, .bin</p></p>
 			</div>
 			<br>
 			<p style="margin-left: 10px">Thanks to <a href="https://gildas-lormeau.github.io/zip.js/index.html">ZIPJS</a>, <a href="https://github.com/eligrey/FileSaver.js/">FileSaver.js</a>, <a href="https://github.com/donmccurdy/zstddec">zstddec</a>, and countless Astral Chain related repositories</p>
+			<p style="margin-left: 10px">Astral Extractor created by Cabalex - Try my other modding tools! <a href="https://github.com/cabalex/AstralChain2Blender">AstralChain2Blender</a> - <a href="https://github.com/cabalex/Blender2AstralChain">Blender2AstralChain</a> - <a href="https://cabalex.github.io/astral-chain-romfs/">RomFS Documentation</a></p>
 		</div>
 	</div>
 	<dialog open id="alert">
@@ -60,7 +75,7 @@
 		}
 
 
-		$("#name").text('astral extractor v0.1.0') // VERSION NUMBER
+		$("#name").text('astral extractor v0.2.0') // VERSION NUMBER
 
 		
 	</script>
