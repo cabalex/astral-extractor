@@ -69,153 +69,24 @@ function arrayBufferToString(buffer){
 }
 
 // loading
-function loadInitial(fileType, file) {
+async function loadInitial(fileType, file) {
   let image = "assets/marker-3.png"
   if (unzippable.includes(fileType)) {
     image = "assets/marker-2.png"
   }
   $('#sideBarContents').append(`<li class="sidebarList" title="${file.name}"><a href="#${file.name}" title="${file.name}"><img style="cursor: pointer;" onclick="deleteItem(this)" onmouseover="onHover(this)" onmouseout="offHover(this)" src=${image} height="30px">${file.name}</a></li>`)
-  var reader = new FileReader();
+  
   if (fileType == 'pkz') {
-    var header = null;
-    var tmpFiles = null;
-    reader.onloadend = function(e) {
-      if (e.target.readyState == FileReader.DONE) {
-        if (header == null) {
-          header = new Uint32Array(e.target.result);
-          // magic - 0
-          // unk - 1
-          var size = new BigUint64Array(e.target.result.slice(8, 16));
-          // numFiles - 4
-          // offset_file_descriptors - 5
-          var fileNameTableLength = new BigUint64Array(e.target.result.slice(24, 32));
-          reader.readAsArrayBuffer(file.slice(header[5], header[5] + header[4] * 32))
-        } else if (tmpFiles == null) {
-          tmpFiles = [];
-          for (var i = 0; i < header[4]; i++) {
-            tmpFiles.push(new BigUint64Array(e.target.result.slice(i*32, (i+1)*32)));
-            // nameoffset - 0
-            // size - 1
-            // offset - 2
-            // compressed_size - 3
-          }
-          reader.readAsText(file.slice(header[5] + header[4] * 32, header[5] + header[4] * 32 + Number(tmpFiles[0][2])))
-        } else {
-          var localFiles = {}
-          var names = []
-          var substring = e.target.result.substr(16, e.target.result.length).replace(/[^\x20-\x7E]/g, '')
-          var tmpstr = ""
-          for (var i = 0; i < substring.length; i++) {
-            tmpstr += substring[i]
-            if (tmpstr.charAt(tmpstr.length-4) == ".") {
-              if (tmpstr.endsWith(".bnv")) {
-                tmpstr += "ib"
-              }
-              names.push(tmpstr)
-              tmpstr = ""
-            }
-          }
-          for (var i = 0; i < header[4]; i++) {
-            localFiles[names[i]] = tmpFiles[i]
-          }
-          var form = "<table><tr><th>ACTIONS</th><th>NAME</th><th>SIZE</th><th>COMPR.</th><th>OFFSET</th>";
-          for (const [ key, value ] of Object.entries(localFiles)) {
-            let supported = "hidden"
-            if (endsWithAny(fileTypes, key)) {
-              supported = "open_in_new"
-            }
-            let replace = "hidden"
-            form += `<tr><th><a title="Download this file." onclick="downloadSubFile(\'pkz\', '${file.name}', '${key}')"><span class="material-icons">download</span></a><a class="${supported}" title="Open this file in a new editor section." onclick="loadSubFile(\'pkz\', '${file.name}', '${key}')"><span class="material-icons">open_in_new</span></a><a class="${replace}" title="Replace this file." onclick="replaceFile(\'pkz\', '${file.name}', '${key}')"><span class="material-icons">upload_file</span></a></th><th><input type="text" disabled="true" size="16" value='${key}'></input></th><th>${value[1]}</th><th>${value[3]}</th><th>${value[2]}</th></tr>`
-          }
-          $('div[id="' + file.name + '"]').find('h4').append(` - ${Object.keys(localFiles).length} files <a class='download' onclick="downloadFile(\'pkz\', '${file.name}')"><span class='material-icons'>folder</span> DOWNLOAD ZIP</a>`)
-          $('div[id="' + file.name + '"]').find('h4').prepend(`<a class='minimize' onclick="minimize(this)"><span class="material-icons">expand_less</span></a>`)
-          $('div[id="' + file.name + '"]').append("<div id='files'>" + form + "</table></div>")
-          globalFiles[file.name] = {'fp': file, 'files': localFiles}
-          $('div#loading').replaceWith('<div style="padding-left: 10px; line-height: 25px"><h3><span class="material-icons">description</span> PKZ File</h5><p><b>PKZ files</b> are compressed ZSTD archives that hold almost all of the game\'s files.<br>Note: You don\'t need to repack these to mod the game- just putting the .DAT/.DTT files in the right place works fine.</p></div>')
-        }
-      }
-    }
-    reader.readAsArrayBuffer(file.slice(0, 32))
+    await loadInitialPKZ(fileType, file)
   } else if (fileType == 'dat' || fileType == 'dtt' || fileType == 'evn') {
-    var header = null;
-    reader.onloadend = function(e) {
-      if (e.target.readyState == FileReader.DONE) {
-        if (header == null) {
-          header = new Uint32Array(e.target.result);
-          // magic - 0
-          // filenumber - 1
-          // fileoffsetsoffset - 2
-          // fileextensionsoffset - 3
-          // filenamesoffset - 4
-          // filesizesoffset - 5
-          // hashmapoffset - 6
-          reader.readAsArrayBuffer(file.slice(28, header[6] + 16*header[1]))
-        } else {
-          const fileOffsetsTable = new Uint32Array(e.target.result.slice(header[2] - 28, header[2] - 28 + header[1]*4));
-          const wholeFileExt = arrayBufferToString(e.target.result.slice(header[3] - 28, header[3] - 28 + header[1]*4));
-          const sizesTable = new Uint32Array(e.target.result.slice(header[5] - 28, header[5] - 28 + header[1]*4));
-          var names = [];
-          var substring = arrayBufferToString(e.target.result.slice(header[4] - 27, header[6] - 27)).replace(/[^\x20-\x7E]/g, '');
-          var tmpstr = "";
-          for (var i = 0; i < substring.length; i++) {
-            tmpstr += substring[i];
-            if (tmpstr.charAt(tmpstr.length-4) == ".") {
-              names.push(tmpstr);
-              tmpstr = "";
-            }
-          }
-          var localFiles = {}
-          for (var i = 0; i < header[1]; i++) {
-            localFiles[names[i]] = {'offset': fileOffsetsTable[i], 'size': sizesTable[i], 'kind': 'extracted'}; // kinds: "extracted" and "custom"
-          }
-          var form = "<table><tr><th>ACTIONS</th><th>NAME</th><th>SIZE</th><th>OFFSET</th>";
-          for (const [ key, value ] of Object.entries(localFiles)) {
-            let supported = "hidden"
-            if (endsWithAny(fileTypes, key)) {
-              supported = "open_in_new"
-            }
-            let replace = "hidden"//"file_upload"
-            form += `<tr><th><a title="Download this file." onclick="downloadSubFile(\'dat\', '${file.name}', '${key}')"><span class="material-icons">download</span></a><a class="${supported}" title="Open this file in a new editor section." onclick="loadSubFile(\'dat\', '${file.name}', '${key}')"><span class="material-icons">open_in_new</span></a><a class="${replace}" title="Replace this file." onclick="replaceFile(\'dat\', '${file.name}', '${key}')"><span class="material-icons">file_upload</span></a></th><th><input type="text" disabled="true" size="16" value='${key}'></input></th><th>${value.size}</th><th>${value.offset}</th></tr>`
-          }
-          $('div[id="' + file.name + '"]').find('h4').append(` - ${Object.keys(localFiles).length} files <a class='download' onclick="downloadFile(\'dat\', '${file.name}')"><span class='material-icons'>folder</span> DOWNLOAD ZIP</a>`)
-          $('div[id="' + file.name + '"]').find('h4').append(`<a class='download' onclick="repackFile(\'dat\', '${file.name}')"><span class='material-icons'>archive</span> REPACK</a>`)
-          $('div[id="' + file.name + '"]').find('h4').prepend(`<a class='minimize' onclick="minimize(this)"><span class="material-icons">expand_less</span></a>`)
-          $('div[id="' + file.name + '"]').append("<div id='files'>" + form + "</table></div>")
-          globalFiles[file.name] = {'fp': file, 'files': localFiles}
-          $('div#loading').replaceWith('<div style="padding-left: 10px; line-height: 25px"><h3><span class="material-icons">description</span> DAT/DTT File</h5><p><b>DAT and DTT files</b> are the bread and butter of Astral Chain- that is, they store models, UI, event data, etc...</p></div>')
-        }
-      }
-    }
-    reader.readAsArrayBuffer(file.slice(0, 28))
+    await loadInitialDAT(fileType, file)
   } else if (fileType == 'csv') {
-    reader.onloadend = function(e) {
-      if (e.target.readyState == FileReader.DONE) {
-        var tmpLines = [];
-        lines = e.target.result.split(/\r?\n/);
-        for (var i = 0; i < lines.length; i++) {
-          tmpLines[i] = lines[i].split(",")
-        }
-        globalFiles[file.name] = {'fp': file, 'lines': tmpLines[i]}
-        var form = "<div class='scroll'><table>";
-        for (var i = 0; i < tmpLines.length; i++) {
-          form += `<tr>`
-          for (var x = 0; x < tmpLines[i].length; x++) {
-            form += `<th><input type="text" size="8" value='${tmpLines[i][x]}'></input></th>`
-          }
-          form += "</tr>"
-        }
-        form += "</table></div>"
-        $('div[id="' + file.name + '"]').find('h4').append(` - ${tmpLines.length} lines <a class='download' onclick="downloadFile(\'csv\', '${file.name}')"><span class='material-icons'>insert_drive_file</span> DOWNLOAD CSV</a>`)
-        $('div[id="' + file.name + '"]').find('h4').prepend(`<a class='minimize' onclick="minimize(this)"><span class="material-icons">expand_less</span></a>`)
-        $('div[id="' + file.name + '"]').append("<div id='files'>" + form + "</table></div>")
-        $('div#loading').replaceWith('<div style="padding-left: 10px; line-height: 25px"><h3><span class="material-icons">description</span> CSV File</h5><p><b>CSV files</b> are unremarkable config files.</p></div>')
-      }
-    }
-    reader.readAsText(file)
+    await loadInitialCSV(fileType, file)
   } else {
     console.log("Unsupported file type!")
     return;
   }
+  $('div#loading').replaceWith(`<div style="padding-left: 10px; line-height: 25px"><h3><span class="material-icons">description</span> ${fileType.toUpperCase()} File</h5><p>${fileInfo[fileType]}</p></div>`)
 }
 
 
@@ -230,7 +101,7 @@ function downloadFile(fileType, name) {
           output += $(this).find('input').attr('value') + ","});
         output = output.substr(0, output.length-1) + "\r\n"
     });
-    var blob = new Blob([output.substr(0, output.length-2)], {type: "application/text"})
+    var blob = new Blob([output], {type: "application/text"})
     saveAs(blob, name);
   } else {
     blobs = 0;
@@ -294,24 +165,9 @@ function downloadSubFile(fileType, name, subFile, returnFile = false) {
   var reader = new FileReader();
   const workingfile = globalFiles[name];
   if (fileType == 'pkz') {
-    reader.onloadend = async function(e) {
-      if (e.target.readyState == FileReader.DONE) {
-        const decoder = new ZSTDDecoder();
-        await decoder.init();
-        const decompressedArray = decoder.decode(new Uint8Array(e.target.result), Number(workingfile['files'][subFile][1]))
-        var blob = new Blob([decompressedArray], {type: 'application/octet-stream'});
-        sendOutSubFile(fileType, name, subFile, blob, returnFile);
-      }
-    }
-    reader.readAsArrayBuffer(workingfile.fp.slice(Number(workingfile['files'][subFile][2]), Number(workingfile['files'][subFile][2]) + Number(workingfile['files'][subFile][3])));
+    exportSubFilePKZ(fileType, name, subFile, returnFile)
   } else if (fileType == 'dat') {
-    reader.onloadend = async function(e) {
-      if (e.target.readyState == FileReader.DONE) {
-        var blob = new Blob([e.target.result], {type: 'application/octet-stream'});
-        sendOutSubFile(fileType, name, subFile, blob, returnFile);
-      }
-    }
-    reader.readAsArrayBuffer(workingfile.fp.slice(workingfile['files'][subFile]['offset'], workingfile['files'][subFile]['offset'] + workingfile['files'][subFile]['size']));
+    exportSubFileDAT(fileType, name, subFile, returnFile)
   } else {
     console.log(`unimplemented download of ${subFile} from ${name}`);
   }
@@ -329,6 +185,11 @@ function loadSubFile(fileType, name, subFile) {
     window.open("https://github.com/cabalex/AstralChain2Blender")
   } else {
     downloadSubFile(fileType, name, subFile, "blob")
+    if (subFile.endsWith('.dat') && Object.keys(globalFiles[name]['files']).includes(subFile.replace('.dat', '.dtt'))) {
+      downloadSubFile(fileType, name, subFile.replace('.dat', '.dtt'), "blob")
+    } else if ((subFile.endsWith('.dtt') && Object.keys(globalFiles[name]['files']).includes(subFile.replace('.dtt', '.dat')))) {
+      downloadSubFile(fileType, name, subFile.replace('.dtt', '.dat'), "blob")
+    }
   }
 }
 
@@ -338,6 +199,7 @@ async function loadFiles(files) {
     $('#initial').prepend('<hr class="rounded" style="margin-bottom: 30px">')
     $('#drop_zone_headings').css('display', 'none')
     $('#drop_zone').css('padding', '5px')
+    $('drop_zone::before').css('background-image', '')
     $('#workspace').css('margin-left', '180px')
     $('.sideBar').css('display', 'block')
     $('#topBar').css('box-shadow', '0 0 1em rgba(0, 0, 0, 0.5)')
@@ -399,7 +261,24 @@ function deleteItem(elem) {
   }
 }
 
+function minimize(elem) {
+  $(elem).closest('div').find('div').css('display', 'none')
+  $(elem).replaceWith("<a class='maximize' onclick='maximize(this)'><span class='material-icons'>expand_more</span></a>")
+}
+function maximize(elem) {
+  $(elem).closest('div').find('div').css('display', '')
+  $(elem).replaceWith("<a class='minimize' onclick='minimize(this)'><span class='material-icons'>expand_less</span></a>")
+}
+
 var fileTypes = ['.pkz', '.dat', '.dtt', '.evn', '.csv', '.wmb']
+var fileInfo = {
+  "bxm": "Binary XML. Used for storing information, although the current method of decoding into regular XML is currently unknown.",
+  "pkz": "Compressed ZSTD archives containing most of the game's files.",
+  "dat": "DAT archive. Holds most of the game's files.",
+  "dtt": "DAT archive. Almost identical to .DAT, but separated for performance.",
+  "evn": "DAT archive. Identical to .DAT files.",
+  "csv": "Comma-separated values. Holds parameters regarding the game."
+}
 var unzippable = ['csv']
 $('#supportedFiles').text(fileTypes.join(", "))
 var globalFiles = {}

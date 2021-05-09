@@ -7,18 +7,13 @@ html, body {
 	overflow: hidden;
 	position: relative;
 }
-footer #credits {
-	text-decoration: none !important;
-	color: #489AFA;
-	font-weight: bold;
-}
 ol {
 	list-style-type: square;
 }
 img, svg, span {
 	vertical-align: middle;
 }
-.download {
+.download, .repack, .disabled {
 	text-decoration: none;
 	color:white;
 	padding:0.5em;
@@ -28,6 +23,10 @@ img, svg, span {
 	transition: padding 0.2s, width 0.2s;
 	border-radius:0.25em;
 	line-height: 30px;
+}
+.disabled {
+	background-color: #C5C5C5;
+	cursor: not-allowed;
 }
 #downloadBar {
 	text-decoration: none;
@@ -86,7 +85,7 @@ img, svg, span {
 #content {
 	line-height: 30px;
 }
-form {
+table {
 	margin-left: 10px;
 }
 #topBar {
@@ -147,7 +146,7 @@ a {
 	background-color: #3A3A3A;
 	color: #DCEBE4;
 	border-radius: 0px;
-	transition: color 0.1s, outline-offset 0.1s, outline 0.1s;
+	transition: color 0.1s, outline-offset 0.1s, outline 0.1s, background-color 0.2s;
 	transition-timing-function: ease-in-out;
 	width:  90%;
 	margin: auto;
@@ -157,9 +156,10 @@ a {
 	cursor: pointer;
 }
 #drop_zone:hover {
-	color: #DE49D4;
+	color: #EF5184;
 	outline-offset: 5px;
 	outline: 5px solid #DE49D4;
+	background-color: #2A2A2A;
 }
 #loading {
 	width: 50vw;
@@ -177,7 +177,7 @@ a {
 }
 table, th, td {
   background-color: #DCEBE4;
-  padding: 1px;
+  padding: 3px;
   color: #3A3A3A;
   border-radius: 0.25em;
   border-collapse: collapse;

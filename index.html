@@ -20,12 +20,13 @@
 			</li></a>
 		</ul>
 	</div>
-	<div class="sideBar" style="width: 180px; left: 0;">
+	<div class="sideBar" style="width: 180px; left: 0; overflow-y: hidden;">
 		<div class="newHeading">
 			<a href="https://cabalex.github.io"><b>cabalex.github.io</b></a>
 		</div>
-		<ul id="sideBarContents" style="list-style: none; padding-left:5px">
-			<li><a href="#content"><img src="assets/marker-1.png" height="30px">Top</a></li>
+		<ul id="sideBarContents" style="list-style: none; padding-left:5px; overflow-y: auto; margin-top: 0; max-height: calc(100% - 120px)">
+			<li style="padding-top: 5px"></li>
+			<li style="background-color: #3C3744"><a href="#content"><img src="assets/marker-1.png" height="30px">Top</a></li>
 		</ul>
 		<div class="newFooter">
 			<a ondrop="dropHandler(event);" onclick="$('#upload').trigger('click');" ondragover="dragOverHandler(event);" href="#initial"><b><span class="material-icons">add</span>add more</b></a>
@@ -42,7 +43,7 @@
 				<div id="drop_zone_headings">
 					<h1>Astral Extractor</h1>
 					<h4>A web based, client-side extractor for Astral Chain</h4>
-					<h3>Astral Extractor is still in alpha! It probably doesn't work great.</h3>
+					<h3>Astral Extractor is still in alpha! I'm still working out the quirks.</h3>
 				</div>
 				<p id="dropMessage">Drag and drop or click to upload...</p>
 				<br>
@@ -52,6 +53,7 @@
 			<br>
 			<p style="margin-left: 10px">Thanks to <a href="https://gildas-lormeau.github.io/zip.js/index.html">ZIPJS</a>, <a href="https://github.com/eligrey/FileSaver.js/">FileSaver.js</a>, <a href="https://github.com/donmccurdy/zstddec">zstddec</a>, and countless Astral Chain related repositories</p>
 			<p style="margin-left: 10px">Astral Extractor created by Cabalex - Try my other modding tools! <a href="https://github.com/cabalex/AstralChain2Blender">AstralChain2Blender</a> - <a href="https://github.com/cabalex/Blender2AstralChain">Blender2AstralChain</a> - <a href="https://cabalex.github.io/astral-chain-romfs/">RomFS Documentation</a></p>
+			<p style="margin-left: 10px">Special thanks to the NieR modding community and r/AstralChain</p>
 		</div>
 	</div>
 	<dialog open id="alert">
@@ -59,25 +61,27 @@
 			<h1>Hold on...</h1>
 		</dialog>
 	</dialog>
+	<!-- external libraries -->
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-	<script src="scripts/loader.js" type="text/javascript"></script>
 	<script src="scripts/zstd.js" type="text/javascript"></script>
 	<script src="scripts/zip.min.js" type="text/javascript"></script>
 	<script src="scripts/filesaver.min.js" type="text/javascript"></script>
+	<!-- fresh homemade scripts -->
+	<script src="scripts/filetypes/dat.js" type="text/javascript"></script>
+	<script src="scripts/filetypes/pkz.js" type="text/javascript"></script>
+	<script src="scripts/filetypes/csv.js" type="text/javascript"></script>
+	<script src="scripts/filetypes/bxm.js" type="text/javascript"></script>
+	<script src="scripts/loader.js" type="text/javascript"></script>
+	<!-- init -->
 	<script type="text/javascript">
-		function minimize(elem) {
-			$(elem).closest('div').find('div').css('display', 'none')
-			$(elem).replaceWith("<a class='maximize' onclick='maximize(this)'><span class='material-icons'>expand_more</span></a>")
-		}
-		function maximize(elem) {
-			$(elem).closest('div').find('div').css('display', '')
-			$(elem).replaceWith("<a class='minimize' onclick='minimize(this)'><span class='material-icons'>expand_less</span></a>")
-		}
+		console.log("Thanks for using my Astral Extractor!")
+		console.log("You've really dug this deep, huh. I'm glad you like it :)")
+		console.log("Go boot up the game and pet your Beast Legion- you deserve it.")
+		console.log("---")
 
-
-		$("#name").text('astral extractor v0.2.1') // VERSION NUMBER
+		$("#name").text('astral extractor v0.3.0') // VERSION NUMBER
 
 		
 	</script>
 </body>
-</html>	
+</html>
