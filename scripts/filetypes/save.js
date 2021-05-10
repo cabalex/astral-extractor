@@ -23,7 +23,7 @@ function loadInitialGameData(fileType, file) {
       var localFiles = []
       while (pos < arr.length) {
         if (arr.slice(pos, pos+4).toString() == comparison) {
-          localFiles[`Image ${i}.jpg`] = {'offset': pos, 'data': new Blob(arr.slice(pos, pos+200048), {type: 'image/jpg'})}
+          localFiles[`Image ${i}.jpg`] = {'offset': pos, 'data': new Blob([arr.slice(pos, pos+200048)], {type: 'image/jpeg'})}
         } else {
           break;
         }
@@ -33,7 +33,7 @@ function loadInitialGameData(fileType, file) {
       var form = "<table><tr><th>ACTIONS</th><th>NAME</th><th>IMAGE</th>";
       for (const [ key, value ] of Object.entries(localFiles)) {
         var imageUrl = URL.createObjectURL(value['data']);
-        form += `<tr><th><a title="Download this file." onclick="downloadSubFile(\'gameData\', '${file.name}', '${key}')"><span class="material-icons">download</span></a><input type="file" id="${file.name}-${key}-upload" accept=".jpg, .jpeg" style="display:none"/><a class="hidden" title="Replace this file." onclick="$('input[id=&quot;${file.name}-${key}-upload&quot;]').trigger('click');"><span class="material-icons">file_upload</span></a></th><th><input type="text" disabled="true" size="16" value='${key}'></input></th><th><img src="${imageUrl}" width="480px"></img></th><th class="replacedIndicator"><img height="30px" title="File has not been replaced." alt="Not replaced" src="assets/unreplaced-black.png"</th></tr>`
+        form += `<tr><th><a title="Download this file." onclick="downloadSubFile(\'gameData\', '${file.name}', '${key}')"><span class="material-icons">download</span></a><input type="file" id="${file.name}-${key}-upload" accept=".jpg, .jpeg" style="display:none"/><a class="hidden" title="Replace this file." onclick="$('input[id=&quot;${file.name}-${key}-upload&quot;]').trigger('click');"><span class="material-icons">file_upload</span></a></th><th><input type="text" disabled="true" size="16" value='${key}'></input></th><th><img src="${imageUrl}" height="100px"></img></th><th class="replacedIndicator"><img height="30px" title="File has not been replaced." alt="Not replaced" src="assets/unreplaced-black.png"</th></tr>`
       }
       $('div[id="' + file.name + '"]').find('h4').append(` - ${Object.keys(localFiles).length} files <a class='download' title='Download the extracted files as a ZIP.' onclick="downloadFile(\'gameData\', '${file.name}')"><span class='material-icons'>folder</span> DOWNLOAD ZIP</a>`)
       $//('div[id="' + file.name + '"]').find('h4').append(`<a class='repack' onclick="packDAT('${file.name}')"><span class='material-icons'>auto_fix_high</span> REPACK</a>`)
@@ -49,16 +49,7 @@ function loadInitialGameData(fileType, file) {
 }
 
 function exportSubFileGameData(fileType, name, subFile, returnFile) {
-  var reader = new FileReader();
-  var workingfile = globalFiles[name];
-  reader.onloadend = async function(e) {
-    if (e.target.readyState == FileReader.DONE) {
-      var blob = new Blob([e.target.result], {type: 'image/jpg'});
-      sendOutSubFile(fileType, name, subFile, blob, returnFile);
-    }
-  }
-  let offset = workingfile['files'][subFile]['offset']
-  reader.readAsArrayBuffer(workingfile['fp'].slice(offset, offset+200048))
+  sendOutSubFile(fileType, name, subFile, globalFiles[name]['files'][subFile]['data'], returnFile);
 }
 
 function loadInitialSlotData(fileType, file) {
