@@ -10,6 +10,15 @@ function loadInitialDAT(fileType, file) {
     if (e.target.readyState == FileReader.DONE) {
       if (header == null) {
         header = new Uint32Array(e.target.result);
+        if (header[0] != 5521732) { // DAT\x00
+          // is probably a save
+          if (header[0] == 1) {
+            loadInitialGameData(fileType, file); // game data starts with 0x01
+          } else {
+            loadInitialSlotData(fileType, file); // slot data starts with 0x5063DB08 
+          }
+          return;
+        }
         // magic - 0
         // filenumber - 1
         // fileoffsetsoffset - 2

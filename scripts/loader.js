@@ -161,6 +161,8 @@ function downloadSubFile(fileType, name, subFile, returnFile = false) {
     exportSubFilePKZ(fileType, name, subFile, returnFile)
   } else if (fileType == 'dat') {
     exportSubFileDAT(fileType, name, subFile, returnFile)
+  } else if (fileType == 'gameData') {
+    exportSubFileGameData(fileType, name, subFile, returnFile)
   } else {
     console.log(`unimplemented download of ${subFile} from ${name}`);
   }
@@ -263,7 +265,7 @@ function maximize(elem) {
   $(elem).replaceWith("<a class='minimize' onclick='minimize(this)'><span class='material-icons'>expand_less</span></a>")
 }
 
-var fileTypes = ['.pkz', '.dat', '.dtt', '.evn', '.csv', '.wmb']
+var fileTypes = ['.pkz', '.dat', '.dtt', '.evn', '.csv', '.wmb', 'save files']
 var fileInfo = {
   "bxm": "Binary XML. Used for storing information, although the current method of decoding into regular XML is currently unknown.",
   "pkz": "Compressed ZSTD archives containing most of the game's files.",
