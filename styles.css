@@ -73,7 +73,7 @@ img, svg, span {
 	position: fixed;
 	background-color: #EF5184;
 }
-#homepage {
+#homepage, #help, #issue {
 	text-decoration: none;
 	color: inherit;
 }
@@ -81,6 +81,9 @@ img, svg, span {
 	color: #489AFA;
 	-webkit-filter: drop-shadow(0 0 12px #489afa);
 	filter: drop-shadow(0 0 12px #489afa);
+}
+#help {
+	cursor: pointer;
 }
 #content {
 	line-height: 30px;
@@ -221,6 +224,7 @@ table, th, td {
 	text-overflow: ellipsis !important;
 	white-space: nowrap;
   	overflow: hidden;
+  	overflow-x: hidden;
 }
 .hidden {
 	visibility: hidden;

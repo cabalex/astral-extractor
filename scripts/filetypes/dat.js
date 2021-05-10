@@ -52,7 +52,7 @@ function loadInitialDAT(fileType, file) {
         for (const key of Object.keys(localFiles)) {
           document.getElementById(`${file.name}-${key}-upload`).addEventListener("change", function(event) { if (replaceInitDAT("dat", file.name, key, event.target.files) == true) {$(this).closest('tr').find('th.replacedIndicator').replaceWith('<th class="replacedIndicator"><img height="30px" title="Replaced file." alt="Replaced file." src="assets/replaced-black.png"></img></th>')}}, false);
         }
-        globalFiles[file.name] = {'fp': file, 'files': localFiles, 'fileOrder': names, 'hashMap': e.target.result}
+        globalFiles[file.name] = {'fp': file, 'files': localFiles, 'fileOrder': names.slice(0, Object.keys(localFiles).length), 'hashMap': e.target.result}
       }
     }
   }
@@ -67,37 +67,21 @@ function exportSubFileDAT(fileType, name, subFile, returnFile) {
       sendOutSubFile(fileType, name, subFile, blob, returnFile);
     }
   }
-  reader.readAsArrayBuffer(workingfile.fp.slice(workingfile['files'][subFile]['offset'], workingfile['files'][subFile]['offset'] + workingfile['files'][subFile]['size']));
+  if (workingfile['files'][subFile]['kind'] == 'extracted') {
+    reader.readAsArrayBuffer(workingfile.fp.slice(workingfile['files'][subFile]['offset'], workingfile['files'][subFile]['offset'] + workingfile['files'][subFile]['size']));
+  } else {
+    // custom
+    reader.readAsArrayBuffer(workingfile['files'][subFile]['fp'])
+  }
 }
 
 function replaceInitDAT(fileType, name, subFile, files) {
+  console.log(files)
   globalFiles[name]['files'][subFile] = {'fp': files[0], 'size': files[0].size, 'kind': 'custom'}
   $(this).val('');
   console.log(`custom file - ${files[0].name}`)
   return true;
 }
-
-function replaceFileDAT(fileType, name, subFile, files) {
-  
-}
-/*
-function concatenate(resultConstructor, ...arrays) {
-    var bytesPerItem = 1
-    if resultConstructor == Uint32Array:
-      bytesPerItem = 4
-    let totalLength = 0;
-    for (const arr of arrays) {
-        if arr.constructor == resultConstructor {
-          totalLength += arr.length;
-    }
-    const result = new resultConstructor(totalLength);
-    let offset = 0;
-    for (const arr of arrays) {
-        result.set(arr, offset);
-        offset += arr.length;
-    }
-    return result;
-}*/
 
 function concatenateToUint8(...arrays) {
   let totalLength = 0;
@@ -173,6 +157,7 @@ async function packDAT(file) {
       }
       pos = Math.ceil(pos/0x8000)*0x8000
     } else {
+      console.log(subFile)
       if (workingfile['files'][subFile]['size'] == 0) {
         fileOffsets.push(0)
       } else if (subFile.endsWith('bnk')){

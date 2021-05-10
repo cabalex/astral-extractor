@@ -95,14 +95,7 @@ var blobWriter;
 var writer;
 function downloadFile(fileType, name) {
   if (fileType == 'csv') {
-    var output = ""
-    $(`div[id="${name}"`).find('tr').each(function (i, el) {
-        $(this).find('th').each(function (i, el) {
-          output += $(this).find('input').attr('value') + ","});
-        output = output.substr(0, output.length-1) + "\r\n"
-    });
-    var blob = new Blob([output], {type: "application/text"})
-    saveAs(blob, name);
+    downloadCSV(fileType, name);
   } else {
     blobs = 0;
     $(`div[id="${name}"]`).find('h4').children('a.download').replaceWith(`<div class='download' style="padding: 0; background-color:#C5C5C5;"><span class='material-icons'>folder</span> DOWNLOADING ZIP...</div>`)
@@ -137,13 +130,13 @@ async function sendOutSubFile(fileType, name, subFile, blob, returnFile) {
     console.log('new file = ' + subFile);
     if (!endsWithAny(fileTypes, subFile)) {
       if (subFile.endsWith('.wmb')) {
-        $('div#content').append('<h4 title=' + subFile + '><img style="cursor: pointer;" onclick="deleteItem(this)" onmouseover="onHover(this)" onmouseout="offHover(this)" src="assets/lock.png" height="30px"> ' + subFile + '</h4><p><b>You can\'t edit WMB files here.</b> Try using <a href="https://github.com/cabalex/AstralChain2Blender">AstralChain2Blender</a> and <a href="https://github.com/cabalex/Blender2AstralChain">Blender2AstralChain</a>.</p>')
+        $('div#content').append(`<h4 title="${subFile}"><img style="cursor: pointer;" onclick="deleteItem(this)" onmouseover="onHover(this)" onmouseout="offHover(this)" src="assets/lock.png" height="30px"> ${subFile}</h4><p><b>You can\'t edit WMB files here.</b> Try using <a href="https://github.com/cabalex/AstralChain2Blender">AstralChain2Blender</a> and <a href="https://github.com/cabalex/Blender2AstralChain">Blender2AstralChain</a>.</p>`)
       } else {
-        $('div#content').append('<h4 title='+ subFile + '><img style="cursor: pointer;" onclick="deleteItem(this)" onmouseover="onHover(this)" onmouseout="offHover(this)" src="assets/lock.png" height="30px"> ' + subFile + '</h4><p><b>This file type isn\'t valid (or at least, not yet).</b> Did you upload the wrong one?</p>')
+        $('div#content').append(`<h4 title=${subFile}><img style="cursor: pointer;" onclick="deleteItem(this)" onmouseover="onHover(this)" onmouseout="offHover(this)" src="assets/lock.png" height="30px"> ${subFile}</h4><p><b>This file type isn\'t valid (or at least, not yet).</b> Did you upload the wrong one?</p>`)
       }
     } else {
-      $('div#content').append('<div id=' + subFile + '><h4 title=' + subFile + '><img style="cursor: pointer;" onclick="deleteItem(this)" onmouseover="onHover(this)" onmouseout="offHover(this)" src="assets/legatus.png" height="30px"> ' + subFile + '</h4><div id="loading"><div id="loadingBar">Loading file...</div></div></div>')
-      await loadInitial(blob.name.split('.')[1], blob);
+      $('div#content').append(`<div id="${subFile}"><h4 title="${subFile}"><img style="cursor: pointer;" onclick="deleteItem(this)" onmouseover="onHover(this)" onmouseout="offHover(this)" src="assets/legatus.png" height="30px"> ${subFile}</h4><div id="loading"><div id="loadingBar">Loading file...</div></div></div>`)
+      await loadInitial(blob.name.split('.')[blob.name.split('.').length-1], blob);
     }
     return;
   }
@@ -216,14 +209,14 @@ async function loadFiles(files) {
     console.log('file[' + i + '].name = ' + files[i].name);
     if (!endsWithAny(fileTypes, files[i].name)) {
       if (files[i].name.endsWith('.wmb')) {
-        $('div#content').append(`<div id=${files[i].name}><h4 title=${files[i].name}><img style="cursor: pointer;" onclick="deleteItem(this)" onmouseover="onHover(this)" onmouseout="offHover(this)" src="assets/lock.png" height="30px"> ${files[i].name}</h4><p><b>You can\'t edit WMB files here.</b> Try using <a href="https://github.com/cabalex/AstralChain2Blender">AstralChain2Blender</a> and <a href="https://github.com/cabalex/Blender2AstralChain">Blender2AstralChain</a>.</p></div>`)
+        $('div#content').append(`<div id="${files[i].name}"><h4 title="${files[i].name}"><img style="cursor: pointer;" onclick="deleteItem(this)" onmouseover="onHover(this)" onmouseout="offHover(this)" src="assets/lock.png" height="30px"> ${files[i].name}</h4><p><b>You can\'t edit WMB files here.</b> Try using <a href="https://github.com/cabalex/AstralChain2Blender">AstralChain2Blender</a> and <a href="https://github.com/cabalex/Blender2AstralChain">Blender2AstralChain</a>.</p></div>`)
       } else {
-        $('div#content').append(`<div id=${files[i].name}><h4 title=${files[i].name}><img style="cursor: pointer;" onclick="deleteItem(this)" onmouseover="onHover(this)" onmouseout="offHover(this)" src="assets/lock.png" height="30px"> ${files[i].name}</h4><p><b>This file type isn\'t valid (or at least, not yet).</b> Did you upload the wrong one?</p></div>`)
+        $('div#content').append(`<div id="${files[i].name}"><h4 title="${files[i].name}"><img style="cursor: pointer;" onclick="deleteItem(this)" onmouseover="onHover(this)" onmouseout="offHover(this)" src="assets/lock.png" height="30px"> ${files[i].name}</h4><p><b>This file type isn\'t valid (or at least, not yet).</b> Did you upload the wrong one?</p></div>`)
       }
       continue;
     } else {
-      $('div#content').append(`<div id=${files[i].name}><h4 id=${files[i].name}><img style="cursor: pointer;" onclick="deleteItem(this)" onmouseover="onHover(this)" onmouseout="offHover(this)" src="assets/legatus.png" height="30px"> ${files[i].name}</h4><div id="loading"><div id="loadingBar">Loading file...</div></div></div>`)
-      await loadInitial(files[i].name.split('.')[1], files[i]);
+      $('div#content').append(`<div id="${files[i].name}"><h4 id="${files[i].name}"><img style="cursor: pointer;" onclick="deleteItem(this)" onmouseover="onHover(this)" onmouseout="offHover(this)" src="assets/legatus.png" height="30px"> ${files[i].name}</h4><div id="loading"><div id="loadingBar">Loading file...</div></div></div>`)
+      await loadInitial(files[i].name.split('.')[files[i].name.split('.').length-1], files[i]);
     }
   }
 }
