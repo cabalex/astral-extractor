@@ -167,13 +167,7 @@ function downloadSubFile(fileType, name, subFile, returnFile = false) {
     console.log(`unimplemented download of ${subFile} from ${name}`);
   }
 }
-// repacking
-function repackFile(fileType, name) {
-  alert('Coming soon!')
-}
-function replaceFile(fileType, name, subFile) {
-  alert('coming soon!')
-}
+
 
 function loadSubFile(fileType, name, subFile) {
   if (subFile.endsWith('.wmb')) {

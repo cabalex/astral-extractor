@@ -85,7 +85,6 @@ function exportSubFileDAT(fileType, name, subFile, returnFile) {
 }
 
 function replaceInitDAT(fileType, name, subFile, files) {
-  console.log(files)
   globalFiles[name]['files'][subFile] = {'fp': files[0], 'size': files[0].size, 'kind': 'custom'}
   $(this).val('');
   console.log(`custom file - ${files[0].name}`)
