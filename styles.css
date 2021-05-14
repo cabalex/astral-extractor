@@ -104,8 +104,8 @@ table {
 	z-index: 2;
 	left: 0;
 }
-#content li {
-	margin: 10px 0;
+#content p {
+	margin-left: 10px;
 }
 
 a {

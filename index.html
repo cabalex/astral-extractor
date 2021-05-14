@@ -2,9 +2,9 @@
 <html>
 <head>
 	<title>Astral Extractor</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link href="https://fonts.googleapis.com/icon?family=Material+Icons"rel="stylesheet">
 	<link rel="stylesheet" href="styles.css">
 	<div id="topBar">
@@ -40,7 +40,7 @@
 			<div style="margin-top: 25px"></div>
 		</div>
 		<div id="initial" style="margin-top: 100px">
-			<input type="file" id="upload" multiple style="display:none"/> 
+			<input type="file" id="upload" onchange="clickFiles(this)" multiple style="display:none"/> 
 			<div id="drop_zone" ondrop="dropHandler(event);" onclick="$('#upload').trigger('click');" ondragover="dragOverHandler(event);">
 				<div id="drop_zone_headings">
 					<h1>Astral Extractor</h1>
@@ -53,7 +53,7 @@
 				<p>Planned files: <p style="font-family: Consolas, sans-serif">.bxm, .wta, .wtp, .wtb, .bin</p></p>
 			</div>
 			<br>
-			<p style="margin-left: 10px">Thanks to <a href="https://gildas-lormeau.github.io/zip.js/index.html">ZIPJS</a>, <a href="https://github.com/eligrey/FileSaver.js/">FileSaver.js</a>, <a href="https://github.com/donmccurdy/zstddec">zstddec</a>, and countless Astral Chain related threads</p>
+			<p style="margin-left: 10px">Thanks to <a href="https://gildas-lormeau.github.io/zip.js/index.html">ZIPJS</a>, <a href="https://github.com/eligrey/FileSaver.js/">FileSaver.js</a>, <a href="https://github.com/donmccurdy/zstddec">zstddec</a>, <a href="https://modelviewer.dev/">model-viewer</a>, <a href="https://git.io/float16">float16</a>, and countless Astral Chain related threads</p>
 			<p style="margin-left: 10px">Astral Extractor created by Cabalex - Try my other modding tools! <a href="https://github.com/cabalex/AstralChain2Blender">AstralChain2Blender</a> - <a href="https://github.com/cabalex/Blender2AstralChain">Blender2AstralChain</a> - <a href="https://cabalex.github.io/astral-chain-romfs/">RomFS Documentation</a></p>
 			<p style="margin-left: 10px">Special thanks to the NieR modding community and r/AstralChain, specifically <a href="https://github.com/Kerilk">Kerilk</a></p>
 		</div>
@@ -68,12 +68,15 @@
 	<script src="scripts/zstd.js" type="text/javascript"></script>
 	<script src="scripts/zip.min.js" type="text/javascript"></script>
 	<script src="scripts/filesaver.min.js" type="text/javascript"></script>
+	<script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+	<script src="scripts/float16.js" type="text/javascript"></script>
 	<!-- fresh homemade scripts -->
 	<script src="scripts/filetypes/dat.js" type="text/javascript"></script>
 	<script src="scripts/filetypes/pkz.js" type="text/javascript"></script>
 	<script src="scripts/filetypes/csv.js" type="text/javascript"></script>
 	<script src="scripts/filetypes/bxm.js" type="text/javascript"></script>
 	<script src="scripts/filetypes/wtb.js" type="text/javascript"></script>
+	<script src="scripts/filetypes/wmb.js" type="text/javascript"></script>
 	<script src="scripts/filetypes/save.js" type="text/javascript"></script>
 	<script src="scripts/loader.js" type="text/javascript"></script>
 	<!-- init -->
@@ -81,7 +84,7 @@
 		console.log("Thanks for using my Astral Extractor!\n\nYou've really dug this deep, huh. I'm glad you like it :)\n\nGo boot up the game and pet your Beast Legion- you deserve it.")
 		console.log("---")
 
-		$("#name").text('astral extractor v0.5.2') // VERSION NUMBER
+		$("#name").text('astral extractor v0.6.0') // VERSION NUMBER
 
 		
 	</script>

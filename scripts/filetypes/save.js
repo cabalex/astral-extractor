@@ -39,6 +39,8 @@ function loadInitialGameData(fileType, file) {
       $('div[id="' + file.name + '"]').find('h4').append(`<a class='repack' onclick="packGameData('${file.name}')"><span class='material-icons'>auto_fix_high</span> REPACK</a>`)
       $('div[id="' + file.name + '"]').find('h4').prepend(`<a class='minimize' onclick="minimize(this)"><span class="material-icons">expand_less</span></a>`)
       $('div[id="' + file.name + '"]').append("<p style='margin-left: 10px;'><b>WARNING:</b> While repacking images is supported, the game may not display them correctly if they are incompatible, and will softlock in places where the image is shown (e.g. the photo album). You have been warned!</p>")
+      var saveSlots = ["Slot A", "Slot B"]
+      $('div[id="' + file.name + '"]').append(`<p>In progress slot (0x08): <b>${saveSlots[arr[8]]}</b></p>`)
       $('div[id="' + file.name + '"]').append("<div id='files'>" + form + "</table></div>")
       for (const key of Object.keys(localFiles)) {
         document.getElementById(`${file.name}-${key}-upload`).addEventListener("change", function(event) { if (replaceInitGameData("dat", file.name, key, event.target.files, this) == true) {$(this).closest('tr').find('th.replacedIndicator').replaceWith('<th class="replacedIndicator"><img height="30px" title="Replaced file." alt="Replaced file." src="assets/replaced-black.png"></img></th>')}}, false);

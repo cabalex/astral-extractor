@@ -26,9 +26,9 @@ function dragOverHandler(ev) {
   ev.preventDefault();
 }
 
-function clickFiles() {
-  loadFiles(this.files).then(function() {
-    $(this).val('');
+function clickFiles(event) {
+  loadFiles(event.files).then(function() {
+    $(event).val('');
   });
 }
 
@@ -82,6 +82,8 @@ async function loadInitial(fileType, file) {
     await loadInitialDAT(fileType, file)
   } else if (fileType == 'csv') {
     await loadInitialCSV(fileType, file)
+  } else if (fileType == 'wmb') {
+    await loadInitialWMB(fileType, file)
   } else {
     console.log("Unsupported file type!")
     return;
@@ -170,15 +172,11 @@ function downloadSubFile(fileType, name, subFile, returnFile = false) {
 
 
 function loadSubFile(fileType, name, subFile) {
-  if (subFile.endsWith('.wmb')) {
-    window.open("https://github.com/cabalex/AstralChain2Blender")
-  } else {
-    downloadSubFile(fileType, name, subFile, "blob")
-    if (subFile.endsWith('.dat') && Object.keys(globalFiles[name]['files']).includes(subFile.replace('.dat', '.dtt'))) {
-      downloadSubFile(fileType, name, subFile.replace('.dat', '.dtt'), "blob")
-    } else if ((subFile.endsWith('.dtt') && Object.keys(globalFiles[name]['files']).includes(subFile.replace('.dtt', '.dat')))) {
-      downloadSubFile(fileType, name, subFile.replace('.dtt', '.dat'), "blob")
-    }
+  downloadSubFile(fileType, name, subFile, "blob")
+  if (subFile.endsWith('.dat') && Object.keys(globalFiles[name]['files']).includes(subFile.replace('.dat', '.dtt'))) {
+    downloadSubFile(fileType, name, subFile.replace('.dat', '.dtt'), "blob")
+  } else if ((subFile.endsWith('.dtt') && Object.keys(globalFiles[name]['files']).includes(subFile.replace('.dtt', '.dat')))) {
+    downloadSubFile(fileType, name, subFile.replace('.dtt', '.dat'), "blob")
   }
 }
 
@@ -204,11 +202,7 @@ async function loadFiles(files) {
     }
     console.log('file[' + i + '].name = ' + files[i].name);
     if (!endsWithAny(fileTypes, files[i].name)) {
-      if (files[i].name.endsWith('.wmb')) {
-        $('div#content').append(`<div id="${files[i].name}"><h4 title="${files[i].name}"><img style="cursor: pointer;" onclick="deleteItem(this)" onmouseover="onHover(this)" onmouseout="offHover(this)" src="assets/lock.png" height="30px"> ${files[i].name}</h4><p><b>You can\'t edit WMB files here.</b> Try using <a href="https://github.com/cabalex/AstralChain2Blender">AstralChain2Blender</a> and <a href="https://github.com/cabalex/Blender2AstralChain">Blender2AstralChain</a>.</p></div>`)
-      } else {
-        $('div#content').append(`<div id="${files[i].name}"><h4 title="${files[i].name}"><img style="cursor: pointer;" onclick="deleteItem(this)" onmouseover="onHover(this)" onmouseout="offHover(this)" src="assets/lock.png" height="30px"> ${files[i].name}</h4><p><b>This file type isn\'t valid (or at least, not yet).</b> Did you upload the wrong one?</p></div>`)
-      }
+      $('div#content').append(`<div id="${files[i].name}"><h4 title="${files[i].name}"><img style="cursor: pointer;" onclick="deleteItem(this)" onmouseover="onHover(this)" onmouseout="offHover(this)" src="assets/lock.png" height="30px"> ${files[i].name}</h4><p><b>This file type isn\'t valid (or at least, not yet).</b> Did you upload the wrong one?</p></div>`)
       continue;
     } else {
       $('div#content').append(`<div id="${files[i].name}"><h4 id="${files[i].name}"><img style="cursor: pointer;" onclick="deleteItem(this)" onmouseover="onHover(this)" onmouseout="offHover(this)" src="assets/legatus.png" height="30px"> ${files[i].name}</h4><div id="loading"><div id="loadingBar">Loading file...</div></div></div>`)
@@ -230,11 +224,12 @@ function deleteItem(elem) {
   if ($(elem).parents('li').length) {
     var nameToDelete = $(elem).parents('li').text().split(" ")[0];
   } else {
-    var nameToDelete = $(elem).parents().text().split(" ")[1];
+    var nameToDelete = $(elem).parent().text().split(" ")[1];
   }
   $(`div[id="${nameToDelete}"]`).remove();
   $(`li[title="${nameToDelete}"`).remove();
   delete globalFiles[nameToDelete];
+  console.log()
   if (Object.keys(globalFiles).length == 0) {
     $('hr').remove()
     $('#drop_zone_headings').css('display', '')
@@ -266,9 +261,9 @@ var fileInfo = {
   "dat": "DAT archive. Holds most of the game's files.",
   "dtt": "DAT archive. Almost identical to .DAT, but separated for performance.",
   "evn": "DAT archive. Identical to .DAT files.",
-  "csv": "Comma-separated values. Holds parameters regarding the game."
+  "csv": "Comma-separated values. Holds parameters regarding the game.",
+  "wmb": "Model files. Astral Extractor does not support re-adding models to the game- use Blender2AstralChain / AstralChain2Blender for that.<br><b>Model previews are still in development!</b> Some models may not display correctly, and textures (WTA/WTP) have not been implemented."
 }
 var unzippable = ['csv']
 $('#supportedFiles').text(fileTypes.join(", "))
 var globalFiles = {}
-document.getElementById("upload").addEventListener("change", clickFiles, false);
