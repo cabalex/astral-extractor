@@ -2,9 +2,9 @@
 
 
 function bufferToHex (buffer) {
-    return [...new Uint8Array (buffer)]
-        .map (b => b.toString (16).padStart (2, "0"))
-        .join ("");
+	return [...new Uint8Array (buffer)]
+		.map (b => b.toString (16).padStart (2, "0"))
+		.join ("");
 }
 
 class WMB_Header {
@@ -657,8 +657,8 @@ function loadInitialWMB(fileType, file) {
 	// probably check if there's a WTA/WTP here
 	var reader = new FileReader()
 	reader.onloadend = function(e) {
-    	if (e.target.readyState == FileReader.DONE) {
-    		var gltf = {
+		if (e.target.readyState == FileReader.DONE) {
+			var gltf = {
 				"asset": {
 					"version": "2.0",
 					"copyright": "2019 (c) Nintendo"
@@ -700,7 +700,7 @@ function loadInitialWMB(fileType, file) {
 			document.getElementById("modelViewer").addEventListener('error', function(event) {
 				console.error(event, `<model-viewer> ERROR! | ${event.detail}`)
 			}, true)
-			$('div[id="' + file.name + '"]').find('h4').append(` - ${Object.keys(localFiles).length} files <a class='download' title='Download the extracted files as a ZIP.' onclick="downloadFile(\'wmb\', '${file.name}')"><span class='material-icons'>folder</span> DOWNLOAD ZIP</a>`)
+			$('div[id="' + file.name + '"]').find('h4').append(`<a class='download' title='Export the selected model to GLTF.' onclick="downloadFile(\'wmb\', '${file.name}')"><span class='material-icons'>folder</span> EXPORT AS ZIPPED GLTF</a>`)
 			$('div[id="' + file.name + '"]').find('h4').prepend(`<a class='minimize' onclick="minimize(this)"><span class="material-icons">expand_less</span></a>`)
 		}
 	}
@@ -708,7 +708,16 @@ function loadInitialWMB(fileType, file) {
 }
 
 
-
-function downloadWMB(file) {
-
+async function downloadWMB(fileType, name) {
+	blobWriter = new zip.BlobWriter("application/zip");
+	writer = new zip.ZipWriter(blobWriter);
+	var gltf = globalFiles[name]['gltf']
+	gltf['buffers'][0]['uri'] = "buffer.bin"
+	var jsonse = JSON.stringify(gltf)
+	var gltfblob = new Blob([jsonse], {type: "application/json"});
+	await writer.add(name.replace(".wmb", ".gltf"), new zip.BlobReader(gltfblob));
+	await writer.add("buffer.bin", new zip.BlobReader(globalFiles[name]['bin']));
+	await writer.close()
+	const blob = await blobWriter.getData();
+	saveAs(blob, name.split('.')[0] + '.zip');
 }

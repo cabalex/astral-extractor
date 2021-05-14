@@ -98,6 +98,8 @@ var writer;
 function downloadFile(fileType, name) {
   if (fileType == 'csv') {
     downloadCSV(fileType, name);
+  } else if (fileType == 'wmb') {
+    downloadWMB(fileType, name)
   } else {
     blobs = 0;
     $(`div[id="${name}"]`).find('h4').children('a.download').replaceWith(`<div class='download' style="padding: 0; background-color:#C5C5C5;"><span class='material-icons'>folder</span> DOWNLOADING ZIP...</div>`)
@@ -131,11 +133,7 @@ async function sendOutSubFile(fileType, name, subFile, blob, returnFile) {
     blob.name = subFile
     console.log('new file = ' + subFile);
     if (!endsWithAny(fileTypes, subFile)) {
-      if (subFile.endsWith('.wmb')) {
-        $('div#content').append(`<h4 title="${subFile}"><img style="cursor: pointer;" onclick="deleteItem(this)" onmouseover="onHover(this)" onmouseout="offHover(this)" src="assets/lock.png" height="30px"> ${subFile}</h4><p><b>You can\'t edit WMB files here.</b> Try using <a href="https://github.com/cabalex/AstralChain2Blender">AstralChain2Blender</a> and <a href="https://github.com/cabalex/Blender2AstralChain">Blender2AstralChain</a>.</p>`)
-      } else {
-        $('div#content').append(`<h4 title=${subFile}><img style="cursor: pointer;" onclick="deleteItem(this)" onmouseover="onHover(this)" onmouseout="offHover(this)" src="assets/lock.png" height="30px"> ${subFile}</h4><p><b>This file type isn\'t valid (or at least, not yet).</b> Did you upload the wrong one?</p>`)
-      }
+      $('div#content').append(`<h4 title=${subFile}><img style="cursor: pointer;" onclick="deleteItem(this)" onmouseover="onHover(this)" onmouseout="offHover(this)" src="assets/lock.png" height="30px"> ${subFile}</h4><p><b>This file type isn\'t valid (or at least, not yet).</b> Did you upload the wrong one?</p>`)
     } else {
       $('div#content').append(`<div id="${subFile}"><h4 title="${subFile}"><img style="cursor: pointer;" onclick="deleteItem(this)" onmouseover="onHover(this)" onmouseout="offHover(this)" src="assets/legatus.png" height="30px"> ${subFile}</h4><div id="loading"><div id="loadingBar">Loading file...</div></div></div>`)
       await loadInitial(blob.name.split('.')[blob.name.split('.').length-1], blob);
