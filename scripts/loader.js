@@ -223,6 +223,7 @@ function deleteItem(elem) {
     var nameToDelete = $(elem).parents('li').text().split(" ")[0];
   } else {
     var nameToDelete = $(elem).parent().text().split(" ")[1];
+    console.log(nameToDelete)
   }
   $(`div[id="${nameToDelete}"]`).remove();
   $(`li[title="${nameToDelete}"`).remove();

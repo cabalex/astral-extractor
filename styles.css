@@ -133,9 +133,6 @@ a {
 .underline {
 	text-decoration: underline
 }
-#content ul li img {
-	 position: absolute; border-radius: 0.25em; box-shadow: 0.5em 0.5em rgba(0, 0, 0, 0.5); z-index: 1;
-}
 .success {
 	display: block;
 }
@@ -231,4 +228,28 @@ table, th, td {
 }
 .scroll {
 	overflow-y: scroll;
+}
+.model-sidebar {
+	background-color: #2C2C2C;
+	left: calc(100vw - 220px);
+	margin-top: -500px;
+	width: 200px;
+	height: 500px;
+	max-height: 500px;
+	color: #DCEBE4;
+	overflow-y: auto;
+	position: absolute;
+}
+.model-sidebar ul {
+	list-style: none;
+	max-height: 500px;
+	top: 0;
+}
+.model-sidebar ul li {
+	margin-left: -40px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-weight: bold;
+	overflow-x: hidden;
+	font-size: small;
 }

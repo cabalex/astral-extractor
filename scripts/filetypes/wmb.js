@@ -265,7 +265,7 @@ class wmb3_meshGroupInfo {
 		this.meshGroupInfoname = enc.decode(arrayBuffer.slice(this.nameOffset, this.nameOffset+256)).split("\x00")[0]
 		this.groupedMeshArray = []
 		for (var i = 0; i < this.meshCount; i++) {
-			this.groupedMeshArray.push(new wmb3_groupedMesh(arrayBuffer.slice(meshGroupInfoOffset+28*i, meshGroupInfoOffset+28*(i+1))))
+			this.groupedMeshArray.push(new wmb3_groupedMesh(arrayBuffer.slice(meshGroupInfoOffset+24*i, meshGroupInfoOffset+24*(i+1))))
 		}
 	}
 }
@@ -494,7 +494,7 @@ function format_wmb_mesh(wmb, gltf) {
 	// each vertexgroup -> each lod -> each group -> mesh
 	var finalArr = new ArrayBuffer()
 	for (var vertexGroupIndex = 0; vertexGroupIndex < wmb.wmb3_header.vertexGroupCount; vertexGroupIndex++) {
-		vertex_flags = wmb.vertexGroupArray[vertexGroupIndex].vertexFlags
+		var vertex_flags = wmb.vertexGroupArray[vertexGroupIndex].vertexFlags
 
 		if ([0].includes(vertex_flags)) {
 			uvMaps[0].push(wmb.vertexGroupArray[vertexGroupIndex].vertexArray.map(uvmapper1))
@@ -557,10 +557,9 @@ function format_wmb_mesh(wmb, gltf) {
 			var mesh_start = meshGroupInfo.meshStart
 			var LOD_name = meshGroupInfo.meshGroupInfoname
 			var LOD_level = meshGroupInfo.lodLevel
-
 			var meshesToPush = [];
 			for (var meshGroupIndex = 0; meshGroupIndex < wmb.wmb3_header.meshGroupCount; meshGroupIndex++) {
-				meshIndexArray = []
+				var meshIndexArray = []
 				for (var groupedMeshIndex = 0; groupedMeshIndex < groupedMeshArray.length; groupedMeshIndex++) {
 					if (groupedMeshArray[groupedMeshIndex].meshGroupIndex == meshGroupIndex) {
 						meshIndexArray.push([mesh_start + groupedMeshIndex, groupedMeshArray[groupedMeshIndex].colTreeNodeIndex, groupedMeshArray[groupedMeshIndex].unknownWorldDataIndex])
@@ -568,22 +567,22 @@ function format_wmb_mesh(wmb, gltf) {
 				}
 				meshGroup = wmb.meshGroupArray[meshGroupIndex]
 				for (const meshArrayData of meshIndexArray) {
-					meshArrayIndex = meshArrayData[0]
-					colTreeNodeIndex = meshArrayData[1]
-					unknownWorldDataIndex = meshArrayData[2]
-					meshVertexGroupIndex = wmb.meshArray[meshArrayIndex].vertexGroupIndex
+					var meshArrayIndex = meshArrayData[0]
+					var colTreeNodeIndex = meshArrayData[1]
+					var unknownWorldDataIndex = meshArrayData[2]
+					var meshVertexGroupIndex = wmb.meshArray[meshArrayIndex].vertexGroupIndex
 					if (meshVertexGroupIndex == vertexGroupIndex) {
-						meshName = `${meshArrayIndex}-${meshGroup.meshGroupname}-${vertexGroupIndex}`
-						meshInfo = wmb.clear_unused_vertex(meshArrayIndex, meshVertexGroupIndex)
-						vertices = meshInfo[0]
-						faces =  meshInfo[1]
-						usedVerticeIndexArray = meshInfo[2]
-						boneWeightInfoArray = meshInfo[3]
-						vertex_colors = meshInfo[4]
+						var meshName = `${meshArrayIndex}-${meshGroup.meshGroupname}-${vertexGroupIndex}`
+						var meshInfo = wmb.clear_unused_vertex(meshArrayIndex, meshVertexGroupIndex)
+						var vertices = meshInfo[0]
+						var faces =  meshInfo[1]
+						var usedVerticeIndexArray = meshInfo[2]
+						var boneWeightInfoArray = meshInfo[3]
+						var vertex_colors = meshInfo[4]
 						usedVerticeIndexArrays.push(usedVerticeIndexArray)
-						flag = false
-						has_bone = wmb.hasBone
-						boneSetIndex = wmb.meshArray[meshArrayIndex].bonesetIndex
+						var flag = false
+						var has_bone = wmb.hasBone
+						var boneSetIndex = wmb.meshArray[meshArrayIndex].bonesetIndex
 						if (boneSetIndex == 0xffffffff) {
 							boneSetIndex = -1
 						}
@@ -591,22 +590,22 @@ function format_wmb_mesh(wmb, gltf) {
 						/*obj = construct_mesh([meshName, vertices, faces, has_bone, boneWeightInfoArray, boneSetIndex, meshGroupIndex, vertex_colors, LOD_name, LOD_level, colTreeNodeIndex, unknownWorldDataIndex, boundingBox], collection_name)
 						meshes.push(obj)*/
 						
-						// Mesh construction (i have no fucking clue what i am doing)
-						//console.log("Faces", faces)
-						//console.log("Verts", vertices)
+						// Mesh construction (i have some clue what i am doing)
+						//console.log(`[+] Importing ${meshName}`)
 						var [finalArr, faceoffset, gltf] = addDataToBuffer(gltf, finalArr, faces, "faces")
 						var [finalArr, vertoffset, gltf] = addDataToBuffer(gltf, finalArr, vertices, "vertices")
-						meshesToPush.push(
+						//var [finalArr, vertoffset, gltf] = addDataToBuffer(gltf, finalArr, uvMaps[0], "texcoord")
+						gltf['meshes'][0]['primitives'].push(
 						{
-							'attributes': {"POSITION": gltf['accessors'].length-1},
-							'indices': gltf['accessors'].length-2
+							'name': meshName,
+							'id': meshArrayIndex,
+							'attributes': {"POSITION": gltf['accessors'].length-1},//, "TEXCOORD_0": gltf['accessors'].length-1},
+							'indices': gltf['accessors'].length-2,
+							//'material': 0
 						}
 						)
 					}
 				}
-			if (meshesToPush.length > 0) {
-				gltf['meshes'].push({'name': `${LOD_name}-${LOD_level}`, 'primitives': meshesToPush})
-			}
 			}
 		}
 	}
@@ -614,7 +613,9 @@ function format_wmb_mesh(wmb, gltf) {
 	//let b64 = btoa(String.fromCharCode(...new Uint8Array(finalArr)))
 	//gltf["buffers"].push({"uri": `data:application/gltf-buffer;base64,${b64}`, "byteLength": finalArr.byteLength})
 	var blob = new Blob([finalArr], {type: "application/octet-stream"});
-	
+	gltf['meshes'][0]['primitives'].sort(function(first, second) {
+		return first.id - second.id;
+	});
 	return [wmb, gltf, blob, finalArr.byteLength]
 }
 
@@ -627,11 +628,15 @@ function addDataToBuffer(gltf, arrayBuffer, arrayBeingAdded, type) {
 	var ylist = [];
 	var zlist = [];
 	var all = [];
-	arrayBeingAdded.map(function(x) {xlist.push(x[0]); ylist.push(x[1]); zlist.push(x[2]); all.push(...x)})
-	if (type == "vertices") {
-		tmpArr = Float32Array.from(all);
+	if (type != "texcoord") {
+		arrayBeingAdded.map(function(x) {xlist.push(x[0]); ylist.push(x[1]); zlist.push(x[2]); all.push(...x)})
 	} else {
+		arrayBeingAdded.map(function(x) {all.push(...x)})
+	}
+	if (type == "faces") {
 		tmpArr = Uint16Array.from(all);
+	} else {
+		tmpArr = Float32Array.from(all);
 	}
 	arrayBeingAdded = tmpArr;
 	newArr = new Uint8Array(arrayBuffer.byteLength + arrayBeingAdded.byteLength);
@@ -640,6 +645,9 @@ function addDataToBuffer(gltf, arrayBuffer, arrayBeingAdded, type) {
 	if (type == "vertices") {
 		// vertices
 		gltf['accessors'].push({'bufferView': gltf['bufferViews'].length, 'byteOffset': 0, 'type': 'VEC3', 'componentType': 5126, 'count': count, 'min': [Math.min(...xlist), Math.min(...ylist), Math.min(...zlist)], 'max': [Math.max(...xlist), Math.max(...ylist), Math.max(...zlist)]})
+		gltf['bufferViews'].push({'buffer': 0, 'byteOffset': arrayBuffer.byteLength, 'byteLength': arrayBeingAdded.byteLength})
+	} else if (type == "texcoord") {
+		gltf['accessors'].push({'bufferView': gltf['bufferViews'].length, 'byteOffset': 0, 'type': 'VEC2', 'componentType': 5126, 'count': count, 'max': [1.0, 1.0], 'min': [0.0, 0.0]})
 		gltf['bufferViews'].push({'buffer': 0, 'byteOffset': arrayBuffer.byteLength, 'byteLength': arrayBeingAdded.byteLength})
 	} else {
 		gltf['accessors'].push({'bufferView': gltf['bufferViews'].length, 'byteOffset': 0, 'type': 'SCALAR', 'componentType': 5123, 'count': count*3})
@@ -665,8 +673,19 @@ function loadInitialWMB(fileType, file) {
 				},
 				"bufferViews": [],
 				"accessors": [],
+				"materials" : [{
+					"pbrMetallicRoughness" : {
+						"baseColorTexture" : {
+							"index" : 0
+						},
+						"metallicFactor" : 1.0,
+						"roughnessFactor" : 1.0
+					}
+				}],
+				"images" : [],
+  				"textures": [],
 				"buffers": [],
-				"meshes": [],
+				"meshes": [{'primitives': []}],
 				"nodes": [],
 				"scene": 0,
 				"scenes": [{"nodes": [0]}]
@@ -695,12 +714,17 @@ function loadInitialWMB(fileType, file) {
 			var url2  = URL.createObjectURL(blob);
 			// for when i add other uv maps
 			// skybox-image="assets/skybox.png"
-			$('div[id="' + file.name + '"]').find('div').append(`<model-viewer camera-controls touch-action shadow-intensity="1" shadow-softness="0.5" interaction-prompt="none" id="modelViewer" poster="assets/loading.png" style="--poster-color: #2C2C2C; background-color: #2C2C2C; width: calc(100vw - 200px); height: 500px;" src="${url2}"></model-viewer>DEBUG: <a href="${url1}">BIN blob</a> | <a href="${url2}">GLTF</a>`)
-			globalFiles[file.name] = {'fp': file, 'gltf': gltf, 'bin': finalBlob, 'textures': []}
+			$('div[id="' + file.name + '"]').find('div').append(`<model-viewer camera-controls touch-action shadow-intensity="1" shadow-softness="0.5" interaction-prompt="none" id="modelViewer" poster="assets/loading.png" style="--poster-color: #2C2C2C;  margin-left: -10px; width: calc(100vw - 400px); height: 500px;" src="${url2}"></model-viewer>`)
+			globalFiles[file.name] = {'fp': file, 'gltf': gltf, 'bin': finalBlob, 'textures': [], 'og-primitives': gltf['meshes'][0]['primitives'], 'disabled-primitives': []}
 			document.getElementById("modelViewer").addEventListener('error', function(event) {
 				console.error(event, `<model-viewer> ERROR! | ${event.detail}`)
 			}, true)
-			$('div[id="' + file.name + '"]').find('h4').append(`<a class='download' title='Export the selected model to GLTF.' onclick="downloadFile(\'wmb\', '${file.name}')"><span class='material-icons'>folder</span> EXPORT AS ZIPPED GLTF</a>`)
+			var items = [];
+			for (var i = 0; i < gltf['meshes'][0]['primitives'].length; i++) {
+				items.push(`<li><img height="30px" style="cursor: pointer" onclick="disableLayerWMB(this);" src="assets/enabled.png">${gltf['meshes'][0]['primitives'][i]['name']}</li>`)
+			}
+			$('div[id="' + file.name + '"]').find('div').append(`<div class='model-sidebar' id='${file.name}-sidebar'><h3 style="margin-left: 10px">${file.name.split(".")[0]}</h3><ul>${items.join('')}</ul></div>`)
+			$('div[id="' + file.name + '"]').find('h4').append(` <a class='download' title='Export the selected model to GLTF.' onclick="downloadFile(\'wmb\', '${file.name}')"><span class='material-icons'>folder</span> EXPORT AS ZIPPED GLTF</a>`)
 			$('div[id="' + file.name + '"]').find('h4').prepend(`<a class='minimize' onclick="minimize(this)"><span class="material-icons">expand_less</span></a>`)
 		}
 	}
@@ -712,6 +736,7 @@ async function downloadWMB(fileType, name) {
 	blobWriter = new zip.BlobWriter("application/zip");
 	writer = new zip.ZipWriter(blobWriter);
 	var gltf = globalFiles[name]['gltf']
+	gltf['meshes'][0]['primitives'] = globalFiles[name]['og-primitives']
 	gltf['buffers'][0]['uri'] = "buffer.bin"
 	var jsonse = JSON.stringify(gltf)
 	var gltfblob = new Blob([jsonse], {type: "application/json"});
@@ -720,4 +745,50 @@ async function downloadWMB(fileType, name) {
 	await writer.close()
 	const blob = await blobWriter.getData();
 	saveAs(blob, name.split('.')[0] + '.zip');
+}
+
+function disableLayerWMB(elem) {
+	const text = $(elem).parent().text().trim()
+	const filename = $(elem).parents('div[class="model-sidebar"]').attr('id').split("-")[0]
+	const modelviewer = $(elem).parents('div[class="model-sidebar"]').parent().find("model-viewer")
+	var items = [];
+	var gltf = globalFiles[filename]['gltf'];
+	globalFiles[filename]['disabled-primitives'].push(text)
+	for (var i = 0; i < globalFiles[filename]['og-primitives'].length; i++) {
+		if (!(globalFiles[filename]['disabled-primitives'].includes(globalFiles[filename]['og-primitives'][i]['name']))) {
+			items.push(globalFiles[filename]['og-primitives'][i])
+		}
+	}
+	gltf['meshes'][0]['primitives'] = items;
+	var jsonse = JSON.stringify(gltf)
+	var blob = new Blob([jsonse], {type: "application/json"});
+	var url  = URL.createObjectURL(blob);
+	const currenturl = modelviewer.attr('src')
+	modelviewer.attr('src', url)
+	URL.revokeObjectURL(currenturl)
+	$(elem).replaceWith(`<img height="30px" style="cursor: pointer" onclick="enableLayerWMB(this);" src="assets/disabled.png">`)
+}
+
+
+function enableLayerWMB(elem) {
+	const text = $(elem).parent().text().trim()
+	const filename = $(elem).parents('div[class="model-sidebar"]').attr('id').split("-")[0]
+	const modelviewer = $(elem).parents('div[class="model-sidebar"]').parent().find("model-viewer")
+	var items = [];
+	var gltf = globalFiles[filename]['gltf'];
+	let index = globalFiles[filename]['disabled-primitives'].indexOf(text)
+	globalFiles[filename]['disabled-primitives'].splice(index, 1)
+	for (var i = 0; i < globalFiles[filename]['og-primitives'].length; i++) {
+		if (!(globalFiles[filename]['disabled-primitives'].includes(globalFiles[filename]['og-primitives'][i]['name']))) {
+			items.push(globalFiles[filename]['og-primitives'][i])
+		}
+	}
+	gltf['meshes'][0]['primitives'] = items;
+	var jsonse = JSON.stringify(gltf)
+	var blob = new Blob([jsonse], {type: "application/json"});
+	var url  = URL.createObjectURL(blob);
+	const currenturl = modelviewer.attr('src')
+	modelviewer.attr('src', url)
+	URL.revokeObjectURL(currenturl)
+	$(elem).replaceWith(`<img height="30px" style="cursor: pointer" onclick="disableLayerWMB(this);" src="assets/enabled.png">`)
 }
