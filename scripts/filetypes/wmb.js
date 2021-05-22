@@ -721,7 +721,7 @@ function loadInitialWMB(fileType, file) {
 			}, true)
 			var items = [];
 			for (var i = 0; i < gltf['meshes'][0]['primitives'].length; i++) {
-				items.push(`<li><img height="30px" style="cursor: pointer" onclick="disableLayerWMB(this);" src="assets/enabled.png">${gltf['meshes'][0]['primitives'][i]['name']}</li>`)
+				items.push(`<li title="${gltf['meshes'][0]['primitives'][i]['name']}"><img height="30px" style="cursor: pointer" onclick="disableLayerWMB(this);" src="assets/enabled.png">${gltf['meshes'][0]['primitives'][i]['name']}</li>`)
 			}
 			$('div[id="' + file.name + '"]').find('div').append(`<div class='model-sidebar' id='${file.name}-sidebar'><h3 style="margin-left: 10px">${file.name.split(".")[0]}</h3><ul>${items.join('')}</ul></div>`)
 			$('div[id="' + file.name + '"]').find('h4').append(` <a class='download' title='Export the selected model to GLTF.' onclick="downloadFile(\'wmb\', '${file.name}')"><span class='material-icons'>folder</span> EXPORT AS ZIPPED GLTF</a>`)

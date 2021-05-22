@@ -165,7 +165,7 @@ async function packDAT(file) {
       }
       pos = Math.ceil(pos/0x8000)*0x8000
     } else {
-      console.log(subFile)
+      //console.log(subFile)
       if (workingfile['files'][subFile]['size'] == 0) {
         fileOffsets.push(0)
       } else if (subFile.endsWith('bnk')){
@@ -212,14 +212,14 @@ async function packDAT(file) {
   outputArray = concatenateToUint8(outputArray, new Uint8Array(hashMapOffset - pos))
   outputArray = concatenateToUint8(outputArray, new Uint8Array(workingfile['hashMap']));
   pos += workingfile['hashMap'].byteLength
-  var files = {};
+  var files = [];
   console.log('[DAT REPACKING] Reading files...')
   function afterRepack() {
     console.log("[DAT REPACKING] Writing DAT body...")
     for (var x = 0; x < numFiles; x++) {
       outputArray = concatenateToUint8(outputArray, new Uint8Array(fileOffsets[x] - pos));
       pos = fileOffsets[x];
-      outputArray = concatenateToUint8(outputArray, new Uint8Array(files[workingfile['fileOrder'][x]]));
+      outputArray = concatenateToUint8(outputArray, new Uint8Array(files[x]));
       pos = outputArray.length;
       console.log(`[${x+1}/${numFiles}][${workingfile['fileOrder'][x]}]`)
     }
@@ -235,8 +235,8 @@ async function packDAT(file) {
     let currentFile = i;
     reader.onloadend = async function(e) {
         if (e.target.readyState == FileReader.DONE) {
-          files[workingfile['fileOrder'][currentFile]] = e.target.result;
-          if (Object.keys(files).length == numFiles) {
+          files.push(e.target.result); // may not be always in the same order? not sure
+          if (files.length == numFiles) {
             afterRepack();
           }
         }
