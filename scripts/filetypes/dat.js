@@ -220,7 +220,7 @@ async function packDAT(file) {
       outputArray = concatenateToUint8(outputArray, new Uint8Array(fileOffsets[x] - pos));
       pos = fileOffsets[x];
       outputArray = concatenateToUint8(outputArray, new Uint8Array(files[x]));
-      pos = outputArray.length;
+      pos = outputArray.byteLength;
       console.log(`[${x+1}/${numFiles}][${workingfile['fileOrder'][x]}]`)
     }
     outputArray = concatenateToUint8(outputArray, new Uint8Array(Math.ceil(pos/16)*16 - pos));
