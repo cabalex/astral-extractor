@@ -85,7 +85,7 @@ async function loadInitial(fileType, file) {
     await loadInitialCSV(fileType, file)
   } else if (fileType == 'wmb') {
     await loadInitialWMB(fileType, file)
-  } else if (fileType == 'bxm') {
+  } else if (fileType == 'bxm' || fileType == 'sar') {
     await loadInitialBXM(fileType, file)
   } else {
     console.log("Unsupported file type!")
@@ -258,9 +258,10 @@ function maximize(elem) {
   $(elem).replaceWith("<a class='minimize' onclick='minimize(this)'><span class='material-icons'>expand_less</span></a>")
 }
 
-var fileTypes = ['.pkz', '.dat', '.dtt', '.evn', '.csv', '.wmb', '.bxm', 'GameData.dat']
+var fileTypes = ['.pkz', '.dat', '.dtt', '.evn', '.csv', '.wmb', '.bxm', '.sar', 'GameData.dat']
 var fileInfo = {
   "bxm": "Binary XML. Used for storing information about the game, especially events and cutscenes.<br><b>BXM files are currently read-only right now.</b> I've  yet to come up with a clean editor, but it's coming soon!",
+  "sar": "Binary XML files.",
   "pkz": "Compressed ZSTD archives containing most of the game's files.",
   "dat": "DAT archive. Holds most of the game's files.",
   "dtt": "DAT archive. Almost identical to .DAT, but separated for performance.",

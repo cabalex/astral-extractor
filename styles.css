@@ -12,6 +12,8 @@ ol {
 }
 img, svg, span {
 	vertical-align: middle;
+	user-drag: none;
+	-webkit-user-drag: none;
 }
 .download, .repack, .disabled {
 	text-decoration: none;

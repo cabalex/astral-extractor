@@ -26,7 +26,7 @@ function loadInitialBXM(fileType, file) {
         // value offset - 1
         offset += 4;
       }
-      const enc = new TextDecoder("ascii")
+      const enc = new TextDecoder("utf-8")
       const uint8 = new Uint8Array(e.target.result)
       function readString(pos) {
         pos = pos + offset;
@@ -36,8 +36,11 @@ function loadInitialBXM(fileType, file) {
         }
         return enc.decode(e.target.result.slice(pos, tmppos))
       }
+      var readValues = [];
+      var overflow = false;
       function readTree(nodeNum) {
         var node = nodeInfo[nodeNum];
+        readValues.push(nodeNum);
         // child count - 0
         // first child index/next sibling list index - 1
         // attribute count - 2
@@ -54,7 +57,6 @@ function loadInitialBXM(fileType, file) {
         var outputJSON = {"name": name, "value": value, "attributes": {}, "children": []}; // the current node
         // attributes
         if (node[2] > 0) {
-          console.log(dataOffsets[node[3]+1][1])
           for (var i = 0; i < node[2]; i++) {
             var attrname = "";
             var attrvalue = "";
@@ -69,12 +71,19 @@ function loadInitialBXM(fileType, file) {
         }
         // children
         if (node[0] > 0) {
+          var childNodeNum = node[1];
           for (var i = 0; i < node[0]; i++) {
-            outputJSON['children'].push(readTree(nodeNum+i+1))
+            outputJSON['children'].push(readTree(childNodeNum))
+            if (nodeInfo[node[1]][1]+1 > nodeInfo.length) {
+              childNodeNum += 1;
+            } else {
+              childNodeNum = nodeInfo[node[1]][1]
+            }
           }
         }
         return outputJSON;
       }
+      console.log(`reading tree... ${nodeCount} nodes, ${dataCount} data offsets, ${dataSize} total data size`)
       const output = readTree(0);
       console.log(output) // woo
       function JSONtoXML(js) {
