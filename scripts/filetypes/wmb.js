@@ -595,13 +595,15 @@ function format_wmb_mesh(wmb, gltf) {
 						var [finalArr, faceoffset, gltf] = addDataToBuffer(gltf, finalArr, faces, "faces")
 						var [finalArr, vertoffset, gltf] = addDataToBuffer(gltf, finalArr, vertices, "vertices")
 						//var [finalArr, vertoffset, gltf] = addDataToBuffer(gltf, finalArr, uvMaps[0], "texcoord")
-						gltf['meshes'][0]['primitives'].push(
+						gltf['meshes'].push(
 						{
 							'name': meshName,
 							'id': meshArrayIndex,
-							'attributes': {"POSITION": gltf['accessors'].length-1},//, "TEXCOORD_0": gltf['accessors'].length-1},
-							'indices': gltf['accessors'].length-2,
-							//'material': 0
+							"primitives": [{
+								'attributes': {"POSITION": gltf['accessors'].length-1},//, "TEXCOORD_0": gltf['accessors'].length-1},
+								'indices': gltf['accessors'].length-2,
+								//'material': 0
+							}]
 						}
 						)
 					}
@@ -613,7 +615,7 @@ function format_wmb_mesh(wmb, gltf) {
 	//let b64 = btoa(String.fromCharCode(...new Uint8Array(finalArr)))
 	//gltf["buffers"].push({"uri": `data:application/gltf-buffer;base64,${b64}`, "byteLength": finalArr.byteLength})
 	var blob = new Blob([finalArr], {type: "application/octet-stream"});
-	gltf['meshes'][0]['primitives'].sort(function(first, second) {
+	gltf['meshes'].sort(function(first, second) {
 		return first.id - second.id;
 	});
 	return [wmb, gltf, blob, finalArr.byteLength]
@@ -685,7 +687,7 @@ function loadInitialWMB(fileType, file) {
 				"images" : [],
   				"textures": [],
 				"buffers": [],
-				"meshes": [{'primitives': []}],
+				"meshes": [],
 				"nodes": [],
 				"scene": 0,
 				"scenes": [{"nodes": [0]}]
@@ -702,7 +704,7 @@ function loadInitialWMB(fileType, file) {
 			var [wmb, gltf, finalBlob, blobLength] = format_wmb_mesh(wmb, gltf)
 			var numNodes = [];
 			for (var i = 0; i < gltf['meshes'].length; i++) {
-				gltf['nodes'].push({'mesh': i})
+				gltf['nodes'].push({'mesh': i, 'name': gltf['meshes'][i]['name']})
 				numNodes.push(i)
 			}
 			gltf['scenes'][0]['nodes'] = numNodes
@@ -715,13 +717,13 @@ function loadInitialWMB(fileType, file) {
 			// for when i add other uv maps
 			// skybox-image="assets/skybox.png"
 			$('div[id="' + file.name + '"]').find('div').append(`<model-viewer camera-controls touch-action shadow-intensity="1" shadow-softness="0.5" interaction-prompt="none" id="modelViewer" poster="assets/loading.png" style="--poster-color: #2C2C2C;  margin-left: -10px; width: calc(100vw - 400px); height: 500px;" src="${url2}"></model-viewer>`)
-			globalFiles[file.name] = {'fp': file, 'gltf': gltf, 'bin': finalBlob, 'textures': [], 'og-primitives': gltf['meshes'][0]['primitives'], 'disabled-primitives': []}
+			globalFiles[file.name] = {'fp': file, 'gltf': gltf, 'bin': finalBlob, 'textures': [], 'og-primitives': gltf['meshes'], 'disabled-primitives': []}
 			document.getElementById("modelViewer").addEventListener('error', function(event) {
 				console.error(event, `<model-viewer> ERROR! | ${event.detail}`)
 			}, true)
 			var items = [];
-			for (var i = 0; i < gltf['meshes'][0]['primitives'].length; i++) {
-				items.push(`<li title="${gltf['meshes'][0]['primitives'][i]['name']}"><img height="30px" style="cursor: pointer" onclick="disableLayerWMB(this);" src="assets/enabled.png">${gltf['meshes'][0]['primitives'][i]['name']}</li>`)
+			for (var i = 0; i < gltf['meshes'].length; i++) {
+				items.push(`<li title="${gltf['meshes'][i]['name']}"><img height="30px" style="cursor: pointer" onclick="disableLayerWMB(this);" src="assets/enabled.png">${gltf['meshes'][i]['name']}</li>`)
 			}
 			$('div[id="' + file.name + '"]').find('div').append(`<div class='model-sidebar' id='${file.name}-sidebar'><h3 style="margin-left: 10px">${file.name.split(".")[0]}</h3><ul>${items.join('')}</ul></div>`)
 			$('div[id="' + file.name + '"]').find('h4').append(` <a class='download' title='Export the selected model to GLTF.' onclick="downloadFile(\'wmb\', '${file.name}')"><span class='material-icons'>folder</span> EXPORT AS ZIPPED GLTF</a>`)
@@ -735,10 +737,14 @@ function loadInitialWMB(fileType, file) {
 async function downloadWMB(fileType, name) {
 	blobWriter = new zip.BlobWriter("application/zip");
 	writer = new zip.ZipWriter(blobWriter);
-	var gltf = globalFiles[name]['gltf']
-	gltf['meshes'][0]['primitives'] = globalFiles[name]['og-primitives']
-	gltf['buffers'][0]['uri'] = "buffer.bin"
-	var jsonse = JSON.stringify(gltf)
+	var output_gltf = JSON.parse(JSON.stringify(globalFiles[name]['gltf'])); // needs to be deep copied
+	var nums = [];
+	for (var i = 0; i < globalFiles[name]['og-primitives'].length; i++) {
+		nums.push(i)
+	}
+	output_gltf['scenes'][0]['nodes'] = nums;
+	output_gltf['buffers'][0]['uri'] = "buffer.bin"
+	var jsonse = JSON.stringify(output_gltf)
 	var gltfblob = new Blob([jsonse], {type: "application/json"});
 	await writer.add(name.replace(".wmb", ".gltf"), new zip.BlobReader(gltfblob));
 	await writer.add("buffer.bin", new zip.BlobReader(globalFiles[name]['bin']));
@@ -751,15 +757,15 @@ function disableLayerWMB(elem) {
 	const text = $(elem).parent().text().trim()
 	const filename = $(elem).parents('div[class="model-sidebar"]').attr('id').split("-")[0]
 	const modelviewer = $(elem).parents('div[class="model-sidebar"]').parent().find("model-viewer")
-	var items = [];
+	var nums = [];
 	var gltf = globalFiles[filename]['gltf'];
 	globalFiles[filename]['disabled-primitives'].push(text)
 	for (var i = 0; i < globalFiles[filename]['og-primitives'].length; i++) {
 		if (!(globalFiles[filename]['disabled-primitives'].includes(globalFiles[filename]['og-primitives'][i]['name']))) {
-			items.push(globalFiles[filename]['og-primitives'][i])
+			nums.push(i)
 		}
 	}
-	gltf['meshes'][0]['primitives'] = items;
+	gltf['scenes'][0]['nodes'] = nums;
 	var jsonse = JSON.stringify(gltf)
 	var blob = new Blob([jsonse], {type: "application/json"});
 	var url  = URL.createObjectURL(blob);
@@ -778,12 +784,14 @@ function enableLayerWMB(elem) {
 	var gltf = globalFiles[filename]['gltf'];
 	let index = globalFiles[filename]['disabled-primitives'].indexOf(text)
 	globalFiles[filename]['disabled-primitives'].splice(index, 1)
+	var nums = [];
 	for (var i = 0; i < globalFiles[filename]['og-primitives'].length; i++) {
 		if (!(globalFiles[filename]['disabled-primitives'].includes(globalFiles[filename]['og-primitives'][i]['name']))) {
-			items.push(globalFiles[filename]['og-primitives'][i])
+			nums.push(i)
 		}
+		
 	}
-	gltf['meshes'][0]['primitives'] = items;
+	gltf['scenes'][0]['nodes'] = nums;
 	var jsonse = JSON.stringify(gltf)
 	var blob = new Blob([jsonse], {type: "application/json"});
 	var url  = URL.createObjectURL(blob);

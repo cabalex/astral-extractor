@@ -74,8 +74,9 @@ async function loadInitial(fileType, file) {
   if (unzippable.includes(fileType)) {
     image = "assets/marker-2.png"
   }
+  file.name = file.name.replace(" ", "_")
   $('#sideBarContents').append(`<li class="sidebarList" title="${file.name}"><a href="#${file.name}" title="${file.name}"><img style="cursor: pointer;" onclick="deleteItem(this)" onmouseover="onHover(this)" onmouseout="offHover(this)" src=${image} height="30px">${file.name}</a></li>`)
-  
+
   if (fileType == 'pkz') {
     await loadInitialPKZ(fileType, file)
   } else if (fileType == 'dat' || fileType == 'dtt' || fileType == 'evn') {
@@ -84,6 +85,8 @@ async function loadInitial(fileType, file) {
     await loadInitialCSV(fileType, file)
   } else if (fileType == 'wmb') {
     await loadInitialWMB(fileType, file)
+  } else if (fileType == 'bxm') {
+    await loadInitialBXM(fileType, file)
   } else {
     console.log("Unsupported file type!")
     return;
@@ -96,8 +99,11 @@ var blobs = 0;
 var blobWriter;
 var writer;
 function downloadFile(fileType, name) {
+  // this is actually inefficient for files that aren't PKZ and DAT, since all it does is pass to the other function. I'll fix it later
   if (fileType == 'csv') {
     downloadCSV(fileType, name);
+  } else if (fileType == 'bxm') {
+    downloadBXM(fileType, name);
   } else if (fileType == 'wmb') {
     downloadWMB(fileType, name)
   } else {
@@ -203,7 +209,7 @@ async function loadFiles(files) {
       $('div#content').append(`<div id="${files[i].name}"><h4 title="${files[i].name}"><img style="cursor: pointer;" onclick="deleteItem(this)" onmouseover="onHover(this)" onmouseout="offHover(this)" src="assets/lock.png" height="30px"> ${files[i].name}</h4><p><b>This file type isn\'t valid (or at least, not yet).</b> Did you upload the wrong one?</p></div>`)
       continue;
     } else {
-      $('div#content').append(`<div id="${files[i].name}"><h4 id="${files[i].name}"><img style="cursor: pointer;" onclick="deleteItem(this)" onmouseover="onHover(this)" onmouseout="offHover(this)" src="assets/legatus.png" height="30px"> ${files[i].name}</h4><div id="loading"><div id="loadingBar">Loading file...</div></div></div>`)
+      $('div#content').append(`<div id="${files[i].name}"><h4 title="${files[i].name}"><img style="cursor: pointer;" onclick="deleteItem(this)" onmouseover="onHover(this)" onmouseout="offHover(this)" src="assets/legatus.png" height="30px"> ${files[i].name}</h4><div id="loading"><div id="loadingBar">Loading file...</div></div></div>`)
       await loadInitial(files[i].name.split('.')[files[i].name.split('.').length-1], files[i]);
     }
   }
@@ -220,10 +226,9 @@ function offHover(elem) {
 
 function deleteItem(elem) {
   if ($(elem).parents('li').length) {
-    var nameToDelete = $(elem).parents('li').text().split(" ")[0];
+    var nameToDelete = $(elem).parents('li').attr('title');
   } else {
-    var nameToDelete = $(elem).parent().text().split(" ")[1];
-    console.log(nameToDelete)
+    var nameToDelete = $(elem).parents('h4').attr('title');
   }
   $(`div[id="${nameToDelete}"]`).remove();
   $(`li[title="${nameToDelete}"`).remove();
@@ -253,9 +258,9 @@ function maximize(elem) {
   $(elem).replaceWith("<a class='minimize' onclick='minimize(this)'><span class='material-icons'>expand_less</span></a>")
 }
 
-var fileTypes = ['.pkz', '.dat', '.dtt', '.evn', '.csv', '.wmb', 'save files']
+var fileTypes = ['.pkz', '.dat', '.dtt', '.evn', '.csv', '.wmb', '.bxm', 'GameData.dat']
 var fileInfo = {
-  "bxm": "Binary XML. Used for storing information, although the current method of decoding into regular XML is currently unknown.",
+  "bxm": "Binary XML. Used for storing information about the game, especially events and cutscenes.<br><b>BXM files are currently read-only right now.</b> I've  yet to come up with a clean editor, but it's coming soon!",
   "pkz": "Compressed ZSTD archives containing most of the game's files.",
   "dat": "DAT archive. Holds most of the game's files.",
   "dtt": "DAT archive. Almost identical to .DAT, but separated for performance.",
@@ -263,6 +268,6 @@ var fileInfo = {
   "csv": "Comma-separated values. Holds parameters regarding the game.",
   "wmb": "Model files. Astral Extractor does not support re-adding models to the game- use Blender2AstralChain / AstralChain2Blender for that.<br><b>Model previews are still in development!</b> Some models may not display correctly, and textures (WTA/WTP) have not been implemented."
 }
-var unzippable = ['csv']
+var unzippable = ['csv', 'bxm']
 $('#supportedFiles').text(fileTypes.join(", "))
 var globalFiles = {}
