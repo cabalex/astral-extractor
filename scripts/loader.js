@@ -161,8 +161,6 @@ async function sendOutSubFile(fileType, name, subFile, blob, returnFile) {
 
 
 function downloadSubFile(fileType, name, subFile, returnFile = false) {
-  var reader = new FileReader();
-  const workingfile = globalFiles[name];
   if (fileType == 'pkz') {
     exportSubFilePKZ(fileType, name, subFile, returnFile)
   } else if (fileType == 'dat') {
@@ -174,6 +172,14 @@ function downloadSubFile(fileType, name, subFile, returnFile = false) {
   }
 }
 
+function loadAllSubFiles(fileType, name) {
+  var filenames = Object.keys(globalFiles[name]['files'])
+  for (var i = 0; i < filenames.length; i++) {
+    if (!(Object.keys(globalFiles).includes(filenames[i])) && fileTypes.includes("." + filenames[i].split(".")[1])) {
+      downloadSubFile(fileType, name, filenames[i], "blob")
+    }
+  }
+} 
 
 function loadSubFile(fileType, name, subFile) {
   downloadSubFile(fileType, name, subFile, "blob")
@@ -258,15 +264,25 @@ function maximize(elem) {
   $(elem).replaceWith("<a class='minimize' onclick='minimize(this)'><span class='material-icons'>expand_less</span></a>")
 }
 
+function readableBytes(bytes) {
+  if (bytes == 0) {
+    return "0 B"
+  }
+  var i = Math.floor(Math.log(bytes) / Math.log(1024)),
+  sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+
+  return (bytes / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + sizes[i];
+}
+
 var fileTypes = ['.pkz', '.dat', '.dtt', '.evn', '.csv', '.wmb', '.bxm', '.sar', 'GameData.dat']
 var fileInfo = {
   "bxm": "Binary XML. Used for storing information about the game, especially events and cutscenes.<br><b>BXM files are currently read-only right now.</b> I've  yet to come up with a clean editor, but it's coming soon!",
   "sar": "Binary XML files.",
-  "pkz": "Compressed ZSTD archives containing most of the game's files.",
+  "pkz": "Compressed ZSTD archives containing most of the game's files.<br><b>NOTE: For most use cases, you do not need to repack these.</b> Usually, you can just place your files in the directory, and the game will load them fine.<br><b>You DON'T need to repack:</b> Models, UI<br><b>You DO need to repack:</b> .EVNs in event/, .DAT/.DTTs in core/",
   "dat": "DAT archive. Holds most of the game's files.",
   "dtt": "DAT archive. Almost identical to .DAT, but separated for performance.",
   "evn": "DAT archive. Identical to .DAT files.",
-  "csv": "Comma-separated values. Holds parameters regarding the game.",
+  "csv": "Comma-separated values. Holds parameters regarding the game. REPACKING encodes the file as SHIFT-JIS (the encoding used by the game), while DOWNLOADING encodes the file as UTF-16 (the encoding used by most modern devices).",
   "wmb": "Model files. Astral Extractor does not support re-adding models to the game- use Blender2AstralChain / AstralChain2Blender for that.<br><b>Model previews are still in development!</b> Some models may not display correctly, and textures (WTA/WTP) have not been implemented."
 }
 var unzippable = ['csv', 'bxm']

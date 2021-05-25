@@ -46,18 +46,18 @@ function loadInitialDAT(fileType, file) {
         hashes = true
         reader.readAsArrayBuffer(file.slice(header[6], fileOffsetsTable[0]))
       } else {
-        var form = "<table><tr><th>ACTIONS</th><th>NAME</th><th>SIZE</th><th>OFFSET</th>";
+        var form = `<table><tr><th><a onclick='loadAllSubFiles(\"pkz\", \"${file.name}\")'><span class="material-icons">open_in_new</span> ALL</a></th><th>NAME</th><th>SIZE</th><th>OFFSET</th>`;
         for (const [ key, value ] of Object.entries(localFiles)) {
           let supported = "hidden"
           if (endsWithAny(fileTypes, key)) {
             supported = "open_in_new"
           }
-          form += `<tr><th><a title="Download this file." onclick="downloadSubFile(\'dat\', '${file.name}', '${key}')"><span class="material-icons">download</span></a><a class="${supported}" title="Open this file in a new editor section." onclick="loadSubFile(\'dat\', '${file.name}', '${key}')"><span class="material-icons">open_in_new</span></a><input type="file" id="${file.name}-${key}-upload" accept=".${key.split('.')[1]}" style="display:none"/><a class="file_upload" title="Replace this file." onclick="$('input[id=&quot;${file.name}-${key}-upload&quot;]').trigger('click');"><span class="material-icons">file_upload</span></a></th><th><input type="text" disabled="true" size="16" value='${key}'></input></th><th>${value.size}</th><th>${value.offset}</th><th class="replacedIndicator"><img height="30px" title="File has not been replaced." alt="Not replaced" src="assets/unreplaced-black.png"</th></tr>`
+          form += `<tr><th><a title="Download this file." onclick="downloadSubFile(\'dat\', '${file.name}', '${key}')"><span class="material-icons">download</span></a><a class="${supported}" title="Open this file in a new editor section." onclick="loadSubFile(\'dat\', '${file.name}', '${key}')"><span class="material-icons">open_in_new</span></a><input type="file" id="${file.name}-${key}-upload" accept=".${key.split('.')[1]}" style="display:none"/><a class="file_upload" title="Replace this file." onclick="$('input[id=&quot;${file.name}-${key}-upload&quot;]').trigger('click');"><span class="material-icons">file_upload</span></a></th><th><input type="text" disabled="true" size="16" value='${key}'></input></th><th title="${value['size']} bytes">${readableBytes(value['size'])}</th><th title="${readableBytes(value['offset'])}">${value.offset}</th><th class="replacedIndicator"><img height="30px" title="File has not been replaced." alt="Not replaced" src="assets/unreplaced-black.png"</th></tr>`
         }
         $('div[id="' + file.name + '"]').find('h4').append(` - ${Object.keys(localFiles).length} files <a class='download' title='Download the extracted files as a ZIP.' onclick="downloadFile(\'dat\', '${file.name}')"><span class='material-icons'>folder</span> DOWNLOAD ZIP</a>`)
         $('div[id="' + file.name + '"]').find('h4').append(`<a class='repack' title='Repack the file into a game-ready DAT.' onclick="packDAT('${file.name}')"><span class='material-icons'>auto_fix_high</span> REPACK</a>`)
         $('div[id="' + file.name + '"]').find('h4').prepend(`<a class='minimize' onclick="minimize(this)"><span class="material-icons">expand_less</span></a>`)
-        $('div[id="' + file.name + '"]').append("<div id='files'>" + form + "</table></div>")
+        $('div[id="' + file.name + '"]').append("<div id='files' class='scroll'>" + form + "</table></div>")
         for (const key of Object.keys(localFiles)) {
           document.getElementById(`${file.name}-${key}-upload`).addEventListener("change", function(event) { if (replaceInitDAT("dat", file.name, key, event.target.files) == true) {$(this).closest('tr').find('th.replacedIndicator').replaceWith('<th class="replacedIndicator"><img height="30px" title="Replaced file." alt="Replaced file." src="assets/replaced-black.png"></img></th>')}}, false);
         }
@@ -121,6 +121,7 @@ function toUint32(bytes) {
 }
 
 async function packDAT(file) {
+  $(`div[id="${file}"]`).find('h4').children('a.repack').replaceWith(`<div class='repack' style="padding: 0; background-color:#C5C5C5;"><span class='material-icons'>auto_fix_high</span> REPACKING...</div>`)
   if (!("TextDecoder" in window) || !("TextEncoder" in window)) {
     alert("This browser doesn't support TextDecoder and TextEncoder, which is required for DAT repacking. Use a newer one?")
     return;
@@ -212,14 +213,14 @@ async function packDAT(file) {
   outputArray = concatenateToUint8(outputArray, new Uint8Array(hashMapOffset - pos))
   outputArray = concatenateToUint8(outputArray, new Uint8Array(workingfile['hashMap']));
   pos += workingfile['hashMap'].byteLength
-  var files = [];
+  var files = {};
   console.log('[DAT REPACKING] Reading files...')
   function afterRepack() {
     console.log("[DAT REPACKING] Writing DAT body...")
     for (var x = 0; x < numFiles; x++) {
       outputArray = concatenateToUint8(outputArray, new Uint8Array(fileOffsets[x] - pos));
       pos = fileOffsets[x];
-      outputArray = concatenateToUint8(outputArray, new Uint8Array(files[x]));
+      outputArray = concatenateToUint8(outputArray, new Uint8Array(files[workingfile['fileOrder'][x]]));
       pos = outputArray.byteLength;
       console.log(`[${x+1}/${numFiles}][${workingfile['fileOrder'][x]}]`)
     }
@@ -227,16 +228,18 @@ async function packDAT(file) {
     var blob = new Blob([outputArray], {type: 'application/octet-stream'});
     console.log("DAT Export complete. :)")
     saveAs(blob, file)
+    $(`div[id="${file}"]`).find('h4').children('.repack').replaceWith(`<a class='repack' title='Repack the file into a game-ready DAT.' onclick="packDAT('${file}')"><span class='material-icons'>auto_fix_high</span> REPACK</a>`)
     return;
   }
   for (var i = 0; i < numFiles; i++) {
     let subFile = workingfile['files'][workingfile['fileOrder'][i]]
+    let subFileName = workingfile['fileOrder'][i];
     let reader = new FileReader();
     let currentFile = i;
     reader.onloadend = async function(e) {
         if (e.target.readyState == FileReader.DONE) {
-          files.push(e.target.result); // may not be always in the same order? not sure
-          if (files.length == numFiles) {
+          files[subFileName] = e.target.result;
+          if (Object.keys(files).length == numFiles) {
             afterRepack();
           }
         }

@@ -1,8 +1,21 @@
+function swap16(val) {
+    return ((val & 0xFF) << 8)
+           | ((val >> 8) & 0xFF);
+}
+
+function swap32(val) {
+    return ((val & 0xFF) << 24)
+           | ((val & 0xFF00) << 8)
+           | ((val >> 8) & 0xFF00)
+           | ((val >> 24) & 0xFF);
+}
+
 function loadInitialBXM(fileType, file) {
   var reader = new FileReader();
   reader.onloadend = function(e) {
     if (e.target.readyState == FileReader.DONE) {
       // stuff is in BIG ENDIAN; gotta do some jank
+      console.log(e.target.result)
       const header = new DataView(e.target.result.slice(0, 16));
       // magic - 0-4 - magic may be BXM\x00 or XML\x00
       // unk (flags?) - 4-8
@@ -14,33 +27,31 @@ function loadInitialBXM(fileType, file) {
       var nodeInfo = [];
       var offset = 16;
       for (var i = 0; i < nodeCount; i++) {
-        nodeInfo.push(new Uint16Array(e.target.result.slice(offset, offset+8)).map(function (item){return item >> 8}))
+        nodeInfo.push(new Uint16Array(e.target.result.slice(offset, offset+8)).map(function (item){return swap16(item)}))
         offset += 8;
       }
       const dataOffsetsOffset = offset;
       var dataOffsets = [];
       for (var i = 0; i < dataCount; i++) {
         le_data = new Uint16Array(e.target.result.slice(offset, offset+4))
-        dataOffsets.push([le_data[0] >> 8, le_data[1] >> 8])
+        dataOffsets.push([swap16(le_data[0]), swap16(le_data[1])])
         // name offset - 0
         // value offset - 1
         offset += 4;
       }
-      const enc = new TextDecoder("utf-8")
+      const enc = new TextDecoder("shift-jis")
       const uint8 = new Uint8Array(e.target.result)
       function readString(pos) {
         pos = pos + offset;
         var tmppos = pos;
-        while (tmppos < uint8.length && uint8[tmppos] != 0) {
+        while (tmppos < uint8.byteLength && uint8[tmppos] != 0) {
           tmppos += 1;
         }
-        return enc.decode(e.target.result.slice(pos, tmppos))
+        return enc.decode(e.target.result.slice(pos, tmppos));
       }
-      var readValues = [];
       var overflow = false;
       function readTree(nodeNum) {
         var node = nodeInfo[nodeNum];
-        readValues.push(nodeNum);
         // child count - 0
         // first child index/next sibling list index - 1
         // attribute count - 2
@@ -73,12 +84,7 @@ function loadInitialBXM(fileType, file) {
         if (node[0] > 0) {
           var childNodeNum = node[1];
           for (var i = 0; i < node[0]; i++) {
-            outputJSON['children'].push(readTree(childNodeNum))
-            if (nodeInfo[node[1]][1]+1 > nodeInfo.length) {
-              childNodeNum += 1;
-            } else {
-              childNodeNum = nodeInfo[node[1]][1]
-            }
+            outputJSON['children'].push(readTree(childNodeNum+i))
           }
         }
         return outputJSON;
@@ -104,14 +110,14 @@ function loadInitialBXM(fileType, file) {
       $('div[id="' + file.name + '"]').find('h4').append(` <a class='download' title='Download the file as a readable XML.' onclick="downloadFile(\'bxm\', '${file.name}')"><span class='material-icons'>insert_drive_file</span> DOWNLOAD XML</a>`)
       $('div[id="' + file.name + '"]').find('h4').append(`<a class='disabled' title='Repack the file into a game-ready BXM.' onclick="packXML('${file.name}')"><span class='material-icons'>auto_fix_high</span> REPACK (COMING SOON)</a>`)
       $('div[id="' + file.name + '"]').find('h4').prepend(`<a class='minimize' onclick="minimize(this)"><span class="material-icons">expand_less</span></a>`)
-      $('div[id="' + file.name + '"]').append(`<p style="margin-left: 10px;"><span class="xml_body" style="white-space: pre-wrap; font-family: Consolas, sans-serif;">${xmlOutput}</span></p>`)
+      $('div[id="' + file.name + '"]').append(`<div class="scroll" style="margin-left: 10px;"><span class="xml_body" style="white-space: pre-wrap; tab-size: 4; font-family: Consolas, sans-serif;">${xmlOutput}</span></div>`)
       globalFiles[file.name] = {'fp': file, 'json': output, 'xml': xmlOutput}
     }
   }
   reader.readAsArrayBuffer(file)
 }
 
-function packXML(name) {
+function packBXM(name) {
   // todo
 }
 

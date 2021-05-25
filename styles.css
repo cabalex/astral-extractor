@@ -178,11 +178,23 @@ a {
 	font-family: Consolas, sans-serif;
 }
 table, th, td {
-  background-color: #DCEBE4;
   padding: 3px;
   color: #3A3A3A;
-  border-radius: 0.25em;
   border-collapse: collapse;
+}
+table {
+	background-color: #DCEBE4;
+	border-radius: 0.25em;
+}
+th {
+	text-align: left;
+}
+tr:nth-child(even) {
+	background-color: #cde2d8 !important;
+	border-radius: 0;
+}
+tr:nth-child(odd) {
+	background-color: #DCEBE4 !important;
 }
 #alert-title {
 	position: fixed;
@@ -229,7 +241,8 @@ table, th, td {
 	visibility: hidden;
 }
 .scroll {
-	overflow-y: scroll;
+	overflow-y: auto;
+	max-height: calc(100vh - 50px);
 }
 .model-sidebar {
 	background-color: #2C2C2C;
