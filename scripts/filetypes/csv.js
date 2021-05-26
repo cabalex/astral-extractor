@@ -55,40 +55,42 @@ function formatChars(text) {
 }
 
 function loadInitialCSV(fileTypes, file) {
-  var reader = new FileReader();
-  reader.onloadend = function(e) {
-    if (e.target.readyState == FileReader.DONE) {
-      var [lines, maxLengthLength] = convertCSVtoArray(e.target.result);
-      var maxLength = new Array(maxLengthLength).fill(1)
-      var form = "<div class='scroll'><table>";
-      decoder = new TextDecoder("shift-jis");
-      for (var i = 0; i < lines.length; i++) {
-        // lines
-        form += "<tr>"
-        for (var x = 0; x < lines[i].length; x++) {
-          // items in line
-          let unitext = lines[i][x]
-          unitext = decoder.decode(unitext.buffer);
-          form += `<th><input class="${file.name}-${x}" type="text" value='${unitext}'></input></th>`;
-          if (unitext.length > maxLength[x]) {
-            maxLength[x] = unitext.length;
+  return new Promise((resolve, reject) => {
+    var reader = new FileReader();
+    reader.onloadend = function(e) {
+      if (e.target.readyState == FileReader.DONE) {
+        var [lines, maxLengthLength] = convertCSVtoArray(e.target.result);
+        var maxLength = new Array(maxLengthLength).fill(1)
+        var form = "<div class='scroll'><table>";
+        decoder = new TextDecoder("shift-jis");
+        for (var i = 0; i < lines.length; i++) {
+          // lines
+          form += "<tr>"
+          for (var x = 0; x < lines[i].length; x++) {
+            // items in line
+            let unitext = lines[i][x]
+            unitext = decoder.decode(unitext.buffer);
+            form += `<th><input class="${file.name}-${x}" type="text" value='${unitext}'></input></th>`;
+            if (unitext.length > maxLength[x]) {
+              maxLength[x] = unitext.length;
+            }
           }
-        }
-        form += "</tr>"
+          form += "</tr>"
 
-      }
-      form += "</table></div>"
-      $('div[id="' + file.name + '"]').find('h4').append(` - ${lines.length} lines <a class='download' onclick="downloadCSV(\'csv\', '${file.name}', 'false')"><span class='material-icons'>insert_drive_file</span> DOWNLOAD CSV</a>`)
-      $('div[id="' + file.name + '"]').find('h4').append(` - ${lines.length} lines <a class='repack' title='Repack the file into a game-ready CSV.' onclick="downloadCSV(\'csv\', '${file.name}', 'true')"><span class='material-icons'>auto_fix_high</span> REPACK</a>`)
-      $('div[id="' + file.name + '"]').find('h4').prepend(`<a class='minimize' onclick="minimize(this)"><span class="material-icons">expand_less</span></a>`)
-      $('div[id="' + file.name + '"]').append("<div id='files' class='scroll'>" + form + "</table></div>")
-      for (var i = 0; i < maxLengthLength; i++) {
-        $(`input[class="${file.name}-${i}"]`).attr('size', maxLength[i])
+        }
+        form += "</table></div>"
+        $('div[id="' + file.name + '"]').find('h4').append(` - ${lines.length} lines <a class='download' onclick="downloadCSV(\'csv\', '${file.name}', 'false')"><span class='material-icons'>insert_drive_file</span> DOWNLOAD CSV</a>`)
+        $('div[id="' + file.name + '"]').find('h4').append(` <a class='repack' title='Repack the file into a game-ready CSV.' onclick="downloadCSV(\'csv\', '${file.name}', 'true')"><span class='material-icons'>auto_fix_high</span> REPACK</a>`)
+        $('div[id="' + file.name + '"]').find('h4').prepend(`<a class='minimize' onclick="minimize(this)"><span class="material-icons">expand_less</span></a>`)
+        $('div[id="' + file.name + '"]').append("<div id='files' class='scroll'>" + form + "</table></div>")
+        for (var i = 0; i < maxLengthLength; i++) {
+          $(`input[class="${file.name}-${i}"]`).attr('size', maxLength[i])
+        }
+        resolve();
       }
     }
-  }
-  reader.readAsArrayBuffer(file)
-
+    reader.readAsArrayBuffer(file)
+  })
 }
 
 function downloadCSV(fileType, name, repack=false) {

@@ -664,73 +664,80 @@ function construct_armature(name, bone_data_array, firstLevel, secondLevel, thir
 }
 
 function loadInitialWMB(fileType, file) {
-	// probably check if there's a WTA/WTP here
-	var reader = new FileReader()
-	reader.onloadend = function(e) {
-		if (e.target.readyState == FileReader.DONE) {
-			var gltf = {
-				"asset": {
-					"version": "2.0",
-					"copyright": "2019 (c) Nintendo"
-				},
-				"bufferViews": [],
-				"accessors": [],
-				"materials" : [{
-					"pbrMetallicRoughness" : {
-						"baseColorTexture" : {
-							"index" : 0
-						},
-						"metallicFactor" : 1.0,
-						"roughnessFactor" : 1.0
-					}
-				}],
-				"images" : [],
-  				"textures": [],
-				"buffers": [],
-				"meshes": [],
-				"nodes": [],
-				"scene": 0,
-				"scenes": [{"nodes": [0]}]
+	return new Promise(async (resolve, reject) => {
+		// probably check if there's a WTA/WTP here
+		var reader = new FileReader()
+		$('div[id="' + file.name + '"]').append(`<div class="spinner"><img width="48px" height="48px" src="assets/loading-small.png"></img></div>`)
+		reader.onloadend = async function(e) {
+			if (e.target.readyState == FileReader.DONE) {
+				var gltf = {
+					"asset": {
+						"version": "2.0",
+						"copyright": "2019 (c) Nintendo"
+					},
+					"bufferViews": [],
+					"accessors": [],
+					"materials" : [{
+						"pbrMetallicRoughness" : {
+							"baseColorTexture" : {
+								"index" : 0
+							},
+							"metallicFactor" : 1.0,
+							"roughnessFactor" : 1.0
+						}
+					}],
+					"images" : [],
+	  				"textures": [],
+					"buffers": [],
+					"meshes": [],
+					"nodes": [],
+					"scene": 0,
+					"scenes": [{"nodes": [0]}]
+				}
+				var wmb = new WMB3(e.target.result);
+				if (wmb.wmb3_header.hasBone == true) {
+					console.log("[!] This model has a bone structure we can't handle yet.")
+					var boneArray = wmb.boneArray.map(function(bone) {return [bone.boneIndex, `bone${bone.boneIndex}`, bone.parentIndex,`bone${bone.parentIndex}`, bone.world_position, bone.world_rotation, bone.boneNumber, bone.local_position, bone.local_rotation, bone.world_rotation, bone.world_position_tpose]})
+					var armature_no_wmb = wmbname.replace('.wmb','')
+					var armature_name_split = armature_no_wmb.split('/')
+					var armature_name = armature_name_split[armature_name_split.length-1]
+					construct_armature(armature_name, boneArray, wmb.firstLevel, wmb.secondLevel, wmb.thirdLevel, wmb.boneMap, wmb.boneSetArray) 
+				}
+				var [wmb, gltf, finalBlob, blobLength] = await format_wmb_mesh(wmb, gltf)
+				var numNodes = [];
+				for (var i = 0; i < gltf['meshes'].length; i++) {
+					gltf['nodes'].push({'mesh': i, 'name': gltf['meshes'][i]['name']})
+					numNodes.push(i)
+				}
+				gltf['scenes'][0]['nodes'] = numNodes
+				var url1  = URL.createObjectURL(finalBlob);
+				gltf["buffers"].push({"uri": url1, "byteLength": blobLength})
+				console.log(gltf)
+				var jsonse = JSON.stringify(gltf)
+				var blob = new Blob([jsonse], {type: "application/json"});
+				var url2  = URL.createObjectURL(blob);
+				// for when i add other uv maps
+				// skybox-image="assets/skybox.png"
+				$('div[id="' + file.name + '"]').find('div').append(`<model-viewer camera-controls touch-action shadow-intensity="1" shadow-softness="0.5" interaction-prompt="none" id="modelViewer" poster="assets/loading.png" style="--poster-color: #2C2C2C;  margin-left: -10px; width: calc(100vw - 400px); height: 500px;" src="${url2}"></model-viewer>`)
+				globalFiles[file.name] = {'fp': file, 'gltf': gltf, 'bin': finalBlob, 'textures': [], 'og-primitives': gltf['meshes'], 'disabled-primitives': []}
+				// debug error logging
+				document.getElementById("modelViewer").addEventListener('error', function(event) {
+					console.error(event, `<model-viewer> ERROR! | ${event.detail}`)
+				}, true) 
+				var items = [];
+				for (var i = 0; i < gltf['meshes'].length; i++) {
+					items.push(`<li title="${gltf['meshes'][i]['name']}"><img height="30px" style="cursor: pointer" onclick="disableLayerWMB(this);" src="assets/enabled.png">${gltf['meshes'][i]['name']}</li>`)
+				}
+				$('.spinner').remove();
+				$('div[id="' + file.name + '"]').closest('div').append(`<div class='model-sidebar' id='${file.name}-sidebar'><h3 style="margin-left: 10px">${file.name.split(".")[0]}</h3><ul>${items.join('')}</ul></div>`)
+				$('div[id="' + file.name + '"]').find('h4').append(` <a class='download' title='Export the selected model to GLTF.' onclick="downloadFile(\'wmb\', '${file.name}')"><span class='material-icons'>folder</span> EXPORT AS ZIPPED GLTF</a>`)
+				$('div[id="' + file.name + '"]').find('h4').find('img').after(hamburgers['wmb'])
+				$('div[id="' + file.name + '"]').find('h4').prepend(`<a class='minimize' onclick="minimize(this)"><span class="material-icons">expand_less</span></a>`)
+				resolve();
 			}
-			var wmb = new WMB3(e.target.result);
-			if (wmb.wmb3_header.hasBone == true) {
-				console.log("[!] This model has a bone structure we can't handle yet.")
-				var boneArray = wmb.boneArray.map(function(bone) {return [bone.boneIndex, `bone${bone.boneIndex}`, bone.parentIndex,`bone${bone.parentIndex}`, bone.world_position, bone.world_rotation, bone.boneNumber, bone.local_position, bone.local_rotation, bone.world_rotation, bone.world_position_tpose]})
-				var armature_no_wmb = wmbname.replace('.wmb','')
-				var armature_name_split = armature_no_wmb.split('/')
-				var armature_name = armature_name_split[armature_name_split.length-1]
-				construct_armature(armature_name, boneArray, wmb.firstLevel, wmb.secondLevel, wmb.thirdLevel, wmb.boneMap, wmb.boneSetArray) 
-			}
-			var [wmb, gltf, finalBlob, blobLength] = format_wmb_mesh(wmb, gltf)
-			var numNodes = [];
-			for (var i = 0; i < gltf['meshes'].length; i++) {
-				gltf['nodes'].push({'mesh': i, 'name': gltf['meshes'][i]['name']})
-				numNodes.push(i)
-			}
-			gltf['scenes'][0]['nodes'] = numNodes
-			var url1  = URL.createObjectURL(finalBlob);
-			gltf["buffers"].push({"uri": url1, "byteLength": blobLength})
-			console.log(gltf)
-			var jsonse = JSON.stringify(gltf)
-			var blob = new Blob([jsonse], {type: "application/json"});
-			var url2  = URL.createObjectURL(blob);
-			// for when i add other uv maps
-			// skybox-image="assets/skybox.png"
-			$('div[id="' + file.name + '"]').find('div').append(`<model-viewer camera-controls touch-action shadow-intensity="1" shadow-softness="0.5" interaction-prompt="none" id="modelViewer" poster="assets/loading.png" style="--poster-color: #2C2C2C;  margin-left: -10px; width: calc(100vw - 400px); height: 500px;" src="${url2}"></model-viewer>`)
-			globalFiles[file.name] = {'fp': file, 'gltf': gltf, 'bin': finalBlob, 'textures': [], 'og-primitives': gltf['meshes'], 'disabled-primitives': []}
-			document.getElementById("modelViewer").addEventListener('error', function(event) {
-				console.error(event, `<model-viewer> ERROR! | ${event.detail}`)
-			}, true)
-			var items = [];
-			for (var i = 0; i < gltf['meshes'].length; i++) {
-				items.push(`<li title="${gltf['meshes'][i]['name']}"><img height="30px" style="cursor: pointer" onclick="disableLayerWMB(this);" src="assets/enabled.png">${gltf['meshes'][i]['name']}</li>`)
-			}
-			$('div[id="' + file.name + '"]').find('div').append(`<div class='model-sidebar' id='${file.name}-sidebar'><h3 style="margin-left: 10px">${file.name.split(".")[0]}</h3><ul>${items.join('')}</ul></div>`)
-			$('div[id="' + file.name + '"]').find('h4').append(` <a class='download' title='Export the selected model to GLTF.' onclick="downloadFile(\'wmb\', '${file.name}')"><span class='material-icons'>folder</span> EXPORT AS ZIPPED GLTF</a>`)
-			$('div[id="' + file.name + '"]').find('h4').prepend(`<a class='minimize' onclick="minimize(this)"><span class="material-icons">expand_less</span></a>`)
 		}
-	}
-	reader.readAsArrayBuffer(file)
+		reader.readAsArrayBuffer(file)
+	})
 }
 
 
@@ -799,4 +806,14 @@ function enableLayerWMB(elem) {
 	modelviewer.attr('src', url)
 	URL.revokeObjectURL(currenturl)
 	$(elem).replaceWith(`<img height="30px" style="cursor: pointer" onclick="disableLayerWMB(this);" src="assets/enabled.png">`)
+}
+
+function addTexturesWMB(fileType, elem) {
+	// looking for wta/wtp of same name (em0000.wmb <-> em0000.wta / em0000.wtp)
+	alert("Coming soon!")
+}
+
+function addAnimationsWMB(fileType, elem) {
+	// may need to add more functionality; animations aren't as clear cut
+	alert("Coming soon!")
 }

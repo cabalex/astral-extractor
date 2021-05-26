@@ -69,29 +69,32 @@ function arrayBufferToString(buffer){
 }
 
 // loading
-async function loadInitial(fileType, file) {
-  let image = "assets/marker-3.png"
-  if (unzippable.includes(fileType)) {
-    image = "assets/marker-2.png"
-  }
-  file.name = file.name.replace(" ", "_")
-  $('#sideBarContents').append(`<li class="sidebarList" title="${file.name}"><a href="#${file.name}" title="${file.name}"><img style="cursor: pointer;" onclick="deleteItem(this)" onmouseover="onHover(this)" onmouseout="offHover(this)" src=${image} height="30px">${file.name}</a></li>`)
-
-  if (fileType == 'pkz') {
-    await loadInitialPKZ(fileType, file)
-  } else if (fileType == 'dat' || fileType == 'dtt' || fileType == 'evn') {
-    await loadInitialDAT(fileType, file)
-  } else if (fileType == 'csv') {
-    await loadInitialCSV(fileType, file)
-  } else if (fileType == 'wmb') {
-    await loadInitialWMB(fileType, file)
-  } else if (fileType == 'bxm' || fileType == 'sar') {
-    await loadInitialBXM(fileType, file)
-  } else {
-    console.log("Unsupported file type!")
-    return;
-  }
-  $('div#loading').replaceWith(`<div style="padding-left: 10px; line-height: 25px"><h3><span class="material-icons">description</span> ${fileType.toUpperCase()} File</h5><p>${fileInfo[fileType]}</p></div>`)
+function loadInitial(fileType, file) {
+  return new Promise(async (resolve, reject) => {
+    let image = "assets/marker-3.png"
+    if (unzippable.includes(fileType)) {
+      image = "assets/marker-2.png"
+    }
+    file.name = file.name.replace(" ", "_")
+    $('#sideBarContents').append(`<li class="sidebarList" title="${file.name}"><a href="#${file.name}" title="${file.name}"><img style="cursor: pointer;" onclick="deleteItem(this)" onmouseover="onHover(this)" onmouseout="offHover(this)" src=${image} height="30px">${file.name}</a></li>`)
+    $('div#loading').replaceWith(`<div style="padding-left: 10px; line-height: 25px"><h3><span class="material-icons">description</span> ${fileType.toUpperCase()} File</h5><p>${fileInfo[fileType]}</p></div>`)
+    if (fileType == 'pkz') {
+      await loadInitialPKZ(fileType, file)
+    } else if (fileType == 'dat' || fileType == 'dtt' || fileType == 'evn' || fileType == 'eff') {
+      await loadInitialDAT('dat', file)
+    } else if (fileType == 'csv') {
+      await loadInitialCSV(fileType, file)
+    } else if (fileType == 'wmb') {
+      await loadInitialWMB(fileType, file)
+    } else if (fileType == 'bxm' || fileType == 'sar') {
+      await loadInitialBXM('bxm', file)
+    } else if (fileType == 'wta') {
+      await loadInitialWTA('wta', file)
+    } else {
+      console.log("Unsupported file type!")
+    }
+    resolve()
+  })
 }
 
 
@@ -128,6 +131,7 @@ function downloadFile(fileType, name) {
     wait();
   }
 }
+
 async function sendOutSubFile(fileType, name, subFile, blob, returnFile) {
   if (returnFile == true) {
     await writer.add(subFile, new zip.BlobReader(blob)).then(function() {blobs += 1;});
@@ -136,15 +140,18 @@ async function sendOutSubFile(fileType, name, subFile, blob, returnFile) {
     if (Object.keys(globalFiles).includes(subFile)) {
       return;
     };
-    blob.name = subFile
-    console.log('new file = ' + subFile);
-    if (!endsWithAny(fileTypes, subFile)) {
-      $('div#content').append(`<h4 title=${subFile}><img style="cursor: pointer;" onclick="deleteItem(this)" onmouseover="onHover(this)" onmouseout="offHover(this)" src="assets/lock.png" height="30px"> ${subFile}</h4><p><b>This file type isn\'t valid (or at least, not yet).</b> Did you upload the wrong one?</p>`)
-    } else {
-      $('div#content').append(`<div id="${subFile}"><h4 title="${subFile}"><img style="cursor: pointer;" onclick="deleteItem(this)" onmouseover="onHover(this)" onmouseout="offHover(this)" src="assets/legatus.png" height="30px"> ${subFile}</h4><div id="loading"><div id="loadingBar">Loading file...</div></div></div>`)
-      await loadInitial(blob.name.split('.')[blob.name.split('.').length-1], blob);
-    }
-    return;
+    return new Promise(async (resolve, reject) => {
+      blob.name = subFile
+      console.log('new file = ' + subFile);
+      if (!endsWithAny(fileTypes, subFile)) {
+        $('div#content').append(`<h4 title=${subFile}><img style="cursor: pointer;" onclick="deleteItem(this)" onmouseover="onHover(this)" onmouseout="offHover(this)" src="assets/lock.png" height="30px"> ${subFile}</h4><p><b>This file type isn\'t valid (or at least, not yet).</b> Did you upload the wrong one?</p>`)
+      } else {
+        $('div#content').append(`<div id="${subFile}"><h4 title="${subFile}"><img style="cursor: pointer;" onclick="deleteItem(this)" onmouseover="onHover(this)" onmouseout="offHover(this)" src="assets/legatus.png" height="30px"> ${subFile}</h4><div id="loading"><div id="loadingBar">Loading file...</div></div></div>`)
+        await loadInitial(blob.name.split('.')[blob.name.split('.').length-1], blob);
+        resolve();
+      }
+      return;
+    })
   }
   var url = window.URL.createObjectURL(blob);
   var a = document.createElement('a');
@@ -161,32 +168,35 @@ async function sendOutSubFile(fileType, name, subFile, blob, returnFile) {
 
 
 function downloadSubFile(fileType, name, subFile, returnFile = false) {
-  if (fileType == 'pkz') {
-    exportSubFilePKZ(fileType, name, subFile, returnFile)
-  } else if (fileType == 'dat') {
-    exportSubFileDAT(fileType, name, subFile, returnFile)
-  } else if (fileType == 'gameData') {
-    exportSubFileGameData(fileType, name, subFile, returnFile)
-  } else {
-    console.log(`unimplemented download of ${subFile} from ${name}`);
-  }
+  return new Promise(async (resolve, reject) => {
+    if (fileType == 'pkz') {
+      await exportSubFilePKZ(fileType, name, subFile, returnFile)
+    } else if (fileType == 'dat') {
+      await exportSubFileDAT(fileType, name, subFile, returnFile)
+    } else if (fileType == 'gameData') {
+      await exportSubFileGameData(fileType, name, subFile, returnFile)
+    } else {
+      console.log(`unimplemented download of ${subFile} from ${name}`);
+    }
+    resolve()
+  })
 }
 
-function loadAllSubFiles(fileType, name) {
+async function loadAllSubFiles(fileType, name) {
   var filenames = Object.keys(globalFiles[name]['files'])
-  for (var i = 0; i < filenames.length; i++) {
+  for (let i = 0, p = Promise.resolve(); i < filenames.length; i++) {
     if (!(Object.keys(globalFiles).includes(filenames[i])) && fileTypes.includes("." + filenames[i].split(".")[1])) {
-      downloadSubFile(fileType, name, filenames[i], "blob")
+      await downloadSubFile(fileType, name, filenames[i], "blob")
     }
   }
 } 
 
-function loadSubFile(fileType, name, subFile) {
-  downloadSubFile(fileType, name, subFile, "blob")
+async function loadSubFile(fileType, name, subFile) {
+  await downloadSubFile(fileType, name, subFile, "blob")
   if (subFile.endsWith('.dat') && Object.keys(globalFiles[name]['files']).includes(subFile.replace('.dat', '.dtt'))) {
-    downloadSubFile(fileType, name, subFile.replace('.dat', '.dtt'), "blob")
+    await downloadSubFile(fileType, name, subFile.replace('.dat', '.dtt'), "blob")
   } else if ((subFile.endsWith('.dtt') && Object.keys(globalFiles[name]['files']).includes(subFile.replace('.dtt', '.dat')))) {
-    downloadSubFile(fileType, name, subFile.replace('.dtt', '.dat'), "blob")
+    await downloadSubFile(fileType, name, subFile.replace('.dtt', '.dat'), "blob")
   }
 }
 
@@ -256,12 +266,27 @@ function deleteItem(elem) {
 }
 
 function minimize(elem) {
-  $(elem).closest('div').find('div').css('display', 'none')
+  $(elem).closest('div').children('div').css('display', 'none')
   $(elem).replaceWith("<a class='maximize' onclick='maximize(this)'><span class='material-icons'>expand_more</span></a>")
 }
 function maximize(elem) {
-  $(elem).closest('div').find('div').css('display', '')
+  $(elem).closest('div').children('div').css('display', '')
   $(elem).replaceWith("<a class='minimize' onclick='minimize(this)'><span class='material-icons'>expand_less</span></a>")
+}
+
+function showDropdown(elem) {
+  $(elem).parent().find('.dropdown').css('display', '')
+  $(elem).replaceWith('<a onclick="hideDropdown(this)"><span class="material-icons">menu_open</span></a>')
+}
+
+function hideDropdown(elem) {
+  $(elem).parent().find('.dropdown').css('display', 'none')
+  $(elem).replaceWith('<a onclick="showDropdown(this)"><span class="material-icons">menu</span></a>')
+}
+
+function getHelp(elem) {
+  // Improve in the future
+  window.open("https://cabalex.github.io/astral-chain-romfs/romfs/")
 }
 
 function readableBytes(bytes) {
@@ -274,7 +299,7 @@ function readableBytes(bytes) {
   return (bytes / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + sizes[i];
 }
 
-var fileTypes = ['.pkz', '.dat', '.dtt', '.evn', '.csv', '.wmb', '.bxm', '.sar', 'GameData.dat']
+var fileTypes = ['.pkz', '.dat', '.dtt', '.evn', '.eff', '.csv', '.wmb', '.bxm', '.sar', 'GameData.dat']
 var fileInfo = {
   "bxm": "Binary XML. Used for storing information about the game, especially events and cutscenes.<br><b>BXM files are currently read-only right now.</b> I've  yet to come up with a clean editor, but it's coming soon!",
   "sar": "Binary XML files.",
@@ -282,9 +307,15 @@ var fileInfo = {
   "dat": "DAT archive. Holds most of the game's files.",
   "dtt": "DAT archive. Almost identical to .DAT, but separated for performance.",
   "evn": "DAT archive. Identical to .DAT files.",
+  "eff": "DAT archive. Identical to .DAT files.",
   "csv": "Comma-separated values. Holds parameters regarding the game. REPACKING encodes the file as SHIFT-JIS (the encoding used by the game), while DOWNLOADING encodes the file as UTF-16 (the encoding used by most modern devices).",
   "wmb": "Model files. Astral Extractor does not support re-adding models to the game- use Blender2AstralChain / AstralChain2Blender for that.<br><b>Model previews are still in development!</b> Some models may not display correctly, and textures (WTA/WTP) have not been implemented."
 }
-var unzippable = ['csv', 'bxm']
+var hamburgers = {
+  'dat': '<div class="hamburger"><a onclick="showDropdown(this)"><span class="material-icons">menu</span></a></div>',
+  'wmb': '<div class="hamburger" title=""><a onclick="showDropdown(this)"><span class="material-icons">menu</span></a><div style="display: none" class="dropdown"><span style="color: var(--light-grey)">MODEL PROPERTIES</span><a onclick="getHelp(this)"><span class="material-icons">help</span> What is this file?</a><a class="addTextures" onclick="addTexturesWMB(\'wmb\', this)"><span class="material-icons">collections</span> Add Textures <span class="nextArrow"><span class="material-icons">navigate_next</span></span></a><a class="addAnimations" onclick="addAnimationsWMB(\'wmb\', this)"><span class="material-icons">animation</span> Add Animations <span class="nextArrow"><span class="material-icons">navigate_next</span></span></a></div></div>'
+}
+
+var unzippable = ['csv', 'bxm', 'wmb', 'uvd', 'wta']
 $('#supportedFiles').text(fileTypes.join(", "))
 var globalFiles = {}
