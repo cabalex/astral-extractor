@@ -40,14 +40,22 @@ function loadInitialBXM(fileType, file) {
           offset += 4;
         }
         const enc = new TextDecoder("shift-jis")
+        const encUTF = new TextDecoder("utf-8")
         const uint8 = new Uint8Array(e.target.result)
+        var encoding = "shift-jis"
         function readString(pos) {
           pos = pos + offset;
           var tmppos = pos;
           while (tmppos < uint8.byteLength && uint8[tmppos] != 0) {
             tmppos += 1;
           }
-          return enc.decode(e.target.result.slice(pos, tmppos));
+          var decoded = enc.decode(e.target.result.slice(pos, tmppos));
+          if (decoded.includes("�")) {
+            // quest data is in UTF-8; must support both formats
+            decoded = encUTF.decode(e.target.result.slice(pos, tmppos));
+            encoding = "utf-8"
+          }
+          return decoded;
         }
         var overflow = false;
         function readTree(nodeNum) {
@@ -111,7 +119,7 @@ function loadInitialBXM(fileType, file) {
         $('div[id="' + file.name + '"]').find('h4').append(`<a class='disabled' title='Repack the file into a game-ready BXM.' onclick="packXML('${file.name}')"><span class='material-icons'>auto_fix_high</span> REPACK (COMING SOON)</a>`)
         $('div[id="' + file.name + '"]').find('h4').prepend(`<a class='minimize' onclick="minimize(this)"><span class="material-icons">expand_less</span></a>`)
         $('div[id="' + file.name + '"]').append(`<div class="scroll" style="margin-left: 10px;"><span class="xml_body" style="white-space: pre-wrap; tab-size: 4; font-family: Consolas, sans-serif;">${xmlOutput}</span></div>`)
-        globalFiles[file.name] = {'fp': file, 'json': output, 'xml': xmlOutput}
+        globalFiles[file.name] = {'fp': file, 'json': output, 'xml': xmlOutput, 'encoding': encoding}
         resolve();
       }
     }

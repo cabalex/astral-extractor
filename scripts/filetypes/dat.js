@@ -227,41 +227,51 @@ async function packDAT(file) {
   pos += workingfile['hashMap'].byteLength
   var files = {};
   console.log('[DAT REPACKING] Reading files...')
-  function afterRepack() {
-    console.log("[DAT REPACKING] Writing DAT body...")
-    for (var x = 0; x < numFiles; x++) {
-      outputArray = concatenateToUint8(outputArray, new Uint8Array(fileOffsets[x] - pos));
-      pos = fileOffsets[x];
-      outputArray = concatenateToUint8(outputArray, new Uint8Array(files[workingfile['fileOrder'][x]]));
-      pos = outputArray.byteLength;
-      console.log(`[${x+1}/${numFiles}][${workingfile['fileOrder'][x]}]`)
-    }
-    outputArray = concatenateToUint8(outputArray, new Uint8Array(Math.ceil(pos/16)*16 - pos));
-    var blob = new Blob([outputArray], {type: 'application/octet-stream'});
-    console.log("DAT Export complete. :)")
-    saveAs(blob, file)
-    $(`div[id="${file}"]`).find('h4').children('.repack').replaceWith(`<a class='repack' title='Repack the file into a game-ready DAT.' onclick="packDAT('${file}')"><span class='material-icons'>auto_fix_high</span> REPACK</a>`)
-    return;
-  }
-  for (var i = 0; i < numFiles; i++) {
+  for (let i = 0; i < numFiles; i++) {
     let subFile = workingfile['files'][workingfile['fileOrder'][i]]
     let subFileName = workingfile['fileOrder'][i];
     let reader = new FileReader();
-    let currentFile = i;
-    reader.onloadend = async function(e) {
-        if (e.target.readyState == FileReader.DONE) {
-          files[subFileName] = e.target.result;
-          if (Object.keys(files).length == numFiles) {
-            afterRepack();
-          }
-        }
-      }
     if (subFile['kind'] == 'extracted') {
       // included file
-      reader.readAsArrayBuffer(workingfile.fp.slice(subFile['offset'], subFile['offset'] + subFile['size']))
+      files[subFileName] = await readFileDAT(subFile['kind'], workingfile.fp.slice(subFile['offset'], subFile['offset'] + subFile['size']))
     } else {
       // custom file
-      reader.readAsArrayBuffer(subFile.fp)
+      files[subFileName] = await readFileDAT(subFile['kind'], subFile.fp)
     }
   }
+  console.log("[DAT REPACKING] Writing DAT body...")
+  for (var x = 0; x < numFiles; x++) {
+    if (fileOffsets[x] == 0) {
+      continue
+    }
+    outputArray = concatenateToUint8(outputArray, new Uint8Array(fileOffsets[x] - pos));
+    pos = fileOffsets[x];
+    outputArray = concatenateToUint8(outputArray, new Uint8Array(files[workingfile['fileOrder'][x]]));
+    pos = outputArray.byteLength;
+    console.log(`[${x+1}/${numFiles}][${workingfile['fileOrder'][x]}]`)
+  }
+  outputArray = concatenateToUint8(outputArray, new Uint8Array(Math.ceil(pos/16)*16 - pos));
+  var blob = new Blob([outputArray], {type: 'application/octet-stream'});
+  console.log("DAT Export complete. :)")
+  saveAs(blob, file)
+  $(`div[id="${file}"]`).find('h4').children('.repack').replaceWith(`<a class='repack' title='Repack the file into a game-ready DAT.' onclick="packDAT('${file}')"><span class='material-icons'>auto_fix_high</span> REPACK</a>`)
+  return;
+}
+
+function readFileDAT(kind, fp) {
+  return new Promise((resolve, reject) => {
+    let reader = new FileReader();
+    reader.onloadend = async function(e) {
+        if (e.target.readyState == FileReader.DONE) {
+          resolve(e.target.result)
+        }
+      }
+    if (kind == 'extracted') {
+      // included file
+      reader.readAsArrayBuffer(fp)
+    } else {
+      // custom file
+      reader.readAsArrayBuffer(fp)
+    }
+  })
 }
