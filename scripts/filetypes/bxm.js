@@ -10,7 +10,7 @@ function swap32(val) {
            | ((val >> 24) & 0xFF);
 }
 
-function loadInitialBXM(fileType, file) {
+function loadInitialBXM(fileType, file, encoding="SHIFT-JIS", forceEncoding=false) {
   return new Promise((resolve, reject) => {
     var reader = new FileReader();
     reader.onloadend = function(e) {
@@ -39,10 +39,16 @@ function loadInitialBXM(fileType, file) {
           // value offset - 1
           offset += 4;
         }
-        const enc = new TextDecoder("shift-jis")
-        const encUTF = new TextDecoder("utf-8")
+        var enc;
+        var encAlt;
+        if (encoding == "UTF-8") {
+          enc = new TextDecoder("UTF-8")
+          encAlt = new TextDecoder("SHIFT-JIS")
+        } else {
+          enc = new TextDecoder("SHIFT-JIS")
+          encAlt = new TextDecoder("UTF-8")
+        }
         const uint8 = new Uint8Array(e.target.result)
-        var encoding = "shift-jis"
         function readString(pos) {
           pos = pos + offset;
           var tmppos = pos;
@@ -50,10 +56,14 @@ function loadInitialBXM(fileType, file) {
             tmppos += 1;
           }
           var decoded = enc.decode(e.target.result.slice(pos, tmppos));
-          if (decoded.includes("�")) {
+          if (decoded.includes("�") && forceEncoding == false) {
             // quest data is in UTF-8; must support both formats
-            decoded = encUTF.decode(e.target.result.slice(pos, tmppos));
-            encoding = "utf-8"
+            decoded = encAlt.decode(e.target.result.slice(pos, tmppos));
+            if (encoding == "UTF-8") {
+              encoding = "SHIFT-JIS"
+            } else {
+              encoding = "UTF-8"
+            }
           }
           return decoded;
         }
@@ -118,6 +128,7 @@ function loadInitialBXM(fileType, file) {
         $('div[id="' + file.name + '"]').find('h4').append(` <a class='download' title='Download the file as a readable XML.' onclick="downloadFile(\'bxm\', '${file.name}')"><span class='material-icons'>insert_drive_file</span> DOWNLOAD XML</a>`)
         $('div[id="' + file.name + '"]').find('h4').append(`<a class='disabled' title='Repack the file into a game-ready BXM.' onclick="packXML('${file.name}')"><span class='material-icons'>auto_fix_high</span> REPACK (COMING SOON)</a>`)
         $('div[id="' + file.name + '"]').find('h4').prepend(`<a class='minimize' onclick="minimize(this)"><span class="material-icons">expand_less</span></a>`)
+        $('div[id="' + file.name + '"]').find('h4').find('img').after(hamburgers['bxm'].replace(/{encoding}/g, encoding))
         $('div[id="' + file.name + '"]').append(`<div class="scroll" style="margin-left: 10px;"><span class="xml_body" style="white-space: pre-wrap; tab-size: 4; font-family: Consolas, sans-serif;">${xmlOutput}</span></div>`)
         globalFiles[file.name] = {'fp': file, 'json': output, 'xml': xmlOutput, 'encoding': encoding}
         resolve();
@@ -125,6 +136,19 @@ function loadInitialBXM(fileType, file) {
     }
     reader.readAsArrayBuffer(file)
   })
+}
+
+function changeEncodingBXM(oldEncoding, elem) {
+  var encoding = "SHIFT-JIS";
+  if (oldEncoding == "SHIFT-JIS") {
+    encoding = "UTF-8"
+  }
+  const filename = $(elem).parents('h4').attr('title')
+  const file = globalFiles[filename]['fp']
+  delete globalFiles[filename]
+  $(elem).parents('h4').replaceWith(`<h4 title="${filename}"><img style="cursor: pointer;" onclick="deleteItem(this)" onmouseover="onHover(this)" onmouseout="offHover(this)" src="assets/legatus.png" height="30px"> ${filename}</h4>`)
+  $('div[id="' + filename + '"]').find("div.scroll").remove()
+  loadInitialBXM('bxm', file, encoding, true)
 }
 
 function packBXM(name) {

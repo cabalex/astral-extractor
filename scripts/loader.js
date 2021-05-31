@@ -90,6 +90,8 @@ function loadInitial(fileType, file) {
       await loadInitialBXM('bxm', file)
     } else if (fileType == 'wta') {
       await loadInitialWTA('wta', file)
+    } else if (fileType == 'bin') {
+      await loadInitialPTD('ptd', file)
     } else {
       console.log("Unsupported file type!")
     }
@@ -299,23 +301,33 @@ function readableBytes(bytes) {
   return (bytes / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + sizes[i];
 }
 
-var fileTypes = ['.pkz', '.dat', '.dtt', '.evn', '.eff', '.csv', '.wmb', '.bxm', '.sar', 'GameData.dat']
+var fileTypes = ['.pkz', '.dat', '.dtt', '.evn', '.csv', '.wmb', '.bxm', '.sar', '.bin', 'GameData.dat']
 var fileInfo = {
-  "bxm": "Binary XML. Used for storing information about the game, especially events and cutscenes.<br><b>BXM files are currently read-only right now.</b> I've  yet to come up with a clean editor, but it's coming soon!",
+  "bxm": "Binary XML. Used for storing information about the game, especially events, cases, and cutscenes. Some strings are in Japanese, usually encoded with SHIFT-JIS; however, in quest/, they are encoded with UTF-8. It should autodetect this, but if it doesn't, click \"Switch Encoding\" in the dropdown menu.<br><b>BXM files are currently read-only right now.</b> I've  yet to come up with a clean editor, but it's coming soon!",
   "sar": "Binary XML files.",
-  "pkz": "Compressed ZSTD archives containing most of the game's files.<br><b>NOTE: For most use cases, you do not need to repack these.</b> Usually, you can just place your files in the directory, and the game will load them fine.<br><b>You DON'T need to repack:</b> Models, UI<br><b>You DO need to repack:</b> .EVNs in event/, .DAT/.DTTs in core/",
+  "pkz": "Compressed ZSTD archives containing most of the game's files.<br><b>NOTE: For most use cases, you do not need to repack these.</b> Usually, you can just place your files in the directory, and the game will load them fine.<br><b>You DO need to repack files in:</b> event/, core/, Text/",
   "dat": "DAT archive. Holds most of the game's files.",
   "dtt": "DAT archive. Almost identical to .DAT, but separated for performance.",
   "evn": "DAT archive. Identical to .DAT files.",
   "eff": "DAT archive. Identical to .DAT files.",
   "csv": "Comma-separated values. Holds parameters regarding the game. REPACKING encodes the file as SHIFT-JIS (the encoding used by the game), while DOWNLOADING encodes the file as UTF-16 (the encoding used by most modern devices).",
-  "wmb": "Model files. Astral Extractor does not support re-adding models to the game- use Blender2AstralChain / AstralChain2Blender for that.<br><b>Model previews are still in development!</b> Some models may not display correctly, and textures (WTA/WTP) have not been implemented."
+  "wmb": "Model files. Astral Extractor does not support re-adding models to the game- use Blender2AstralChain / AstralChain2Blender for that.<br><b>Model previews are still in development!</b> Some models may not display correctly, and textures (WTA/WTP) have not been implemented.",
+  "bin": "Text files in PTD format. Stores most of the text in the game, except ones hardcoded (see MCD files in ui/). Note that empty sections are skipped.<br><b>Some of these files may take a while to load (especially TalkSubtitleMessage), so wait a bit!</b>"
 }
 var hamburgers = {
   'dat': '<div class="hamburger"><a onclick="showDropdown(this)"><span class="material-icons">menu</span></a></div>',
-  'wmb': '<div class="hamburger" title=""><a onclick="showDropdown(this)"><span class="material-icons">menu</span></a><div style="display: none" class="dropdown"><span style="color: var(--light-grey)">MODEL PROPERTIES</span><a onclick="getHelp(this)"><span class="material-icons">help</span> What is this file?</a><a class="addTextures" onclick="addTexturesWMB(\'wmb\', this)"><span class="material-icons">collections</span> Add Textures <span class="nextArrow"><span class="material-icons">navigate_next</span></span></a><a class="addAnimations" onclick="addAnimationsWMB(\'wmb\', this)"><span class="material-icons">animation</span> Add Animations <span class="nextArrow"><span class="material-icons">navigate_next</span></span></a></div></div>'
+  'wmb': '<div class="hamburger" title=""><a onclick="showDropdown(this)"><span class="material-icons">menu</span></a><div style="display: none" class="dropdown"><span style="color: var(--light-grey)">MODEL PROPERTIES</span><a onclick="getHelp(this)"><span class="material-icons">help</span> What is this file?</a><a class="addTextures" onclick="addTexturesWMB(\'wmb\', this)"><span class="material-icons">collections</span> Add Textures <span class="nextArrow"><span class="material-icons">navigate_next</span></span></a><a class="addAnimations" onclick="addAnimationsWMB(\'wmb\', this)"><span class="material-icons">animation</span> Add Animations <span class="nextArrow"><span class="material-icons">navigate_next</span></span></a></div></div>',
+  'bxm': '<div class="hamburger" title=""><a onclick="showDropdown(this)"><span class="material-icons">menu</span></a><div style="display: none" class="dropdown"><span style="color: var(--light-grey)">ENCODING: {encoding}</span><a onclick="changeEncodingBXM(\'{encoding}\', this)"><span class="material-icons">article</span> Change encoding</a></div></div>'
 }
 
 var unzippable = ['csv', 'bxm', 'wmb', 'uvd', 'wta']
 $('#supportedFiles').text(fileTypes.join(", "))
 var globalFiles = {}
+
+var modal = document.getElementById("infoModal");
+// When the user clicks anywhere outside of the modal, close it
+window.onclick = function(event) {
+  if (event.target == modal) {
+    modal.style.display = "none";
+  }
+}

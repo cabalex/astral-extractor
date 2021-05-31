@@ -54,10 +54,10 @@ function loadInitialPKZ(fileType, file) {
           form += `<tr><th><a title="Download this file." onclick="downloadSubFile(\'pkz\', '${file.name}', '${key}')"><span class="material-icons">download</span></a><a class="${supported}" title="Open this file in a new editor section." onclick="loadSubFile(\'pkz\', '${file.name}', '${key}')"><span class="material-icons">open_in_new</span></a><input type="file" id="${file.name}-${key}-upload" accept=".${key.split('.')[1]}" style="display:none"/><a class="file_upload" title="Replace this file." onclick="$('input[id=&quot;${file.name}-${key}-upload&quot;]').trigger('click');"><span class="material-icons">file_upload</span></a><a title="Remove this file permanently from the PKZ." onclick="removeSubFile(\'dat\', \'${file.name}\', \'${key}\', this)"><span class="material-icons">close</span></a></th><th><input type="text" disabled="true" size="25" value='${key}'></input></th><th title="${value['size']} bytes">${readableBytes(Number(value['size']))}</th><th title="${value['compressedSize']} bytes">${readableBytes(Number(value['compressedSize']))}</th><th title="${readableBytes(Number(value['offset']))}">${Number(value['offset'])}</th><th class="replacedIndicator"><img height="30px" title="File has not been replaced." alt="Not replaced" src="assets/unreplaced-black.png"</th></tr>`
         }
         $('div[id="' + file.name + '"]').find('h4').append(` - ${Object.keys(localFiles).length} files <a class='download' title='Download the extracted files as a ZIP.' onclick="downloadFile(\'pkz\', '${file.name}')"><span class='material-icons'>folder</span> DOWNLOAD ZIP</a>`)
-        $('div[id="' + file.name + '"]').find('h4').append(`<a class='disabled' title='Repack the file into a game-ready PKZ.' onclick="packPKZ('${file.name}')"><span class='material-icons'>auto_fix_high</span> REPACK (coming soon)</a>`)
+        $('div[id="' + file.name + '"]').find('h4').append(`<a class='repack' title='Repack the file into a game-ready PKZ.' onclick="packPKZ('${file.name}')"><span class='material-icons'>auto_fix_high</span> REPACK</a>`)
         $('div[id="' + file.name + '"]').find('h4').prepend(`<a class='minimize' onclick="minimize(this)"><span class="material-icons">expand_less</span></a>`)
-        $('div[id="' + file.name + '"]').append("<div id='files' class='scroll'>" + form + "</table></div>")
-        globalFiles[file.name] = {'fp': file, 'files': localFiles}
+        $('div[id="' + file.name + '"]').append("<div id='files' class='scroll' style='display: inline-block;'>" + form + "</table></div>")
+        globalFiles[file.name] = {'fp': file, 'files': localFiles, 'fileOrder': names}
         for (const key of Object.keys(localFiles)) {
           document.getElementById(`${file.name}-${key}-upload`).addEventListener("change", function(event) { if (replaceInitPKZ("pkz", file.name, key, event.target.files) == true) {$(this).closest('tr').find('th.replacedIndicator').replaceWith('<th class="replacedIndicator"><img height="30px" title="Replaced file." alt="Replaced file." src="assets/replaced-black.png"></img></th>')}}, false);
         }
@@ -70,7 +70,10 @@ function loadInitialPKZ(fileType, file) {
 function replaceInitPKZ(fileType, name, subFile, files) {
   globalFiles[name]['files'][subFile] = {'fp': files[0], 'size': files[0].size, 'kind': 'custom'}
   $(this).val('');
-  console.log(`custom file - ${files[0].name}`)
+  if (files[0].size > 16000000) {
+    alert("WARNING: The current ZSTD encoder used does not support files above ~16 MB, as it runs out of memory. While I am trying to find a fix, you may not be able to export this PKZ. Proceed with caution!")
+  }
+  console.log(`custom file - ${files[0].name} -> ${subFile}`)
   return true;
 }
 
@@ -80,6 +83,7 @@ function exportSubFilePKZ(fileType, name, subFile, returnFile) {
     var workingfile = globalFiles[name]
     reader.onloadend = async function(e) {
       if (e.target.readyState == FileReader.DONE) {
+        // Old decoder is much faster for decoding purposes; using for decoding ZSTD
         const decoder = new ZSTDDecoder();
         await decoder.init();
         const decompressedArray = decoder.decode(new Uint8Array(e.target.result), Number(workingfile['files'][subFile]['size']))
@@ -92,103 +96,48 @@ function exportSubFilePKZ(fileType, name, subFile, returnFile) {
   })
 }
 
+function generatePKZFileTable(fileOrder) {
+  const enc = new TextEncoder();
+  var offsets = [];
+  var str = "ZStandard\x00\x00\x00\x00\x00\x00\x00" 
+  for (var i = 0; i < fileOrder.length; i++) {
+    offsets.push(str.length)
+    str += fileOrder[i]
+    str += "\x00".repeat(8 - (str.length % 8))
+  }
+  var encoded = enc.encode(str)
+  console.log(str)
+  return [encoded, offsets, encoded.byteLength]
+}
+
 async function packPKZ(file) {
   $(`div[id="${file}"]`).find('h4').children('a.repack').replaceWith(`<div class='repack' style="padding: 0; background-color:#C5C5C5;"><span class='material-icons'>auto_fix_high</span> REPACKING...</div>`)
-  if (!("TextDecoder" in window) || !("TextEncoder" in window)) {
-    alert("This browser doesn't support TextDecoder and TextEncoder, which is required for DAT repacking. Use a newer one?")
-    return;
-  }
-  var enc = new TextEncoder();
-  var workingfile = globalFiles[file];
-  var outputFiles = []
-  var numFiles = Object.keys(workingfile['files']).length
-  var fileExtensions = []
-  var fileExtensionsSize = 0
-  var nameLength = 0
-  var fileOffsets = []
-  // ---
-  var fileOffsetsOffset = 32
-  var fileExtensionsOffset = Math.ceil((fileOffsetsOffset + (numFiles * 4))/4)*4
-  for (var i = 0; i < numFiles; i++) {
-    let subFile = workingfile['fileOrder'][i]
-    let extArray = subFile.split(".")
-    let ext = extArray[extArray.length-1]
-    if (subFile.length + 1 > nameLength) {
-      nameLength = subFile.length+1
-    }
-    fileExtensionsSize += ext.length+1
-    fileExtensions.push(ext)
-  }
-  var fileNamesOffset = Math.ceil((fileExtensionsOffset + fileExtensionsSize)/4)*4
-  var fileSizesOffset = Math.ceil((fileNamesOffset + (numFiles * nameLength) + 4)/4)*4
-  var hashMapOffset = fileSizesOffset + (numFiles * 4)
-  var hashMapSize = workingfile['hashMap'].byteLength;
-  var pos = Math.ceil((hashMapOffset + hashMapSize)/16)*16
-  if (file.endsWith('.dtt')) {
-    pos = 0x8000
-  }
-  for (var i = 0; i < numFiles; i++) {
-    let subFile = workingfile['fileOrder'][i]
-    // file padding n stuff
-    if (file.endsWith('.dtt')) {
-      if (workingfile['files'][subFile]['size'] == 0) {
-        fileOffsets.push(0)
-      } else {
-        fileOffsets.push(pos)
-      }
-      pos = Math.ceil(pos/0x8000)*0x8000
-    } else {
-      //console.log(subFile)
-      if (workingfile['files'][subFile]['size'] == 0) {
-        fileOffsets.push(0)
-      } else if (subFile.endsWith('bnk')){
-        pos = Math.ceil(pos/2048)*2048
-        fileOffsets.push(pos)
-      } else {
-        fileOffsets.push(pos)
-      }
-      pos += workingfile['files'][subFile]['size'];
-      pos = Math.ceil(pos/16)*16
-    }
-  }
   
-  // big boys
-  var outputArray = new Uint32Array([5521732, numFiles, fileOffsetsOffset, fileExtensionsOffset, fileNamesOffset, fileSizesOffset, hashMapOffset, 0])
-  pos = 32
-  for (var i = 0; i < numFiles; i++) {
-    outputArray = concatenateToUint8(outputArray, Uint32Array.of(fileOffsets[i]));
-    pos += 4;
-  }
-  outputArray = concatenateToUint8(outputArray, new Uint8Array(fileExtensionsOffset - pos))
-  pos = fileExtensionsOffset;
-  for (var i = 0; i < numFiles; i++) {
-    outputArray = concatenateToUint8(outputArray, enc.encode(fileExtensions[i].padEnd(4, "\x00")));
-    pos += 4;
-  }
-  outputArray = concatenateToUint8(outputArray, new Uint8Array(fileNamesOffset - pos))
-  outputArray = concatenateToUint8(outputArray, Uint32Array.of(nameLength));
-  pos = fileNamesOffset
-  for (var i = 0; i < numFiles; i++) {
-    if (i+1 < numFiles) {
-      outputArray = concatenateToUint8(outputArray, enc.encode(workingfile['fileOrder'][i].padEnd(nameLength, "\x00")));
-    } else {
-      outputArray = concatenateToUint8(outputArray, enc.encode(workingfile['fileOrder'][i]));
-    }
-    pos = outputArray.length
-  }
-  outputArray = concatenateToUint8(outputArray, new Uint8Array(fileSizesOffset - pos))
-  pos = fileSizesOffset
-  for (var i = 0; i < numFiles; i++) {
-    outputArray = concatenateToUint8(outputArray, Uint32Array.of(workingfile['files'][workingfile['fileOrder'][i]]['size']));
-    pos += 4;
-  }
-  outputArray = concatenateToUint8(outputArray, new Uint8Array(hashMapOffset - pos))
-  outputArray = concatenateToUint8(outputArray, new Uint8Array(workingfile['hashMap']));
-  pos += workingfile['hashMap'].byteLength
+  var workingfile = globalFiles[file];
+  const numFiles = Object.keys(workingfile['files']).length
   var files = {};
   console.log('[DAT REPACKING] Reading files...')
   function afterRepack() {
     console.log("[DAT REPACKING] Writing DAT body...")
+    var [names, nameOffsets, fileNameTableLength] = generatePKZFileTable(workingfile['fileOrder'])
+    var fileOffsets = [];
+    var size = Math.ceil((32 + 32*numFiles + fileNameTableLength)/64)*64;
+    for (var i = 0; i < numFiles; i++) {
+      fileOffsets.push(size)
+      size += Math.ceil(Number(workingfile['files'][workingfile['fileOrder'][i]]['compressedSize'])/64)*64 // padded to 64 byte increments
+    }
+    console.log(fileOffsets)
+    var buffer = Uint32Array.from([1819962224, 65536, 0, 0, numFiles, 32, 0, 0]).buffer
+    var dataView = new DataView(buffer)
+    dataView.setBigUint64(8, BigInt(size), true)
+    dataView.setBigUint64(24, BigInt(fileNameTableLength), true)
+    outputArray = new Uint8Array(buffer)
+    for (var i = 0; i < numFiles; i++) {
+      var fileHeader = [nameOffsets[i], workingfile['files'][workingfile['fileOrder'][i]]['size'], fileOffsets[i], workingfile['files'][workingfile['fileOrder'][i]]['compressedSize']]
+      outputArray = concatenateToUint8(outputArray, BigUint64Array.from(fileHeader.map(function (item) {return BigInt(item)})))
+    }
+    outputArray = concatenateToUint8(outputArray, names)
+    var pos = outputArray.byteLength;
     for (var x = 0; x < numFiles; x++) {
       outputArray = concatenateToUint8(outputArray, new Uint8Array(fileOffsets[x] - pos));
       pos = fileOffsets[x];
@@ -198,27 +147,39 @@ async function packPKZ(file) {
     }
     outputArray = concatenateToUint8(outputArray, new Uint8Array(Math.ceil(pos/16)*16 - pos));
     var blob = new Blob([outputArray], {type: 'application/octet-stream'});
-    console.log("DAT Export complete. :)")
+    console.log("PKZ Export complete. :)")
     saveAs(blob, file)
     $(`div[id="${file}"]`).find('h4').children('.repack').replaceWith(`<a class='repack' title='Repack the file into a game-ready PKZ.' onclick="packPKZ('${file}')"><span class='material-icons'>auto_fix_high</span> REPACK</a>`)
     return;
   }
-  for (var i = 0; i < numFiles; i++) {
+  for (let i = 0; i < numFiles; i++) {
     let subFile = workingfile['files'][workingfile['fileOrder'][i]]
     let subFileName = workingfile['fileOrder'][i];
     let reader = new FileReader();
     let currentFile = i;
     reader.onloadend = async function(e) {
         if (e.target.readyState == FileReader.DONE) {
-          files[subFileName] = e.target.result;
-          if (Object.keys(files).length == numFiles) {
-            afterRepack();
+          if (subFile['kind'] == "custom") {
+            ZstdCodec.run(zstd => {
+              const streaming = new zstd.Streaming();
+              files[subFileName] = streaming.compress(new Uint8Array(e.target.result));
+              workingfile['files'][subFileName]['compressedSize'] = BigInt(files[subFileName].byteLength);
+              workingfile['files'][subFileName]['size'] = BigInt(subFile.size);
+              if (Object.keys(files).length == numFiles) {
+                afterRepack();
+              }
+            })
+          } else {
+            files[subFileName] = e.target.result;
+            if (Object.keys(files).length == numFiles) {
+              afterRepack();
+            }
           }
         }
       }
     if (subFile['kind'] == 'extracted') {
       // included file
-      reader.readAsArrayBuffer(workingfile.fp.slice(subFile['offset'], subFile['offset'] + subFile['size']))
+      reader.readAsArrayBuffer(workingfile.fp.slice(Number(subFile['offset']), Number(subFile['offset']) + Number(subFile['compressedSize'])))
     } else {
       // custom file
       reader.readAsArrayBuffer(subFile.fp)
