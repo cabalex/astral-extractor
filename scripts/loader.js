@@ -349,4 +349,4 @@ function loadScript(src) {
     }
 });
 }
-await loadScript("scripts/zstd-encoder.js") // like 3 MB JS file; load it in the background (usually you don't repack files that quickly)
+loadScript("scripts/zstd-encoder.js") // like 3 MB JS file; load it in the background (usually you don't repack files that quickly)
