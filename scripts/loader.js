@@ -331,3 +331,22 @@ window.onclick = function(event) {
     modal.style.display = "none";
   }
 }
+
+function loadScript(src) {
+  return new Promise(function (resolve, reject) {
+    if ($("script[src='" + src + "']").length === 0) {
+        var script = document.createElement('script');
+        script.onload = function () {
+            resolve();
+        };
+        script.onerror = function () {
+            reject();
+        };
+        script.src = src;
+        document.body.appendChild(script);
+    } else {
+        resolve();
+    }
+});
+}
+await loadScript("scripts/zstd-encoder.js") // like 3 MB JS file; load it in the background (usually you don't repack files that quickly)
