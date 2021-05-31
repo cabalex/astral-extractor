@@ -172,6 +172,23 @@ function loadInitialPTD(fileType, file) {
   })
 }
 
+function downloadPTD(fileType, filename) {
+  const root = $(`div[id="${filename}"]`)
+  const sectionCount = $(root).find('span.sectionCount').attr('count')
+  var sections = [];
+  for (var i = 0; i < sectionCount; i++) {
+    var section = [];
+    $(root).find(`table#section-${i}`).find('tr').each(function(index) {
+      // sorta redundant but its whatever
+      section.push({"hash": $(this).find("th[title='hash']").text(), "key": $(this).find("input").val(), "value": [$(this).find("th[title='value1']").find("textarea").val(), $(this).find("th[title='value2']").find("textarea").val()]})
+    })
+    sections.push({"hash": globalFiles[filename]['hashTable'][i]['hash'], "items": section})
+  }
+  var data = JSON.stringify(sections, null, 2)
+  var blob = new Blob([data], {type: "application/text"})
+  saveAs(blob, filename.replace(".bin", ".json"));
+}
+
 function PTDEncode(str) {
   str = str.replace(/\r?\n/g, "\r\n") // account for formatting; game uses \r\n
   var uint8 = new Uint8Array(str.length*2 + 2) // +2 to account for zero padding
@@ -212,7 +229,7 @@ function packPTD(fileType, filename) {
   }
   const root = $(`div[id="${filename}"]`)
   const sectionCount = $(root).find('span.sectionCount').attr('count')
-  console.log(sectionCount)
+  console.log("Repacking PTD...")
   var sections = [];
   for (var i = 0; i < sectionCount; i++) {
     var section = {"hash": globalFiles[filename]['hashTable'][i]['hash'], "hashes": [], "items": [], "values1": [], "values2": []};
