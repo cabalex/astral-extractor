@@ -631,7 +631,32 @@ function addDataToBuffer(gltf, arrayBuffer, arrayBeingAdded, type) {
 	var zlist = [];
 	var all = [];
 	if (type != "texcoord") {
-		arrayBeingAdded.map(function(x) {xlist.push(x[0]); ylist.push(x[1]); zlist.push(x[2]); all.push(...x)})
+		var invalidVerts = false;
+		arrayBeingAdded.map(function(x) {if (Math.max(...x) < 10000000000000 && Math.min(...x) > -10000000000000) {
+			xlist.push(x[0]); ylist.push(x[1]); zlist.push(x[2]); all.push(...x)
+		} else {
+			invalidVerts = true;
+			xlist.push(0); ylist.push(0); zlist.push(0); all.push(0, 0, 0)
+		}})
+		if (invalidVerts) {
+			// INCREDIBLY JANK WAY TO GO ABOUT THIS; It's pretty much a bandaid for the problem but eh
+			console.log(`[WARNING] Model was interpreted incorrectly on buffer view ${gltf['bufferViews'].length}, and the selected mesh was reset.`)
+			try {
+				xlist = new Array(count).fill(gltf['accessors'][1]['min'][0]);
+				ylist = new Array(count).fill(gltf['accessors'][1]['min'][1]);
+				zlist = new Array(count).fill(gltf['accessors'][1]['min'][2]);
+			} catch {
+				xlist = new Array(count).fill(0)
+				ylist = new Array(count).fill(0)
+				zlist = new Array(count).fill(0)
+			}
+			all = [];
+			for (var i = 0; i < count; i++) {
+				all.push(xlist[i])
+				all.push(ylist[i])
+				all.push(zlist[i])
+			}
+		}
 	} else {
 		arrayBeingAdded.map(function(x) {all.push(...x)})
 	}

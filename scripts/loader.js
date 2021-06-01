@@ -80,13 +80,13 @@ function loadInitial(fileType, file) {
     $('div#loading').replaceWith(`<div style="padding-left: 10px; line-height: 25px"><h3><span class="material-icons">description</span> ${fileType.toUpperCase()} File</h5><p>${fileInfo[fileType]}</p></div>`)
     if (fileType == 'pkz') {
       await loadInitialPKZ(fileType, file)
-    } else if (fileType == 'dat' || fileType == 'dtt' || fileType == 'evn' || fileType == 'eff') {
+    } else if (['dat', 'dtt', 'evn', 'eff'].includes(fileType)) {
       await loadInitialDAT('dat', file)
     } else if (fileType == 'csv') {
       await loadInitialCSV(fileType, file)
     } else if (fileType == 'wmb') {
       await loadInitialWMB(fileType, file)
-    } else if (fileType == 'bxm' || fileType == 'sar') {
+    } else if (['bxm', 'sar', 'seq', 'gad', 'ccd', 'rld'].includes(fileType)) {
       await loadInitialBXM('bxm', file)
     } else if (fileType == 'wta') {
       await loadInitialWTA('wta', file)
@@ -196,9 +196,13 @@ async function loadAllSubFiles(fileType, name) {
 async function loadSubFile(fileType, name, subFile) {
   await downloadSubFile(fileType, name, subFile, "blob")
   if (subFile.endsWith('.dat') && Object.keys(globalFiles[name]['files']).includes(subFile.replace('.dat', '.dtt'))) {
-    await downloadSubFile(fileType, name, subFile.replace('.dat', '.dtt'), "blob")
+    if (globalFiles[name]['files'][subFile.replace('.dat', '.dtt')]['size'] != 0) {
+      await downloadSubFile(fileType, name, subFile.replace('.dat', '.dtt'), "blob")
+    }
   } else if ((subFile.endsWith('.dtt') && Object.keys(globalFiles[name]['files']).includes(subFile.replace('.dtt', '.dat')))) {
-    await downloadSubFile(fileType, name, subFile.replace('.dtt', '.dat'), "blob")
+    if (globalFiles[name]['files'][subFile.replace('.dtt', '.dat')]['size'] != 0) {
+      await downloadSubFile(fileType, name, subFile.replace('.dtt', '.dat'), "blob")
+    }
   }
 }
 
@@ -301,10 +305,14 @@ function readableBytes(bytes) {
   return (bytes / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + sizes[i];
 }
 
-var fileTypes = ['.pkz', '.dat', '.dtt', '.evn', '.csv', '.wmb', '.bxm', '.sar', '.bin', 'GameData.dat']
+var fileTypes = ['.pkz', '.dat', '.dtt', '.eff', '.evn', '.csv', '.wmb', '.bxm', '.sar', '.seq', '.gad', '.ccd', '.rld', '.bin', 'GameData.dat']
 var fileInfo = {
-  "bxm": "Binary XML. Used for storing information about the game, especially events, cases, and cutscenes. Some strings are in Japanese, usually encoded with SHIFT-JIS; however, in quest/, they are encoded with UTF-8. It should autodetect this, but if it doesn't, click \"Switch Encoding\" in the dropdown menu.<br><b>BXM files are currently read-only right now.</b> I've  yet to come up with a clean editor, but it's coming soon!",
+  "bxm": "Binary XML. Used for storing information about the game, especially events, cases, and cutscenes. Some strings are in Japanese, usually encoded with SHIFT-JIS; however, in quest/, they are encoded with UTF-8. It should autodetect this, but if it doesn't, click \"Change encoding\" in the dropdown menu.<br><b>BXM files are currently read-only right now.</b> I've  yet to come up with a clean editor, but it's coming soon!",
   "sar": "Binary XML files.",
+  "seq": "Binary XML files.",
+  "gad": "Binary XML files.",
+  "ccd": "Binary XML files. CCD files hold more environmental parameters (?).",
+  "rld": "Binary XML files. RLD files hold lighting effects in environments (?).",
   "pkz": "Compressed ZSTD archives containing most of the game's files.<br><b>NOTE: For most use cases, you do not need to repack these.</b> Usually, you can just place your files in the directory, and the game will load them fine.<br><b>You DO need to repack files in:</b> event/, core/, Text/",
   "dat": "DAT archive. Holds most of the game's files.",
   "dtt": "DAT archive. Almost identical to .DAT, but separated for performance.",

@@ -53,7 +53,7 @@ function loadInitialDAT(fileType, file) {
             if (endsWithAny(fileTypes, key)) {
               supported = "open_in_new"
             }
-            form += `<tr><th><a title="Download this file." onclick="downloadSubFile(\'dat\', '${file.name}', '${key}')"><span class="material-icons">download</span></a><a class="${supported}" title="Open this file in a new editor section." onclick="loadSubFile(\'dat\', '${file.name}', '${key}')"><span class="material-icons">open_in_new</span></a><input type="file" id="${file.name}-${key}-upload" accept=".${key.split('.')[1]}" style="display:none"/><a class="file_upload" title="Replace this file." onclick="$('input[id=&quot;${file.name}-${key}-upload&quot;]').trigger('click');"><span class="material-icons">file_upload</span></a><a title="Remove this file permanently from the DAT." onclick="removeSubFile(\'dat\', \'${file.name}\', \'${key}\', this)"><span class="material-icons">close</span></a></th><th><input type="text" disabled="true" size="25" value='${key}'></input></th><th title="${value['size']} bytes">${readableBytes(value['size'])}</th><th title="${readableBytes(value['offset'])}">${value.offset}</th><th class="replacedIndicator"><img height="30px" title="File has not been replaced." alt="Not replaced" src="assets/unreplaced-black.png"</th></tr>`
+            form += `<tr><th><a title="Download this file." onclick="downloadSubFile(\'dat\', '${file.name}', '${key}')"><span class="material-icons">download</span></a><a class="${supported}" title="Open this file in a new editor section." onclick="loadSubFile(\'dat\', '${file.name}', '${key}')"><span class="material-icons">open_in_new</span></a><input type="file" id="${file.name}-${key}-upload" accept=".${key.split('.')[1]}" style="display:none"/><a class="file_upload" title="Replace this file." onclick="$('input[id=&quot;${file.name}-${key}-upload&quot;]').trigger('click');"><span class="material-icons">file_upload</span></a><a title="Remove this file permanently from the DAT." onclick="removeSubFile(\'dat\', \'${file.name}\', \'${key}\', this)"><span class="material-icons">close</span></a></th><th><input type="text" size="25" value='${key}'></input></th><th title="${value['size']} bytes">${readableBytes(value['size'])}</th><th title="${readableBytes(value['offset'])}">${value.offset}</th><th class="replacedIndicator"><img height="30px" title="File has not been replaced." alt="Not replaced" src="assets/unreplaced-black.png"</th></tr>`
           }
           $('div[id="' + file.name + '"]').find('h4').append(` - ${Object.keys(localFiles).length} files <a class='download' title='Download the extracted files as a ZIP.' onclick="downloadFile(\'dat\', '${file.name}')"><span class='material-icons'>folder</span> DOWNLOAD ZIP</a>`)
           $('div[id="' + file.name + '"]').find('h4').append(`<a class='repack' title='Repack the file into a game-ready DAT.' onclick="packDAT('${file.name}')"><span class='material-icons'>auto_fix_high</span> REPACK</a>`)
@@ -138,6 +138,11 @@ async function packDAT(file) {
     alert("This browser doesn't support TextDecoder and TextEncoder, which is required for DAT repacking. Use a newer one?")
     return;
   }
+  var newFileOrder = [];
+  $(`div[id="${file}"]`).find('div#files').find('tr').each(function(index) {
+    if (index == 0) {return}
+    newFileOrder[index-1] = $(this).find('input[type="text"]').val()
+  })
   var enc = new TextEncoder();
   var workingfile = globalFiles[file];
   var outputFiles = []
@@ -210,9 +215,9 @@ async function packDAT(file) {
   pos = fileNamesOffset
   for (var i = 0; i < numFiles; i++) {
     if (i+1 < numFiles) {
-      outputArray = concatenateToUint8(outputArray, enc.encode(workingfile['fileOrder'][i].padEnd(nameLength, "\x00")));
+      outputArray = concatenateToUint8(outputArray, enc.encode(newFileOrder[i].padEnd(nameLength, "\x00")));
     } else {
-      outputArray = concatenateToUint8(outputArray, enc.encode(workingfile['fileOrder'][i]));
+      outputArray = concatenateToUint8(outputArray, enc.encode(newFileOrder[i]));
     }
     pos = outputArray.length
   }

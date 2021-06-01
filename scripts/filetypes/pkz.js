@@ -51,7 +51,7 @@ function loadInitialPKZ(fileType, file) {
             supported = "open_in_new"
           }
           let replace = "hidden"
-          form += `<tr><th><a title="Download this file." onclick="downloadSubFile(\'pkz\', '${file.name}', '${key}')"><span class="material-icons">download</span></a><a class="${supported}" title="Open this file in a new editor section." onclick="loadSubFile(\'pkz\', '${file.name}', '${key}')"><span class="material-icons">open_in_new</span></a><input type="file" id="${file.name}-${key}-upload" accept=".${key.split('.')[1]}" style="display:none"/><a class="file_upload" title="Replace this file." onclick="$('input[id=&quot;${file.name}-${key}-upload&quot;]').trigger('click');"><span class="material-icons">file_upload</span></a><a title="Remove this file permanently from the PKZ." onclick="removeSubFile(\'dat\', \'${file.name}\', \'${key}\', this)"><span class="material-icons">close</span></a></th><th><input type="text" disabled="true" size="25" value='${key}'></input></th><th title="${value['size']} bytes">${readableBytes(Number(value['size']))}</th><th title="${value['compressedSize']} bytes">${readableBytes(Number(value['compressedSize']))}</th><th title="${readableBytes(Number(value['offset']))}">${Number(value['offset'])}</th><th class="replacedIndicator"><img height="30px" title="File has not been replaced." alt="Not replaced" src="assets/unreplaced-black.png"</th></tr>`
+          form += `<tr><th><a title="Download this file." onclick="downloadSubFile(\'pkz\', '${file.name}', '${key}')"><span class="material-icons">download</span></a><a class="${supported}" title="Open this file in a new editor section." onclick="loadSubFile(\'pkz\', '${file.name}', '${key}')"><span class="material-icons">open_in_new</span></a><input type="file" id="${file.name}-${key}-upload" accept=".${key.split('.')[1]}" style="display:none"/><a class="file_upload" title="Replace this file." onclick="$('input[id=&quot;${file.name}-${key}-upload&quot;]').trigger('click');"><span class="material-icons">file_upload</span></a><a title="Remove this file permanently from the PKZ." onclick="removeSubFile(\'dat\', \'${file.name}\', \'${key}\', this)"><span class="material-icons">close</span></a></th><th><input type="text" size="25" value='${key}'></input></th><th title="${value['size']} bytes">${readableBytes(Number(value['size']))}</th><th title="${value['compressedSize']} bytes">${readableBytes(Number(value['compressedSize']))}</th><th title="${readableBytes(Number(value['offset']))}">${Number(value['offset'])}</th><th class="replacedIndicator"><img height="30px" title="File has not been replaced." alt="Not replaced" src="assets/unreplaced-black.png"</th></tr>`
         }
         $('div[id="' + file.name + '"]').find('h4').append(` - ${Object.keys(localFiles).length} files <a class='download' title='Download the extracted files as a ZIP.' onclick="downloadFile(\'pkz\', '${file.name}')"><span class='material-icons'>folder</span> DOWNLOAD ZIP</a>`)
         $('div[id="' + file.name + '"]').find('h4').append(`<a class='repack' title='Repack the file into a game-ready PKZ.' onclick="packPKZ('${file.name}')"><span class='material-icons'>auto_fix_high</span> REPACK</a>`)
@@ -112,14 +112,18 @@ function generatePKZFileTable(fileOrder) {
 
 async function packPKZ(file) {
   $(`div[id="${file}"]`).find('h4').children('a.repack').replaceWith(`<div class='repack' style="padding: 0; background-color:#C5C5C5;"><span class='material-icons'>auto_fix_high</span> REPACKING...</div>`)
-  
+  var newFileOrder = [];
+  $(`div[id="${file}"]`).find('div#files').find('tr').each(function(index) {
+    if (index == 0) {return}
+    newFileOrder[index-1] = $(this).find('input[type="text"]').val()
+  })
   var workingfile = globalFiles[file];
   const numFiles = Object.keys(workingfile['files']).length
   var files = {};
   console.log('[DAT REPACKING] Reading files...')
   function afterRepack() {
     console.log("[DAT REPACKING] Writing DAT body...")
-    var [names, nameOffsets, fileNameTableLength] = generatePKZFileTable(workingfile['fileOrder'])
+    var [names, nameOffsets, fileNameTableLength] = generatePKZFileTable(newFileOrder)
     var fileOffsets = [];
     var size = Math.ceil((32 + 32*numFiles + fileNameTableLength)/64)*64;
     for (var i = 0; i < numFiles; i++) {
