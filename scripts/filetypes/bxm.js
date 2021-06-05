@@ -15,26 +15,33 @@ function loadInitialBXM(fileType, file, encoding="SHIFT-JIS", forceEncoding=fals
     var reader = new FileReader();
     reader.onloadend = function(e) {
       if (e.target.readyState == FileReader.DONE) {
-        // stuff is in BIG ENDIAN; gotta do some jank
+        // stuff is in BIG ENDIAN
         const header = new DataView(e.target.result.slice(0, 16));
         // magic - 0-4 - magic may be BXM\x00 or XML\x00
         // unk (flags?) - 4-8
-        const nodeCount = header.getInt16(8);
-        const dataCount = header.getInt16(10);
+        const nodeCount = header.getUint16(8);
+        var dataCount = header.getUint16(10);
         const dataSize = header.getUint32(12);
+        if (dataSize > 90000) {
+          // this is completely arbitrary; though ive found it works mostly?
+          // this issue only occurs on route BXMs in the ph_/ folders; i'm not sure why
+          // maybe i should limit it to file name but that seems strange
+          dataCount *= 2
+        }
 
         // node info starts at 0x10 (16)
+        const view = new DataView(e.target.result)
         var nodeInfo = [];
         var offset = 16;
         for (var i = 0; i < nodeCount; i++) {
-          nodeInfo.push(new Uint16Array(e.target.result.slice(offset, offset+8)).map(function (item){return swap16(item)}))
+          nodeInfo.push([view.getUint16(offset), view.getUint16(offset+2), view.getUint16(offset+4), view.getUint16(offset+6)])
           offset += 8;
         }
+        console.log(offset)
         const dataOffsetsOffset = offset;
         var dataOffsets = [];
         for (var i = 0; i < dataCount; i++) {
-          le_data = new Uint16Array(e.target.result.slice(offset, offset+4))
-          dataOffsets.push([swap16(le_data[0]), swap16(le_data[1])])
+          dataOffsets.push([view.getUint16(offset), view.getUint16(offset+2)])
           // name offset - 0
           // value offset - 1
           offset += 4;
@@ -48,11 +55,11 @@ function loadInitialBXM(fileType, file, encoding="SHIFT-JIS", forceEncoding=fals
           enc = new TextDecoder("SHIFT-JIS")
           encAlt = new TextDecoder("UTF-8")
         }
-        const uint8 = new Uint8Array(e.target.result)
+        console.log(offset)
         function readString(pos) {
           pos = pos + offset;
           var tmppos = pos;
-          while (tmppos < uint8.byteLength && uint8[tmppos] != 0) {
+          while (tmppos < e.target.result.byteLength && view.getUint8(tmppos) != 0) {
             tmppos += 1;
           }
           var decoded = enc.decode(e.target.result.slice(pos, tmppos));
@@ -67,7 +74,6 @@ function loadInitialBXM(fileType, file, encoding="SHIFT-JIS", forceEncoding=fals
           }
           return decoded;
         }
-        var overflow = false;
         function readTree(nodeNum) {
           var node = nodeInfo[nodeNum];
           // child count - 0

@@ -310,7 +310,7 @@ var fileInfo = {
   "bxm": "Binary XML. Used for storing information about the game, especially events, cases, and cutscenes. Some strings are in Japanese, usually encoded with SHIFT-JIS; however, in quest/, they are encoded with UTF-8. It should autodetect this, but if it doesn't, click \"Change encoding\" in the dropdown menu.<br><b>BXM files are currently read-only right now.</b> I've  yet to come up with a clean editor, but it's coming soon!",
   "sar": "Binary XML files.",
   "seq": "Binary XML files.",
-  "gad": "Binary XML files.",
+  "gad": "Binary XML files. Deals with cutscene lighting, depth of field, shadows, fog, filters, etc.",
   "ccd": "Binary XML files. CCD files hold more environmental parameters (?).",
   "rld": "Binary XML files. RLD files hold lighting effects in environments (?).",
   "pkz": "Compressed ZSTD archives containing most of the game's files.<br><b>NOTE: For most use cases, you do not need to repack these.</b> Usually, you can just place your files in the directory, and the game will load them fine.<br><b>You DO need to repack files in:</b> event/, core/, Text/",
