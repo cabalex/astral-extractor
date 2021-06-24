@@ -1,4 +1,4 @@
-// PTD text files (.bin)
+// PTD text files (.bin) -  a lot of jank code that i'm not sure how it still functions
 
 /*
 
@@ -69,9 +69,11 @@ function loadInitialPTD(fileType, file) {
         // 5 - header sections in second table
         // 6 - data offset
         var keyHeaders = [];
+        var keyGlobalOffsets = [];
         for (var i = 0; i < header[3]; i++) {
           var strHeader = new Uint32Array(e.target.result.slice(header[4]+i*16, header[4]+(i+1)*16))
           keyHeaders.push(strHeader)
+          keyGlobalOffsets.push(strHeader[1]+i*16+28)
         }
         /* STRING headers */
         // 0 - hash
@@ -83,9 +85,12 @@ function loadInitialPTD(fileType, file) {
         var stringKeys = [];
         var keys = [];
         for (var i = 0; i < header[3]; i++) {
-          stringKeys.push(new Uint8Array(e.target.result.slice(pos, pos+(keyHeaders[i][3]))).map(function (item) {return ((item - 0x26) % 256)})); // UTF-16; 2 bytes per char
-          pos += keyHeaders[i][3];
+          stringKeys.push(new Uint8Array(e.target.result.slice(keyGlobalOffsets[i], keyGlobalOffsets[i]+keyHeaders[i][3])).map(function (item) {return ((item - 0x26) % 256)})); // UTF-16; 2 bytes per char
+          pos = keyGlobalOffsets[i]+keyHeaders[i][3]
           keys.push({"header": keyHeaders[i], "text": stringKeys[i]})
+          if (keyHeaders[i][0] == 413100054) {
+            console.log(keys[i])
+          }
         }
         var secondTableHeaders = [];
         for (var i = 0; i < header[5]; i++) {
@@ -150,8 +155,8 @@ function loadInitialPTD(fileType, file) {
           var form = `<table id="section-${y}" hash="${header2[0].toString(16)}">`;
           for (var i = 0; i < Object.keys(dict).length; i++) {
             // lines
-            form += `<tr><th title="hash">${hashes[0][i].toString(16)}</th><th title="key"><input class="${file.name}?${i}" type="text" size="32" value="${Object.keys(dict)[i].trim()}"></input></th>`
-            form += `<th title="value1"><textarea class="${file.name}-0" rows="4" cols="36">${dict[Object.keys(dict)[i]][0]}</textarea></th><th title="value2"><textarea class="${file.name}-1" rows="4" cols="36">${dict[Object.keys(dict)[i]][1]}</textarea></th>`;
+            form += `<tr><th class="hash">${hashes[0][i].toString(16).toUpperCase()}</th><th class="key"><input class="${file.name}?${i}" type="text" size="32" value="${Object.keys(dict)[i]}"></input></th>`
+            form += `<th class="value1"><textarea class="${file.name}-0" rows="4" cols="36">${dict[Object.keys(dict)[i]][0]}</textarea></th><th class="value2"><textarea class="${file.name}-1" rows="4" cols="36">${dict[Object.keys(dict)[i]][1]}</textarea></th>`;
             form += "</tr>"
 
           }
@@ -180,7 +185,7 @@ function downloadPTD(fileType, filename) {
     var section = [];
     $(root).find(`table#section-${i}`).find('tr').each(function(index) {
       // sorta redundant but its whatever
-      section.push({"hash": $(this).find("th[title='hash']").text(), "key": $(this).find("input").val(), "value": [$(this).find("th[title='value1']").find("textarea").val(), $(this).find("th[title='value2']").find("textarea").val()]})
+      section.push({"hash": $(this).find("th[class='hash']").text(), "key": $(this).find("input").val(), "value": [$(this).find("th[class='value1']").find("textarea").val(), $(this).find("th[class='value2']").find("textarea").val()]})
     })
     sections.push({"hash": globalFiles[filename]['hashTable'][i]['hash'], "items": section})
   }
@@ -223,6 +228,7 @@ function packPTD(fileType, filename) {
     {"hash": 1019393273, "text": PTDEncode("CharName")},
     {"hash": 2013637650, "text": PTDEncode("groupid")}
   ]*/
+  $(`div[id="${filename}"]`).find('h4').children('a.repack').replaceWith(`<div class='repack' style="padding: 0; background-color:#C5C5C5;"><span class='material-icons'>auto_fix_high</span> REPACKING...</div>`)
   var keys = [];
   for (var i = 0; i < globalFiles[filename]['missingKeys'].length; i++) {
     keys.push({"hash": globalFiles[filename]['missingKeys'][i]['header'][0], "text": globalFiles[filename]['missingKeys'][i]['text'].map(function(item) {return (item + 0x26) % 256})})
@@ -235,7 +241,7 @@ function packPTD(fileType, filename) {
     var section = {"hash": globalFiles[filename]['hashTable'][i]['hash'], "hashes": [], "items": [], "values1": [], "values2": []};
     $(root).find(`table#section-${i}`).find('tr').each(function(index) {
       // sorta redundant but its whatever
-      section['items'][index] = {"hash": parseInt($(this).find("th[title='hash']").text(), 16), "key": PTDEncode($(this).find("input").val()), "value": [PTDEncode($(this).find("th[title='value1']").find("textarea").val()), PTDEncode($(this).find("th[title='value2']").find("textarea").val())]}
+      section['items'][index] = {"hash": parseInt($(this).find("th[class='hash']").text(), 16), "key": PTDEncode($(this).find("input").val()), "value": [PTDEncode($(this).find("th[class='value1']").find("textarea").val()), PTDEncode($(this).find("th[class='value2']").find("textarea").val())]}
       // there is one global keylist; but the values differ from section to section
       section['values1'][index] = {"hash": section['items'][index]['hash'], "text": section['items'][index]['value'][0]}
       section['values2'][index] = {"hash": section['items'][index]['hash'], "text": section['items'][index]['value'][1]}
@@ -260,6 +266,21 @@ function packPTD(fileType, filename) {
   // everything breaks if section 0 has nothing in it but that happens in no file so :)
   for (var i = 0; i < sectionCount; i++) {
     sections[i]['initHeader'] = Uint32Array.from([globalFiles[filename]['hashTable'][i]['dataHeaders'][0], sections[i]['values1'].length, 12]) // only one of these since there is only one key - constant 12 offset
+    if (sections[i]['hashes'].length == 0) {
+      // blank section; fill everything in
+      sections[i]['initHeader'] = new Uint8Array(); // no header
+      sections[i]['hashes'] = new Uint8Array();
+      sections[i]['strings1'] = new Uint8Array();
+      sections[i]['valueStringHeaders1'] = new Uint8Array();
+      sections[i]['strings2'] = new Uint8Array();
+      sections[i]['valueStringHeaders2'] = new Uint8Array();
+
+      sections[i]['valueStringsHeaders'] = Uint32Array.from([globalFiles[filename]['hashTable'][i]['valueHeaders'][0], 0, 24,
+      globalFiles[filename]['hashTable'][i]['valueHeaders'][1], 0, 12])
+
+      sections[i]['totalLength'] = 24;
+      continue;
+    }
     sections[i]['hashes'] = Uint32Array.from(sections[i]['hashes'])
     
     var returned = PTDcreateOffsets(sections[i]['values1'].sort((a,b)=>a['hash']-b['hash']))
@@ -280,15 +301,15 @@ function packPTD(fileType, filename) {
   for (var i = 0; i < sectionCount; i++) {
     var section = sections[i]
     if (section['items'].length == 0) {
-      data = concatenateToUint8(data, Uint32Array.from([section['hash'], 0, x, 2, y]))
+      data = concatenateToUint8(data, Uint32Array.from([section['hash'], 0, x, 2, x])) // both are the same
     } else {
       data = concatenateToUint8(data, Uint32Array.from([section['hash'], 1, x, 2, y]))
     }
-    x += sections[i]['totalLength'] - 20
+    x += section['totalLength'] - 20
     if (i+1 == sectionCount) {
       break
     }
-    y = x + 12 + 4*sections[i+1]['values1'].length
+    y = x + 12 + sections[i+1]['hashes'].byteLength
   }
   for (var i = 0; i < sectionCount; i++) {
     data = concatenateToUint8(data, sections[i]['initHeader'])
@@ -308,4 +329,5 @@ function packPTD(fileType, filename) {
   console.log("REPACK COMPLETE. :D")
   var blob = new Blob([data], {type: "application/octet-stream"})
   saveAs(blob, filename);
+  $(`div[id="${filename}"]`).find('h4').children('.repack').replaceWith(` <a class='repack' title='Repack the file into a game-ready PTD.' onclick="packPTD(\'ptd\', '${filename}')"><span class='material-icons'>auto_fix_high</span> REPACK</a>`)
 }

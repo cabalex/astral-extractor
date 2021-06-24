@@ -62,20 +62,24 @@ function loadInitialCSV(fileTypes, file) {
         var [lines, maxLengthLength] = convertCSVtoArray(e.target.result);
         var maxLength = new Array(maxLengthLength).fill(1)
         var form = "<div class='scroll'><table>";
+        var output = [];
         decoder = new TextDecoder("shift-jis");
         for (var i = 0; i < lines.length; i++) {
           // lines
+          var currentLine = [];
           form += "<tr>"
           for (var x = 0; x < lines[i].length; x++) {
             // items in line
             let unitext = lines[i][x]
             unitext = decoder.decode(unitext.buffer);
             form += `<th><input class="${file.name}-${x}" type="text" value='${unitext}'></input></th>`;
+            currentLine.push(unitext);
             if (unitext.length > maxLength[x]) {
               maxLength[x] = unitext.length;
             }
           }
-          form += "</tr>"
+          output.push(currentLine);
+          form += "</tr>";
 
         }
         form += "</table></div>"
@@ -86,6 +90,7 @@ function loadInitialCSV(fileTypes, file) {
         for (var i = 0; i < maxLengthLength; i++) {
           $(`input[class="${file.name}-${i}"]`).attr('size', maxLength[i])
         }
+        globalFiles[file.name] = {'fp': file}
         resolve();
       }
     }

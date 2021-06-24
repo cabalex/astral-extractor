@@ -70,6 +70,7 @@ function loadInitialDAT(fileType, file) {
     reader.readAsArrayBuffer(file.slice(0, 28))
   })
 }
+
 function exportSubFileDAT(fileType, name, subFile, returnFile) {
   return new Promise(async (resolve, reject) => {
     var reader = new FileReader();

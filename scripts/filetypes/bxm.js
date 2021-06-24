@@ -16,12 +16,12 @@ function loadInitialBXM(fileType, file, encoding="SHIFT-JIS", forceEncoding=fals
     reader.onloadend = function(e) {
       if (e.target.readyState == FileReader.DONE) {
         // stuff is in BIG ENDIAN
-        const header = new DataView(e.target.result.slice(0, 16));
+        const view = new DataView(e.target.result)
         // magic - 0-4 - magic may be BXM\x00 or XML\x00
         // unk (flags?) - 4-8
-        const nodeCount = header.getUint16(8);
-        var dataCount = header.getUint16(10);
-        const dataSize = header.getUint32(12);
+        const nodeCount = view.getUint16(8);
+        var dataCount = view.getUint16(10);
+        const dataSize = view.getUint32(12);
         if (dataSize > 90000) {
           // this is completely arbitrary; though ive found it works mostly?
           // this issue only occurs on route BXMs in the ph_/ folders; i'm not sure why
@@ -30,7 +30,6 @@ function loadInitialBXM(fileType, file, encoding="SHIFT-JIS", forceEncoding=fals
         }
 
         // node info starts at 0x10 (16)
-        const view = new DataView(e.target.result)
         var nodeInfo = [];
         var offset = 16;
         for (var i = 0; i < nodeCount; i++) {

@@ -70,6 +70,7 @@ function arrayBufferToString(buffer){
 
 // loading
 function loadInitial(fileType, file) {
+  // probably not a great way to do this, but eh
   return new Promise(async (resolve, reject) => {
     let image = "assets/marker-3.png"
     if (unzippable.includes(fileType)) {
@@ -77,10 +78,17 @@ function loadInitial(fileType, file) {
     }
     file.name = file.name.replace(" ", "_")
     $('#sideBarContents').append(`<li class="sidebarList" title="${file.name}"><a href="#${file.name}" title="${file.name}"><img style="cursor: pointer;" onclick="deleteItem(this)" onmouseover="onHover(this)" onmouseout="offHover(this)" src=${image} height="30px">${file.name}</a></li>`)
-    $('div#loading').replaceWith(`<div style="padding-left: 10px; line-height: 25px"><h3><span class="material-icons">description</span> ${fileType.toUpperCase()} File</h5><p>${fileInfo[fileType]}</p></div>`)
     if (fileType == 'pkz') {
       await loadInitialPKZ(fileType, file)
-    } else if (['dat', 'dtt', 'evn', 'eff'].includes(fileType)) {
+    } else if (fileType == 'dat' && file.name.startsWith('quest')) {
+      await loadInitialQuest('dat', file)
+      $('div#loading').replaceWith(`<div style="padding-left: 10px; line-height: 25px"><h3><span class="material-icons">auto_awesome</span> QUEST Viewer</h5><p>This viewer is specifically built for quest DAT files, still in development!</p></div>`)
+      resolve();
+    } else if (fileType == 'evn' && file.name.startsWith('ev')) {
+      await loadInitialEvent('dat', file)
+      $('div#loading').replaceWith(`<div style="padding-left: 10px; line-height: 25px"><h3><span class="material-icons">auto_awesome</span> EVENT Viewer</h5><p>This viewer is specifically built for event DAT files, still in development!</p></div>`)
+      resolve();
+    } else if (['dat', 'dtt', 'eff'].includes(fileType)) {
       await loadInitialDAT('dat', file)
     } else if (fileType == 'csv') {
       await loadInitialCSV(fileType, file)
@@ -95,6 +103,7 @@ function loadInitial(fileType, file) {
     } else {
       console.log("Unsupported file type!")
     }
+    $('div#loading').replaceWith(`<div style="padding-left: 10px; line-height: 25px"><h3><span class="material-icons">description</span> ${fileType.toUpperCase()} File</h5><p>${fileInfo[fileType]}</p></div>`)
     resolve()
   })
 }
@@ -290,11 +299,6 @@ function hideDropdown(elem) {
   $(elem).replaceWith('<a onclick="showDropdown(this)"><span class="material-icons">menu</span></a>')
 }
 
-function getHelp(elem) {
-  // Improve in the future
-  window.open("https://cabalex.github.io/astral-chain-romfs/romfs/")
-}
-
 function readableBytes(bytes) {
   if (bytes == 0) {
     return "0 B"
@@ -320,12 +324,14 @@ var fileInfo = {
   "eff": "DAT archive. Identical to .DAT files.",
   "csv": "Comma-separated values. Holds parameters regarding the game. REPACKING encodes the file as SHIFT-JIS (the encoding used by the game), while DOWNLOADING encodes the file as UTF-16 (the encoding used by most modern devices).",
   "wmb": "Model files. Astral Extractor does not support re-adding models to the game- use Blender2AstralChain / AstralChain2Blender for that.<br><b>Model previews are still in development!</b> Some models may not display correctly, and textures (WTA/WTP) have not been implemented.",
-  "bin": "Text files in PTD format. Stores most of the text in the game, except ones hardcoded (see MCD files in ui/). Note that empty sections are skipped.<br><b>Some of these files may take a while to load (especially TalkSubtitleMessage), so wait a bit!</b>"
+  "bin": "Text files in PTD format. Stores most of the text in the game, except ones hardcoded (see MCD files in ui/).<br><b>Some of these files may take a while to load (especially TalkSubtitleMessage), so wait a bit!</b><br>IMPORTANT: When repacking files with multiple sections, there is a chance some text will be randomly offset forward by one place. This is an issue I've been trying to fix, but keep this in mind while editing."
 }
 var hamburgers = {
   'dat': '<div class="hamburger"><a onclick="showDropdown(this)"><span class="material-icons">menu</span></a></div>',
   'wmb': '<div class="hamburger" title=""><a onclick="showDropdown(this)"><span class="material-icons">menu</span></a><div style="display: none" class="dropdown"><span style="color: var(--light-grey)">MODEL PROPERTIES</span><a onclick="getHelp(this)"><span class="material-icons">help</span> What is this file?</a><a class="addTextures" onclick="addTexturesWMB(\'wmb\', this)"><span class="material-icons">collections</span> Add Textures <span class="nextArrow"><span class="material-icons">navigate_next</span></span></a><a class="addAnimations" onclick="addAnimationsWMB(\'wmb\', this)"><span class="material-icons">animation</span> Add Animations <span class="nextArrow"><span class="material-icons">navigate_next</span></span></a></div></div>',
-  'bxm': '<div class="hamburger" title=""><a onclick="showDropdown(this)"><span class="material-icons">menu</span></a><div style="display: none" class="dropdown"><span style="color: var(--light-grey)">ENCODING: {encoding}</span><a onclick="changeEncodingBXM(\'{encoding}\', this)"><span class="material-icons">article</span> Change encoding</a></div></div>'
+  'bxm': '<div class="hamburger" title=""><a onclick="showDropdown(this)"><span class="material-icons">menu</span></a><div style="display: none" class="dropdown"><span style="color: var(--light-grey)">ENCODING: {encoding}</span><a onclick="changeEncodingBXM(\'{encoding}\', this)"><span class="material-icons">article</span> Change encoding</a></div></div>',
+  'quest': '<div class="hamburger" title=""><a onclick="showDropdown(this)"><span class="material-icons">menu</span></a><div style="display: none" class="dropdown"><span style="color: var(--light-grey)">QUEST EDITOR</span><a onclick="questToDAT(\'{filename}\', this)"><span class="material-icons">settings_backup_restore</span> Switch to DAT viewer</a><a onclick="hideQuestEditorTables(\'{filename}\', this)"><span class="material-icons">visibility</span> Hide table elements</a></div></div>',
+  'event': '<div class="hamburger" title=""><a onclick="showDropdown(this)"><span class="material-icons">menu</span></a><div style="display: none" class="dropdown"><span style="color: var(--light-grey)">QUEST EDITOR</span><a onclick="questToDAT(\'{filename}\', this)"><span class="material-icons">settings_backup_restore</span> Switch to DAT viewer</a></div></div>'
 }
 
 var unzippable = ['csv', 'bxm', 'wmb', 'uvd', 'wta']

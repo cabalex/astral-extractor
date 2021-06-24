@@ -62,7 +62,7 @@
 			<h2>Help</h2>
 			<p>Coming soon!</p>
 			<h2>Credits</h2>
-			<p>JS Libraries used: <a href="https://gildas-lormeau.github.io/zip.js/index.html">ZIPJS</a>, <a href="https://github.com/eligrey/FileSaver.js/">FileSaver.js</a>, <a href="https://github.com/donmccurdy/zstddec">zstddec</a>, <a href="https://github.com/yoshihitoh/zstd-codec">zstd-codec</a>, <a href="https://modelviewer.dev/">model-viewer</a>, <a href="https://git.io/float16">float16</a><br>
+			<p>JS Libraries used: JQuery, <a href="https://developers.google.com/fonts/">Google's Material Icons</a>, <a href="https://gildas-lormeau.github.io/zip.js/index.html">ZIPJS</a>, <a href="https://github.com/eligrey/FileSaver.js/">FileSaver.js</a>, <a href="https://github.com/donmccurdy/zstddec">zstddec</a>, <a href="https://github.com/yoshihitoh/zstd-codec">zstd-codec</a>, <a href="https://modelviewer.dev/">model-viewer</a>, <a href="https://git.io/float16">float16</a><br>
 				Special thanks to the NieR modding community and r/AstralChain, especially <a href="https://github.com/Kerilk">Kerilk</a><br>
 			<a href="https://astralchain.nintendo.com/introduction/">ASTRAL CHAIN</a> and its files are property of Platinum Games and Nintendo</p>
 			<p>Astral Extractor created by Cabalex - Try my other modding tools! <a href="https://github.com/cabalex/AstralChain2Blender">AstralChain2Blender</a> - <a href="https://github.com/cabalex/Blender2AstralChain">Blender2AstralChain</a> - <a href="https://docs.google.com/spreadsheets/d/1qTOnFUdTfPtXfizpqoj2IbcLhTCJWRiF9MI3N8wiP3U/edit?usp=sharing">RomFS Documentation</a></p>
@@ -74,7 +74,7 @@
 	<script src="scripts/encoding.min.js" type="text/javascript"></script>
 	<script src="scripts/zip.min.js" type="text/javascript"></script>
 	<script src="scripts/filesaver.min.js" type="text/javascript"></script>
-	<script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+	<script src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js" type="text/javascript"></script>
 	<script src="scripts/float16.js" type="text/javascript"></script>
 	<script src="scripts/ww2ogg-decoder.js" type="text/javascript"></script>
 	<!-- ZSTD-codec would be here but it's too big to load on page load, check loader.js -->
@@ -87,13 +87,16 @@
 	<script src="scripts/filetypes/wmb.js" type="text/javascript"></script>
 	<script src="scripts/filetypes/ptd.js" type="text/javascript"></script>
 	<script src="scripts/filetypes/save.js" type="text/javascript"></script>
+	<script src="scripts/filetypes/quest.js" type="text/javascript"></script>
+	<script src="scripts/filetypes/event.js" type="text/javascript"></script>
+	<script src="scripts/lookupTable.js" type="text/javascript"></script>
 	<script src="scripts/loader.js" type="text/javascript"></script>
 	<!-- init -->
 	<script type="text/javascript">
 		console.log("ASTRAL EXTRACTOR\n\nThanks for supporting my most niche project ever! Go boot up the game and pet your Beast Legion- you deserve it.\n\nHere you'll find debug and other misc. info for when things go wrong (which they do).")
 		console.log("---")
 
-		$("#name").text('astral extractor v0.10.4') // VERSION NUMBER
+		$("#name").text('astral extractor v0.11.0') // VERSION NUMBER
 	</script>
 </body>
 </html>

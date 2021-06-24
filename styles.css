@@ -10,6 +10,7 @@ html, body {
 }
 
 :root {
+	--lightest-grey: #E5E5E5;
 	--lighter-grey: #D5D5D5;
 	--light-grey: #C5C5C5;
 	--background: white;
@@ -165,13 +166,12 @@ a {
 .success {
 	display: block;
 }
-#content ul li b {
+#content ul li b, .code {
 	font-family: Consolas;
 }
 /* width */
 ::-webkit-scrollbar {
   width: 10px;
-  border-radius: 4px;
 }
 
 /* Track */
@@ -181,13 +181,14 @@ a {
 
 /* Handle */
 ::-webkit-scrollbar-thumb {
-  background: var(--light-grey);
-  border-radius: 4px;
+  background: linear-gradient(0deg, var(--light-grey) 0%, var(--lighter-grey) 100%);
+  border-radius: 0.1em;
 }
 
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--lighter-grey);
+  background: var(--lightest-grey);
+  width: 9px;
 }
 
 #drop_zone {
@@ -335,7 +336,18 @@ tr:nth-child(even) {
 }
 .scroll {
 	overflow-y: auto;
+	width: calc(100% - 50px);
+	flex: 1;
+	min-width: 500px;
 	max-height: calc(100vh - 75px);
+}
+.questEditorBody, .eventEditorBody {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+}
+hr {
+	display: none;
 }
 .model-sidebar {
 	background-color: var(--darker-grey);
@@ -372,6 +384,7 @@ tr:nth-child(even) {
   overflow: auto; /* Enable scroll if needed */
   background-color: rgb(0,0,0); /* Fallback color */
   background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+  z-index: 3;
 }
 
 /* Modal Content/Box */
@@ -401,4 +414,30 @@ tr:nth-child(even) {
   color: black;
   text-decoration: none;
   cursor: pointer;
+}
+div .cut {
+	background-color: var(--grey);
+	padding: 0 2px;
+	padding-bottom: 5px;
+	line-height: 10px;
+	border-radius: 0.25em;
+	overflow-y: scroll;
+	margin-bottom: 2px;
+	margin-right: 5px;
+	color: white;
+}
+.cut h3 {
+	line-height: 25px;
+	margin: 0;
+	padding-top: 5px;
+	text-align: end;
+}
+
+div .cut div {
+	background-color: var(--text);
+	color: var(--grey);
+	border-radius: 0.25em;
+	width: 70%;
+	margin: 0 2px;
+	margin-bottom: 2px;
 }
