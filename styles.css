@@ -149,7 +149,7 @@ a {
 	padding:0 3px;
 	margin-top: auto;
 	margin-bottom: auto;
-	border-radius:0.25em
+	border-radius:0.25em;
 	vertical-align: middle;
 }
 #content h4 {
@@ -440,4 +440,11 @@ div .cut div {
 	width: 70%;
 	margin: 0 2px;
 	margin-bottom: 2px;
+}
+.csv-text {
+	line-height: 20px;
+	background-color: white;
+	white-space: nowrap;
+	border-radius: 0.25em;
+	padding: 5px;
 }

@@ -743,7 +743,7 @@ function loadInitialWMB(fileType, file) {
 				var url2  = URL.createObjectURL(blob);
 				// for when i add other uv maps
 				// skybox-image="assets/skybox.png"
-				$('div[id="' + file.name + '"]').closest('div').append(`<model-viewer camera-controls touch-action shadow-intensity="1" shadow-softness="0.5" interaction-prompt="none" id="modelViewer" poster="assets/loading.png" style="--poster-color: #2C2C2C; width: calc(100vw - 400px); height: 500px;" src="${url2}"></model-viewer>`)
+				$('div[id="' + file.name + '"]').closest('div').append(`<model-viewer ar camera-controls touch-action shadow-intensity="1" shadow-softness="0.5" interaction-prompt="none" id="modelViewer" poster="assets/loading.png" style="--poster-color: #2C2C2C; width: calc(100vw - 400px); height: 500px;" src="${url2}"></model-viewer>`)
 				globalFiles[file.name] = {'fp': file, 'gltf': gltf, 'bin': finalBlob, 'textures': [], 'og-primitives': gltf['meshes'], 'disabled-primitives': []}
 				// debug error logging
 				document.getElementById("modelViewer").addEventListener('error', function(event) {

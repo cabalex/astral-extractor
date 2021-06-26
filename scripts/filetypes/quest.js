@@ -108,14 +108,17 @@ class questDataCommandList {
         output.push(`IF Command ${this.IFCommand} of GroupNo ${this.IFGroupNo} == ${this.IFValue} (type ${this.IfType})`)
         break;
       case 3:
-        output.push(`IF Hash ${this.IFHash} (bCheck ${states[this.IFbCheck]})`)
+        output.push(`IF Hash ${this.IFHash} (bCheck ${states[this.IFbCheck]})`);
+        break;
       case 4:
       case 28:
+        console.log(this)
         // 4 has QuestId set to 0
         output.push(`IF FlagNo ${this.IFFlagNo} is set (bCheck ${states[this.IFbCheck]})`)
         break;
       case 5:
-        output.push(`IF Counter ${this.IFCntNo} == ${this.IFValue} (Command ${this.IFCommand})`)
+        output.push(`IF Counter ${this.IFCntNo} == ${this.IFValue} (Command ${this.IFCommand})`);
+        break;
       case 7:
         output.push(`IF FlagNo ${this.IFFlagNo} of q${this.IFQuestId} is set (bCheck ${states[this.IFbCheck]})`)
         break;
@@ -132,7 +135,8 @@ class questDataCommandList {
         output.push(`IF Condition ${this.IfCondition} of q${this.IfQuestId} (bCheck ${states[this.IFbCheck]})`)
         break;
       case 27:
-        output.push(`IF bCheck is ${states[this.bCheck]} (type ${this.Type})`)
+        output.push(`IF bCheck is ${states[this.bCheck]} (type ${this.Type})`);
+        break;
       case 22:
       case 30:
       case 33:
@@ -425,10 +429,10 @@ function questLookup(id) {
   9 - ???
   A - ???
   B - ???
-  C - ba/?
+  C - bg/?
   D - ???
   E - ???
-  F - Astral Plane gates?
+  F - ba/?
   */
   switch(id[0]) {
     case "1":

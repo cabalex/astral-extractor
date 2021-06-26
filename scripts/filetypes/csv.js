@@ -54,7 +54,7 @@ function formatChars(text) {
   return returning;
 }
 
-function loadInitialCSV(fileTypes, file) {
+function loadInitialCSV(fileTypes, file, translateView=false) {
   return new Promise((resolve, reject) => {
     var reader = new FileReader();
     reader.onloadend = function(e) {
@@ -68,11 +68,39 @@ function loadInitialCSV(fileTypes, file) {
           // lines
           var currentLine = [];
           form += "<tr>"
+          var color = "transparent";
+          var lastSetColor = -10;
           for (var x = 0; x < lines[i].length; x++) {
             // items in line
             let unitext = lines[i][x]
             unitext = decoder.decode(unitext.buffer);
-            form += `<th><input class="${file.name}-${x}" type="text" value='${unitext}'></input></th>`;
+            var color;
+            if (file.name.includes("Color")) {
+              if (x - lastSetColor > 2 && (x % 3 == 1 || ['LegionColorPreset.csv', 'LegionColorSet.csv', 'CharacterCustomizeColorSet.csv'].includes(file.name))) {
+                try {
+                  rgb = [parseInt(unitext), parseInt(decoder.decode(lines[i][x+1].buffer)), parseInt(decoder.decode(lines[i][x+2].buffer))]
+                  if (!rgb.includes(NaN)) {
+                    color = `rgb(${rgb})`
+                    lastSetColor = x;
+                  } else {
+                    color = 'transparent';
+                  }
+                } catch {
+                  color = 'transparent';
+                }
+              } else if (x - lastSetColor > 2) {
+                color = 'transparent'
+              }
+            }
+            if (!translateView) {
+              form += `<th style="background-color: ${color}"><input class="${file.name}-${x}" type="text" value='${unitext}'></input></th>`;
+            } else {
+              if (unitext.length == 0) {
+                form += `<th style="background-color: ${color}"><span class="csv-text" style="background-color: transparent" class="${file.name}-${x}" type="text"></span></th>`
+              } else {
+                form += `<th style="background-color: ${color}"><span class="csv-text" class="${file.name}-${x}" type="text" title="${unitext}">${lookup(unitext)}</span></th>`
+              }
+            }
             currentLine.push(unitext);
             if (unitext.length > maxLength[x]) {
               maxLength[x] = unitext.length;
@@ -86,11 +114,13 @@ function loadInitialCSV(fileTypes, file) {
         $('div[id="' + file.name + '"]').find('h4').append(` - ${lines.length} lines <a class='download' onclick="downloadCSV(\'csv\', '${file.name}', 'false')"><span class='material-icons'>insert_drive_file</span> DOWNLOAD CSV</a>`)
         $('div[id="' + file.name + '"]').find('h4').append(` <a class='repack' title='Repack the file into a game-ready CSV.' onclick="downloadCSV(\'csv\', '${file.name}', 'true')"><span class='material-icons'>auto_fix_high</span> REPACK</a>`)
         $('div[id="' + file.name + '"]').find('h4').prepend(`<a class='minimize' onclick="minimize(this)"><span class="material-icons">expand_less</span></a>`)
+        $('div[id="' + file.name + '"]').find('h4').find('img').after(hamburgers['csv'])
         $('div[id="' + file.name + '"]').append("<div id='files' class='scroll'>" + form + "</table></div>")
+        globalFiles[file.name] = {'fp': file, 'translateView': translateView}
+        if (translateView) {resolve(); return}
         for (var i = 0; i < maxLengthLength; i++) {
           $(`input[class="${file.name}-${i}"]`).attr('size', maxLength[i])
         }
-        globalFiles[file.name] = {'fp': file}
         resolve();
       }
     }
@@ -102,7 +132,12 @@ function downloadCSV(fileType, name, repack=false) {
   var output = new Uint8Array();
   $(`div[id="${name}"`).find('tr').each(function (i, el) {
       $(this).find('th').each(function (i, el) {
-        var itemstr = $(this).find('input').val() + ","
+        var itemstr;
+        if (globalFiles[name]['translateView']) {
+          itemstr = $(this).find('.csv-text').attr('title') + ",";
+        } else {
+          $(this).find('input').val() + ","
+        }
         if (repack) {
           output = concatenateToUint8(output, convertChars(itemstr));
         } else {
@@ -113,4 +148,15 @@ function downloadCSV(fileType, name, repack=false) {
   });
   var blob = new Blob([output], {type: "application/text"})
   saveAs(blob, name);
+}
+
+function changeViewCSV(elem) {
+  const filename = $(elem).parents('h4').attr('title');
+  const file = globalFiles[filename]['fp'];
+  var translateView = (globalFiles[filename]['translateView'] == false); // invert it
+  defaultSettings['CSVtranslateText'] = translateView; // save the setting to config for future files
+  delete globalFiles[filename];
+  $(elem).parents('h4').replaceWith(`<h4 title="${filename}"><img style="cursor: pointer;" onclick="deleteItem(this)" onmouseover="onHover(this)" onmouseout="offHover(this)" src="assets/legatus.png" height="30px"> ${filename}</h4>`)
+  $('div[id="' + filename + '"]').find("div.scroll").remove()
+  loadInitialCSV('csv', file, translateView);
 }

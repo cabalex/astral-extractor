@@ -70,7 +70,6 @@ function arrayBufferToString(buffer){
 
 // loading
 function loadInitial(fileType, file) {
-  // probably not a great way to do this, but eh
   return new Promise(async (resolve, reject) => {
     let image = "assets/marker-3.png"
     if (unzippable.includes(fileType)) {
@@ -78,30 +77,56 @@ function loadInitial(fileType, file) {
     }
     file.name = file.name.replace(" ", "_")
     $('#sideBarContents').append(`<li class="sidebarList" title="${file.name}"><a href="#${file.name}" title="${file.name}"><img style="cursor: pointer;" onclick="deleteItem(this)" onmouseover="onHover(this)" onmouseout="offHover(this)" src=${image} height="30px">${file.name}</a></li>`)
-    if (fileType == 'pkz') {
-      await loadInitialPKZ(fileType, file)
-    } else if (fileType == 'dat' && file.name.startsWith('quest')) {
-      await loadInitialQuest('dat', file)
-      $('div#loading').replaceWith(`<div style="padding-left: 10px; line-height: 25px"><h3><span class="material-icons">auto_awesome</span> QUEST Viewer</h5><p>This viewer is specifically built for quest DAT files, still in development!</p></div>`)
-      resolve();
-    } else if (fileType == 'evn' && file.name.startsWith('ev')) {
-      await loadInitialEvent('dat', file)
-      $('div#loading').replaceWith(`<div style="padding-left: 10px; line-height: 25px"><h3><span class="material-icons">auto_awesome</span> EVENT Viewer</h5><p>This viewer is specifically built for event DAT files, still in development!</p></div>`)
-      resolve();
-    } else if (['dat', 'dtt', 'eff'].includes(fileType)) {
-      await loadInitialDAT('dat', file)
-    } else if (fileType == 'csv') {
-      await loadInitialCSV(fileType, file)
-    } else if (fileType == 'wmb') {
-      await loadInitialWMB(fileType, file)
-    } else if (['bxm', 'sar', 'seq', 'gad', 'ccd', 'rld'].includes(fileType)) {
-      await loadInitialBXM('bxm', file)
-    } else if (fileType == 'wta') {
-      await loadInitialWTA('wta', file)
-    } else if (fileType == 'bin') {
-      await loadInitialPTD('ptd', file)
-    } else {
-      console.log("Unsupported file type!")
+    switch(fileType) {
+      // PKZ
+      case "pkz":
+        await loadInitialPKZ(fileType, file);
+        break;
+      // DAT FORMAT
+        case "dat":
+        if (file.name.startsWith('quest')) {
+          await loadInitialQuest('dat', file)
+          $('div#loading').replaceWith(`<div style="padding-left: 10px; line-height: 25px"><h3><span class="material-icons">auto_awesome</span> QUEST Viewer</h5><p>This viewer is specifically built for quest DAT files, still in development!</p></div>`)
+          resolve();
+          return;
+        }
+        await loadInitialDAT('dat', file)
+        break;
+      case "evn":
+        await loadInitialEvent('dat', file)
+        $('div#loading').replaceWith(`<div style="padding-left: 10px; line-height: 25px"><h3><span class="material-icons">auto_awesome</span> EVENT Viewer</h5><p>This viewer is specifically built for event DAT files, still in development!</p></div>`)
+        resolve();
+        return;
+      case "dtt":
+      case "eff":
+        await loadInitialDAT('dat', file);
+        break;
+      // OTHERS
+      case "csv":
+        await loadInitialCSV('csv', file, defaultSettings['CSVtranslateText']);
+        break;
+      case "wmb":
+        await loadInitialWMB('wmb', file);
+        break;
+      case "mot":
+        await loadInitialMOT('mot', file);
+        break;
+      case "bxm":
+      case "sar":
+      case "seq":
+      case "gad":
+      case "ccd":
+      case "rld":
+        await loadInitialBXM('bxm', file);
+        break;
+      case "wta":
+        await loadInitialWTA('wta', file);
+        break;
+      case "bin":
+        await loadInitialPTD('ptd', file);
+        break;
+      default:
+        window.alert("Unsupported file type!")
     }
     $('div#loading').replaceWith(`<div style="padding-left: 10px; line-height: 25px"><h3><span class="material-icons">description</span> ${fileType.toUpperCase()} File</h5><p>${fileInfo[fileType]}</p></div>`)
     resolve()
@@ -309,7 +334,7 @@ function readableBytes(bytes) {
   return (bytes / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + sizes[i];
 }
 
-var fileTypes = ['.pkz', '.dat', '.dtt', '.eff', '.evn', '.csv', '.wmb', '.bxm', '.sar', '.seq', '.gad', '.ccd', '.rld', '.bin', 'GameData.dat']
+var fileTypes = ['.pkz', '.dat', '.dtt', '.eff', '.evn', '.csv', '.wmb', '.mot', '.bxm', '.sar', '.seq', '.gad', '.ccd', '.rld', '.bin', 'GameData.dat']
 var fileInfo = {
   "bxm": "Binary XML. Used for storing information about the game, especially events, cases, and cutscenes. Some strings are in Japanese, usually encoded with SHIFT-JIS; however, in quest/, they are encoded with UTF-8. It should autodetect this, but if it doesn't, click \"Change encoding\" in the dropdown menu.<br><b>BXM files are currently read-only right now.</b> I've  yet to come up with a clean editor, but it's coming soon!",
   "sar": "Binary XML files.",
@@ -324,19 +349,26 @@ var fileInfo = {
   "eff": "DAT archive. Identical to .DAT files.",
   "csv": "Comma-separated values. Holds parameters regarding the game. REPACKING encodes the file as SHIFT-JIS (the encoding used by the game), while DOWNLOADING encodes the file as UTF-16 (the encoding used by most modern devices).",
   "wmb": "Model files. Astral Extractor does not support re-adding models to the game- use Blender2AstralChain / AstralChain2Blender for that.<br><b>Model previews are still in development!</b> Some models may not display correctly, and textures (WTA/WTP) have not been implemented.",
+  "mot": "Animation files. Stores animation data for their respective models.<br><b>This won't do much on its own. Add a model and click 'Add Animations' to add this to the model.</b>",
   "bin": "Text files in PTD format. Stores most of the text in the game, except ones hardcoded (see MCD files in ui/).<br><b>Some of these files may take a while to load (especially TalkSubtitleMessage), so wait a bit!</b><br>IMPORTANT: When repacking files with multiple sections, there is a chance some text will be randomly offset forward by one place. This is an issue I've been trying to fix, but keep this in mind while editing."
 }
 var hamburgers = {
   'dat': '<div class="hamburger"><a onclick="showDropdown(this)"><span class="material-icons">menu</span></a></div>',
   'wmb': '<div class="hamburger" title=""><a onclick="showDropdown(this)"><span class="material-icons">menu</span></a><div style="display: none" class="dropdown"><span style="color: var(--light-grey)">MODEL PROPERTIES</span><a onclick="getHelp(this)"><span class="material-icons">help</span> What is this file?</a><a class="addTextures" onclick="addTexturesWMB(\'wmb\', this)"><span class="material-icons">collections</span> Add Textures <span class="nextArrow"><span class="material-icons">navigate_next</span></span></a><a class="addAnimations" onclick="addAnimationsWMB(\'wmb\', this)"><span class="material-icons">animation</span> Add Animations <span class="nextArrow"><span class="material-icons">navigate_next</span></span></a></div></div>',
+  'csv': '<div class="hamburger" title=""><a onclick="showDropdown(this)"><span class="material-icons">menu</span></a><div style="display: none" class="dropdown"><span style="color: var(--light-grey)">CSV EDITOR</span><a onclick="changeViewCSV(this)"><span class="material-icons">visibility</span> Change view</a></div></div>',
   'bxm': '<div class="hamburger" title=""><a onclick="showDropdown(this)"><span class="material-icons">menu</span></a><div style="display: none" class="dropdown"><span style="color: var(--light-grey)">ENCODING: {encoding}</span><a onclick="changeEncodingBXM(\'{encoding}\', this)"><span class="material-icons">article</span> Change encoding</a></div></div>',
   'quest': '<div class="hamburger" title=""><a onclick="showDropdown(this)"><span class="material-icons">menu</span></a><div style="display: none" class="dropdown"><span style="color: var(--light-grey)">QUEST EDITOR</span><a onclick="questToDAT(\'{filename}\', this)"><span class="material-icons">settings_backup_restore</span> Switch to DAT viewer</a><a onclick="hideQuestEditorTables(\'{filename}\', this)"><span class="material-icons">visibility</span> Hide table elements</a></div></div>',
-  'event': '<div class="hamburger" title=""><a onclick="showDropdown(this)"><span class="material-icons">menu</span></a><div style="display: none" class="dropdown"><span style="color: var(--light-grey)">QUEST EDITOR</span><a onclick="questToDAT(\'{filename}\', this)"><span class="material-icons">settings_backup_restore</span> Switch to DAT viewer</a></div></div>'
+  'event': '<div class="hamburger" title=""><a onclick="showDropdown(this)"><span class="material-icons">menu</span></a><div style="display: none" class="dropdown"><span style="color: var(--light-grey)">EVENT EDITOR</span><a onclick="questToDAT(\'{filename}\', this)"><span class="material-icons">settings_backup_restore</span> Switch to DAT viewer</a></div></div>'
 }
 
-var unzippable = ['csv', 'bxm', 'wmb', 'uvd', 'wta']
+var unzippable = ['csv', 'bxm', 'wmb', 'uvd', 'wta', 'wtp', 'mot']
 $('#supportedFiles').text(fileTypes.join(", "))
 var globalFiles = {}
+var defaultSettings = {
+  "CSVtranslateText": false,
+  "useLookupTable": true
+}
+
 
 var modal = document.getElementById("infoModal");
 // When the user clicks anywhere outside of the modal, close it

@@ -1,5 +1,62 @@
 const questTable = {
-	
+	"q010f": "Zone 36 Data",
+    "q020f": "Zone 33 Harmony Square Data",
+    "q030f": "Zone 09 Sector V Data",
+    "q040f": "Zone 32 Ark Mall Data",
+    "q050f": "Zone ?? Ark Sewers Data",
+    "q060f": "Zone XX ARI Data [empty]",
+    "q080f": "Zone 09 Hal's Hideout Data",
+    "q090f": "Zone 10 Police HQ Data",
+    "q0a0f": "Zone 30 Maison Forest Data",
+    "q0b0f": "Astral Plane Data",
+    "q0c0f": "[empty quest]",
+    "q1000": "Debug Area Data",
+    "q1101": "Zone 36 File 01 Data",
+    "q1102": "Zone 36 File 02 Data",
+    "q1107": "Zone 36 File 07 Data",
+    "q1108": "Zone 36 File 08 Data",
+    "q1204": "Zone 33 Harmony Square File 04 Data",
+    "q1205": "Zone 33 Harmony Square File 05 Data",
+    "q1206": "Zone 33 Harmony Square File 06 Data",
+    "q1209": "Zone 33 Harmony Square File 09 Data",
+    "q1306": "Zone 09 Sector V File 06 Data",
+    "q1404": "Zone 32 Ark Mall File 04 Data",
+    "q1510": "Zone ?? Ark Sewers File 10 Data",
+    "q1605": "Zone XX ARI File 05 Data",
+    "q1611": "Zone XX ARI File 11 Data",
+    "q1810": "Zone 09 Hal's Hideout File 10 Data",
+    "q1811": "Zone 09 Hal's Hideout File 11 Data",
+    "q1902": "Zone 10 Police HQ File 02 Data",
+    "q1903": "Zone 10 Police HQ File 03 Data",
+    "q1904": "Zone 10 Police HQ File 04 Data",
+    "q1905": "Zone 10 Police HQ File 05 Data",
+    "q1906": "Zone 10 Police HQ File 06 Data",
+    "q1907": "Zone 10 Police HQ File 07 Data",
+    "q1908": "Zone 10 Police HQ File 08 Data",
+    "q1909": "Zone 10 Police HQ File 09 Data",
+    "q1912": "Highway Junction File 09 Data",
+    "q1a03": "Zone 30 Maison Forest File 03 Data",
+    "q1b05": "Zone 33 Harmony Square Station File 05 Data",
+    "q1c09": "Police HQ File 09 [post-Jena] Data",
+    "q2100": "Hot Pursuit",
+    "q3110": "Highway Rescue",
+    "q2101": "Aberration Assault"
+}
+
+const areaTable = {
+    "p100": "Zone 36",
+    "p200": "Zone 33 Harmony Square",
+    "p240": "Zone 33 Harmony Square Station",
+    "p300": "Zone 09 Sector V",
+    "p400": "Zone 32 Ark Mall",
+    "p500": "Ark Sewers",
+    "p600": "ARI",
+    "p800": "Zone 09 Hal's Hideout",
+    "p840": "Zone 30 Maison Forest",
+    "p900": "Zone 10 Police HQ",
+    "p910": "Highway",
+    "p920": "Zone 10 Police HQ (Day)",
+    "pb01": "Astral Plane"
 }
 
 const em = {
@@ -10,10 +67,10 @@ const em = {
     "em000a": "HUM-C-EA76E-00 (Agememnon)",
     "em0010": "HUM-C-158B8-00 (Diomedes)",
     "em0011": "HUM-C-158B8-00 (Diomedes)",
-    "em0012": "HUM-C-6F3CD-00, HUM-C-B8FE7-00 (Astraeus, Capaneus)",
-    "em0013": "HUM-C-6F3CD-00, HUM-C-B8FE7-00 (Astraeus, Capaneus)",
-    "em0014": "HUM-C-6F3CD-00, HUM-C-B8FE7-00 (Astraeus, Capaneus)",
-    "em0015": "HUM-C-6F3CD-00, HUM-C-B8FE7-00 (Astraeus, Capaneus)",
+    "em0012": "HUM-C-6F3CD-00 (Astraeus)",
+    "em0013": "HUM-C-6F3CD-00 (Astraeus)",
+    "em0014": "HUM-C-B8FE7-00 (Capaneus)",
+    "em0015": "HUM-C-B8FE7-00 (Capaneus)",
     "em0020": "HUM-C-60D27-00",
     "em0021": "HUM-C-60D27-00",
     "em0030": "HUM-C-F5DB3-00",
@@ -422,14 +479,32 @@ const pl = {
 
 function lookup(name) {
     // Looks up an enemy from database lists.
-    switch (name.substr(0, 2)) {
+    if (!defaultSettings['useLookupTable']) { return name }
+    var formatted = name.toLowerCase().substr(0, 6);
+    if (formatted.startsWith("q")) {
+        // Quest formatting ("qXXXX" and "questXXXX")
+        formatted = name.replace("quest", "q").substr(0, 5);
+        if (Object.keys(questTable).includes(formatted)) {
+            return questTable[formatted] + name.replace("quest", "q").substr(5);
+        }
+        return name;
+    }
+    if (formatted.startsWith("p")) {
+        // Quest formatting ("qXXXX" and "questXXXX")
+        formatted = name.substr(0, 5);
+        if (Object.keys(areaTable).includes(formatted)) {
+            return areaTable[formatted] + name.substr(5);
+        }
+        return name;
+    }
+    switch (formatted.substr(0, 2)) {
         case "em":
-            if (Object.keys(em).includes(name.substr(0, 6))) {
-                return em[name.substr(0, 6)];
+            if (Object.keys(em).includes(formatted)) {
+                return em[formatted] + name.substr(6);
             }
         case "pl":
-            if (Object.keys(pl).includes(name.substr(0, 6))) {
-                return pl[name.substr(0, 6)];
+            if (Object.keys(pl).includes(formatted)) {
+                return pl[formatted] + name.substr(6);
             }
         default:
             return name;
