@@ -86,7 +86,7 @@ class questDataCommandList {
         this[child['children'][i]['name']] = child['children'][i]['value'];
       } else {
         this[child['children'][i]['name']] = parseInt(child['children'][i]['value']);
-        if (child['children'][i]['name'].includes("Hash") || child['children'][i]['name'].includes("QuestId")) {
+        if (child['children'][i]['name'].includes("Hash") || child['children'][i]['name'].includes("QuestId") || child['children'][i]['name'].includes("HasItemId")) {
           this[child['children'][i]['name']] = this[child['children'][i]['name']].toString(16).toUpperCase();
         } 
       }
@@ -99,40 +99,45 @@ class questDataCommandList {
       case 0:
         break;
       case 1:
-        output.push(`IF IndexNo ${this.IFIndexNo} of GroupNo ${this.IFGroupNo} (multiple ${states[this.IFMultiple]}, bCheck ${states[this.IFbCheck]})`)
+        output.push(`IF IndexNo ${this.IFIndexNo} of GroupNo ${this.IFGroupNo} is ${states[this.IFbCheck]} (multiple ${states[this.IFMultiple]})`)
         break;
       case 38:
-        output.push(`IF GroupNo ${this.IFGroupNo} (bCheck ${states[this.IFbCheck]})`)
+        output.push(`IF GroupNo ${this.IFGroupNo} is ${states[this.IFbCheck]}`)
         break;
       case 2:
         output.push(`IF Command ${this.IFCommand} of GroupNo ${this.IFGroupNo} == ${this.IFValue} (type ${this.IfType})`)
         break;
       case 3:
-        output.push(`IF Hash ${this.IFHash} (bCheck ${states[this.IFbCheck]})`);
+        output.push(`IF Hash ${this.IFHash} is ${states[this.IFbCheck]}`);
         break;
       case 4:
+      case 7:
       case 28:
-        console.log(this)
-        // 4 has QuestId set to 0
-        output.push(`IF FlagNo ${this.IFFlagNo} is set (bCheck ${states[this.IFbCheck]})`)
+        // some have QuestId set to 0
+        if (parseInt(this.IFQuestId) == 0) {
+          output.push(`IF FlagNo ${this.IFFlagNo} is ${states[this.IFbCheck]}`)
+        } else {
+          output.push(`IF FlagNo ${this.IFFlagNo} of q${this.IFQuestId} is ${states[this.IFbCheck]}`)
+        }
         break;
       case 5:
+      case 8:
         output.push(`IF Counter ${this.IFCntNo} == ${this.IFValue} (Command ${this.IFCommand})`);
         break;
-      case 7:
-        output.push(`IF FlagNo ${this.IFFlagNo} of q${this.IFQuestId} is set (bCheck ${states[this.IFbCheck]})`)
-        break;
       case 10:
-        output.push(`IF EventNo ${this.EventNo} is in state ${this.EventState} (type ${this.EventType}, condition ${this.Condition})`)
+        output.push(`IF Event ev${this.EventNo} is in state ${this.EventState} (type ${this.EventType}, condition ${this.Condition})`)
         break;
       case 11:
         output.push(`IF ${this.IFValueHash} == ${this.IFValue2Hash} (IFHash ${this.IFHash}, condition ${this.IFCondition})`)
+        break;
+      case 14:
+        output.push(`IF Player has ${this.HasItemValue}x of Item ${this.HasItemId} (condition ${this.HasItemCondition})`)
         break;
       case 15:
         output.push(`IF index ${this.IfAreaIndex} of AreaGroup ${this.IfAreaGroup} // EmSetNo ${this.IfEmSetNo} of EmGroupNo ${this.IfEmGroupNo} (check ${this.IfCheck}, isGroup ${states[this.IfIsGroup]}`)
         break;
       case 17:
-        output.push(`IF Condition ${this.IfCondition} of q${this.IfQuestId} (bCheck ${states[this.IFbCheck]})`)
+        output.push(`IF Condition ${this.IfCondition} of q${this.IfQuestId} is ${states[this.IFbCheck]}`)
         break;
       case 27:
         output.push(`IF bCheck is ${states[this.bCheck]} (type ${this.Type})`);
@@ -159,10 +164,11 @@ class questDataCommandList {
         break;
       case 2:
       case 3:
-        if (this.EXECIsNextLine) {
-          output.push(`EXEC next line (line ${this.EXECLine})`)
+        if (this.EXECIsNextLine && this.EXECLine == 0) {
+          output.push('EXEC next command')
+          // may be a wrong interpretation
         } else {
-          output.push(`EXEC line ${this.EXECLine}`)
+          output.push(`EXEC command ${this.EXECLine}`)
         }
         break;
       case 4:
@@ -178,7 +184,7 @@ class questDataCommandList {
         break;
       case 7:
         // THIS HAS MUCH MORE PARAMS: add later
-        output.push(`EXEC Load Event ev${this.EXECEventNo.toString(16)}`)
+        output.push(`EXEC Load Event ev${this.EXECEventNo}`)
         break;
       case 8:
         output.push(`EXEC Hash ${this.ExecHash}`)
@@ -186,7 +192,7 @@ class questDataCommandList {
       case 9:
       case 12:
       case 49:
-        output.push(`EXEC FlagNo ${this.ExecFlagNo} (check? ${states[this.ExecbCheck]})`);
+        output.push(`EXEC Set FlagNo ${this.ExecFlagNo} to ${states[this.ExecbCheck]}`);
         break;
       case 10:
         output.push(`EXEC Set Counter ${this.ExecCntNo} to ${this.ExecValue1} and ${this.ExecValue2} (Command ${this.ExecCommand}`);
@@ -210,6 +216,7 @@ class questDataCommandList {
         break;
       case 30:
         output.push(`EXEC Run Task ${this.ExecTaskNo} (type ${this.ExecType})`)
+        break;
       case 31:
         output.push(`EXEC TalkId ${this.TalkId} of SetNo ${this.SetNo} of GroupNo ${this.GroupNo} of q${this.QuestId} (ExistSpeaker ${states[this.ExistSpeaker]})`)
         break;
@@ -257,6 +264,13 @@ class questDataCommandList {
         console.log(`Unknown EXEC found ${this.typeEXEC}; printing class`);
         console.log(this)
     }
+    output = output.map(item => `<span title='IF ${this.typeIF}\nEXEC ${this.typeEXEC}'>${item}</span>`)
+    // SLOW - debug purposes only
+    for (var i = 0; i < output.length; i++)
+      if (output[i].search("undefined") != -1) {
+        console.log(`Misiniterpreted IF ${this.typeIF} or EXEC ${this.typeEXEC}!`);
+        console.log(this);
+      }
     return output;
   }
 }
@@ -391,7 +405,7 @@ function QuestEditorSetup(filename) {
   const convertToHex = ['Id', 'ParentId', 'ExSetFlag', 'SetFlag']
   for (var i = 0; i < enemySet['children'][0]['children'].length; i++) {
     var groupList = enemySet['children'][0]['children'][i];
-    output += `<p><b style="font-size: larger; color: ${colors[0]}" title="hash ${groupList['attributes']['GroupNameHash']}">Set ${groupList['attributes']['number']}</b> | ${groupList['attributes']['name']}<table>`
+    output += `<p><b style="font-size: larger; color: ${colors[0]}" title="hash ${groupList['attributes']['GroupNameHash']}">GroupNo ${groupList['attributes']['number']}</b> | ${groupList['attributes']['name']}<table>`
     for (var x = 0; x < groupList['children'].length; x++) {
       var setInfo = groupList['children'][x];
       output += `<tr><th>${setInfo['children'][0]['value']}</th></tr>`
@@ -401,8 +415,8 @@ function QuestEditorSetup(filename) {
         }
         if (convertToHex.includes(setInfo['children'][y]['name'])) {
           if (setInfo['children'][y]['name'] == "Id") {
-            var id = parseInt(setInfo['children'][y]['value']).toString(16)
-            output += `<tr><th>${setInfo['children'][y]['name']}</th><th title="${id}">${questLookup(id)}</th></tr>`
+            var enemyId = parseInt(setInfo['children'][y]['value']).toString(16)
+            output += `<tr><th>${setInfo['children'][y]['name']}</th><th title="${enemyId} (hex)\n${parseInt(setInfo['children'][y]['value'])} (decimal)">${questLookup(enemyId)}</th></tr>`
           } else {
             output += `<tr><th>${setInfo['children'][y]['name']}</th><th>${parseInt(setInfo['children'][y]['value']).toString(16).toUpperCase()}</th></tr>`
           }
@@ -439,6 +453,10 @@ function questLookup(id) {
       return lookup("pl" + id.substr(1, 4));
     case "2": // 2 == em
       return lookup("em" + id.substr(1, 4));
+    case "c":
+      return lookup("bg" + id.substr(1, 4));
+    case "f":
+      return lookup("ba" + id.substr(1, 4));
     default:
       return id;
   }

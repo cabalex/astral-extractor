@@ -122,6 +122,9 @@ function loadInitial(fileType, file) {
       case "wta":
         await loadInitialWTA('wta', file);
         break;
+      case "mcd":
+        await loadInitialMCD('mcd', file);
+        break;
       case "bin":
         await loadInitialPTD('ptd', file);
         break;
@@ -334,7 +337,7 @@ function readableBytes(bytes) {
   return (bytes / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + sizes[i];
 }
 
-var fileTypes = ['.pkz', '.dat', '.dtt', '.eff', '.evn', '.csv', '.wmb', '.mot', '.bxm', '.sar', '.seq', '.gad', '.ccd', '.rld', '.bin', 'GameData.dat']
+var fileTypes = ['.pkz', '.dat', '.dtt', '.eff', '.evn', '.csv', '.wmb', '.mot', '.bxm', '.sar', '.seq', '.gad', '.ccd', '.rld', '.mcd', '.bin', 'GameData.dat']
 var fileInfo = {
   "bxm": "Binary XML. Used for storing information about the game, especially events, cases, and cutscenes. Some strings are in Japanese, usually encoded with SHIFT-JIS; however, in quest/, they are encoded with UTF-8. It should autodetect this, but if it doesn't, click \"Change encoding\" in the dropdown menu.<br><b>BXM files are currently read-only right now.</b> I've  yet to come up with a clean editor, but it's coming soon!",
   "sar": "Binary XML files.",
@@ -349,19 +352,20 @@ var fileInfo = {
   "eff": "DAT archive. Identical to .DAT files.",
   "csv": "Comma-separated values. Holds parameters regarding the game. REPACKING encodes the file as SHIFT-JIS (the encoding used by the game), while DOWNLOADING encodes the file as UTF-16 (the encoding used by most modern devices).",
   "wmb": "Model files. Astral Extractor does not support re-adding models to the game- use Blender2AstralChain / AstralChain2Blender for that.<br><b>Model previews are still in development!</b> Some models may not display correctly, and textures (WTA/WTP) have not been implemented.",
-  "mot": "Animation files. Stores animation data for their respective models.<br><b>This won't do much on its own. Add a model and click 'Add Animations' to add this to the model.</b>",
+  "mot": "Animation files. Stores animation data for their respective models.<br><strike><b>This won't do much on its own. Add a model and click 'Add Animations' to add this to the model.</b></strike> Currently does nothing right now. Implementation coming soon!",
+  "mcd": "A hybrid of text and font files, this stores glyph positions and text strings contained in its corresponding texture.",
   "bin": "Text files in PTD format. Stores most of the text in the game, except ones hardcoded (see MCD files in ui/).<br><b>Some of these files may take a while to load (especially TalkSubtitleMessage), so wait a bit!</b><br>IMPORTANT: When repacking files with multiple sections, there is a chance some text will be randomly offset forward by one place. This is an issue I've been trying to fix, but keep this in mind while editing."
 }
 var hamburgers = {
-  'dat': '<div class="hamburger"><a onclick="showDropdown(this)"><span class="material-icons">menu</span></a></div>',
   'wmb': '<div class="hamburger" title=""><a onclick="showDropdown(this)"><span class="material-icons">menu</span></a><div style="display: none" class="dropdown"><span style="color: var(--light-grey)">MODEL PROPERTIES</span><a onclick="getHelp(this)"><span class="material-icons">help</span> What is this file?</a><a class="addTextures" onclick="addTexturesWMB(\'wmb\', this)"><span class="material-icons">collections</span> Add Textures <span class="nextArrow"><span class="material-icons">navigate_next</span></span></a><a class="addAnimations" onclick="addAnimationsWMB(\'wmb\', this)"><span class="material-icons">animation</span> Add Animations <span class="nextArrow"><span class="material-icons">navigate_next</span></span></a></div></div>',
   'csv': '<div class="hamburger" title=""><a onclick="showDropdown(this)"><span class="material-icons">menu</span></a><div style="display: none" class="dropdown"><span style="color: var(--light-grey)">CSV EDITOR</span><a onclick="changeViewCSV(this)"><span class="material-icons">visibility</span> Change view</a></div></div>',
   'bxm': '<div class="hamburger" title=""><a onclick="showDropdown(this)"><span class="material-icons">menu</span></a><div style="display: none" class="dropdown"><span style="color: var(--light-grey)">ENCODING: {encoding}</span><a onclick="changeEncodingBXM(\'{encoding}\', this)"><span class="material-icons">article</span> Change encoding</a></div></div>',
   'quest': '<div class="hamburger" title=""><a onclick="showDropdown(this)"><span class="material-icons">menu</span></a><div style="display: none" class="dropdown"><span style="color: var(--light-grey)">QUEST EDITOR</span><a onclick="questToDAT(\'{filename}\', this)"><span class="material-icons">settings_backup_restore</span> Switch to DAT viewer</a><a onclick="hideQuestEditorTables(\'{filename}\', this)"><span class="material-icons">visibility</span> Hide table elements</a></div></div>',
-  'event': '<div class="hamburger" title=""><a onclick="showDropdown(this)"><span class="material-icons">menu</span></a><div style="display: none" class="dropdown"><span style="color: var(--light-grey)">EVENT EDITOR</span><a onclick="questToDAT(\'{filename}\', this)"><span class="material-icons">settings_backup_restore</span> Switch to DAT viewer</a></div></div>'
+  'event': '<div class="hamburger" title=""><a onclick="showDropdown(this)"><span class="material-icons">menu</span></a><div style="display: none" class="dropdown"><span style="color: var(--light-grey)">EVENT EDITOR</span><a onclick="questToDAT(\'{filename}\', this)"><span class="material-icons">settings_backup_restore</span> Switch to DAT viewer</a></div></div>',
+  'pkz': '<div class="hamburger" title=""><a onclick="showDropdown(this)"><span class="material-icons">menu</span></a><div style="display: none" class="dropdown"><span style="color: var(--light-grey)">PKZ FILE</span><a onclick="PKZShowDetail(\'{filename}\', this)"><span class="material-icons">article</span> View more details</a></div></div>'
 }
 
-var unzippable = ['csv', 'bxm', 'wmb', 'uvd', 'wta', 'wtp', 'mot']
+var unzippable = ['csv', 'bxm', 'wmb', 'uvd', 'wta', 'wtp', 'mot', 'mcd']
 $('#supportedFiles').text(fileTypes.join(", "))
 var globalFiles = {}
 var defaultSettings = {

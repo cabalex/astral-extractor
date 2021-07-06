@@ -1,6 +1,6 @@
 // Stuff for PKZ files (ZSTD archives)
 
-function loadInitialPKZ(fileType, file) {
+function loadInitialPKZ(fileType, file, showDetail=false) {
   var header = null;
   var tmpFiles = null;
   var reader = new FileReader();
@@ -44,14 +44,28 @@ function loadInitialPKZ(fileType, file) {
         for (var i = 0; i < header[4]; i++) {
           localFiles[names[i]] = tmpFiles[i]
         }
-        var form = `<table><tr><th style="text-align: center;"><a onclick='loadAllSubFiles(\"pkz\", \"${file.name}\")'>OPEN ALL</a></th><th>NAME</th><th>SIZE</th><th>COMPR.</th><th>OFFSET</th>`;
-        for (const [ key, value ] of Object.entries(localFiles)) {
-          let supported = "hidden"
-          if (endsWithAny(fileTypes, key)) {
-            supported = "open_in_new"
+        if (showDetail) {
+          var form = `<table><tr><th style="text-align: center;"><a onclick='loadAllSubFiles(\"pkz\", \"${file.name}\")'>OPEN ALL</a></th><th>NAME</th><th>LOOKUP</th><th>SIZE</th><th>COMPR.</th><th>OFFSET</th>`;
+          for (const [ key, value ] of Object.entries(localFiles)) {
+            let supported = "hidden"
+            if (endsWithAny(fileTypes, key)) {
+              supported = "open_in_new"
+            }
+            let replace = "hidden"
+            form += `<tr><th><a title="Download this file." onclick="downloadSubFile(\'pkz\', '${file.name}', '${key}')"><span class="material-icons">download</span></a><a class="${supported}" title="Open this file in a new editor section." onclick="loadSubFile(\'pkz\', '${file.name}', '${key}')"><span class="material-icons">open_in_new</span></a><input type="file" id="${file.name}-${key}-upload" accept=".${key.split('.')[1]}" style="display:none"/><a class="file_upload" title="Replace this file." onclick="$('input[id=&quot;${file.name}-${key}-upload&quot;]').trigger('click');"><span class="material-icons">file_upload</span></a><a title="Remove this file permanently from the PKZ." onclick="removeSubFile(\'dat\', \'${file.name}\', \'${key}\', this)"><span class="material-icons">close</span></a></th><th><input type="text" size="25" value='${key}'></input></th><th>${lookup(key)}</th><th title="${value['size']} bytes">${readableBytes(Number(value['size']))}</th><th title="${value['compressedSize']} bytes">${readableBytes(Number(value['compressedSize']))}</th><th title="${readableBytes(Number(value['offset']))}">${Number(value['offset'])}</th><th class="replacedIndicator"><img height="30px" title="File has not been replaced." alt="Not replaced" src="assets/unreplaced-black.png"</th></tr>`
           }
-          let replace = "hidden"
-          form += `<tr><th><a title="Download this file." onclick="downloadSubFile(\'pkz\', '${file.name}', '${key}')"><span class="material-icons">download</span></a><a class="${supported}" title="Open this file in a new editor section." onclick="loadSubFile(\'pkz\', '${file.name}', '${key}')"><span class="material-icons">open_in_new</span></a><input type="file" id="${file.name}-${key}-upload" accept=".${key.split('.')[1]}" style="display:none"/><a class="file_upload" title="Replace this file." onclick="$('input[id=&quot;${file.name}-${key}-upload&quot;]').trigger('click');"><span class="material-icons">file_upload</span></a><a title="Remove this file permanently from the PKZ." onclick="removeSubFile(\'dat\', \'${file.name}\', \'${key}\', this)"><span class="material-icons">close</span></a></th><th><input type="text" size="25" value='${key}'></input></th><th title="${value['size']} bytes">${readableBytes(Number(value['size']))}</th><th title="${value['compressedSize']} bytes">${readableBytes(Number(value['compressedSize']))}</th><th title="${readableBytes(Number(value['offset']))}">${Number(value['offset'])}</th><th class="replacedIndicator"><img height="30px" title="File has not been replaced." alt="Not replaced" src="assets/unreplaced-black.png"</th></tr>`
+          $('div[id="' + file.name + '"]').find('h4').find('img').after(hamburgers['pkz'].replace("{filename}", file.name).replace("PKZShowDetail", "PKZHideDetail").replace("more details", "less details"))
+        } else {
+          var form = `<table><tr><th style="text-align: center;"><a onclick='loadAllSubFiles(\"pkz\", \"${file.name}\")'>OPEN ALL</a></th><th>NAME</th><th>LOOKUP</th><th>SIZE</th>`;
+          for (const [ key, value ] of Object.entries(localFiles)) {
+            let supported = "hidden"
+            if (endsWithAny(fileTypes, key)) {
+              supported = "open_in_new"
+            }
+            let replace = "hidden"
+            form += `<tr><th><a title="Download this file." onclick="downloadSubFile(\'pkz\', '${file.name}', '${key}')"><span class="material-icons">download</span></a><a class="${supported}" title="Open this file in a new editor section." onclick="loadSubFile(\'pkz\', '${file.name}', '${key}')"><span class="material-icons">open_in_new</span></a><input type="file" id="${file.name}-${key}-upload" accept=".${key.split('.')[1]}" style="display:none"/><a class="file_upload" title="Replace this file." onclick="$('input[id=&quot;${file.name}-${key}-upload&quot;]').trigger('click');"><span class="material-icons">file_upload</span></a><a title="Remove this file permanently from the PKZ." onclick="removeSubFile(\'dat\', \'${file.name}\', \'${key}\', this)"><span class="material-icons">close</span></a></th><th><input type="text" size="25" value='${key}'></input></th><th>${lookup(key)}</th><th title="${value['size']} bytes">${readableBytes(Number(value['size']))}</th><th class="replacedIndicator"><img height="30px" title="File has not been replaced." alt="Not replaced" src="assets/unreplaced-black.png"</th></tr>`
+          }
+          $('div[id="' + file.name + '"]').find('h4').find('img').after(hamburgers['pkz'].replace("{filename}", file.name))
         }
         $('div[id="' + file.name + '"]').find('h4').append(` - ${Object.keys(localFiles).length} files <a class='download' title='Download the extracted files as a ZIP.' onclick="downloadFile(\'pkz\', '${file.name}')"><span class='material-icons'>folder</span> DOWNLOAD ZIP</a>`)
         $('div[id="' + file.name + '"]').find('h4').append(`<a class='repack' title='Repack the file into a game-ready PKZ.' onclick="packPKZ('${file.name}')"><span class='material-icons'>auto_fix_high</span> REPACK</a>`)
@@ -65,6 +79,18 @@ function loadInitialPKZ(fileType, file) {
     }
   }
   reader.readAsArrayBuffer(file.slice(0, 32))
+}
+
+function PKZShowDetail(filename, elem) {
+  $('div[id="' + filename + '"]').remove();
+  $('div#content').append(`<div id="${filename}"><h4 title="${filename}"><img style="cursor: pointer;" onclick="deleteItem(this)" onmouseover="onHover(this)" onmouseout="offHover(this)" src="assets/legatus.png" height="30px"> ${filename}</h4><div style="padding-left: 10px; line-height: 25px"><h3><span class="material-icons">description</span> PKZ File</h5><p>${fileInfo['pkz']}</p></div></div>`);
+  loadInitialPKZ('pkz', globalFiles[filename]['fp'], true)
+}
+
+function PKZHideDetail(filename, elem) {
+  $('div[id="' + filename + '"]').remove();
+  $('div#content').append(`<div id="${filename}"><h4 title="${filename}"><img style="cursor: pointer;" onclick="deleteItem(this)" onmouseover="onHover(this)" onmouseout="offHover(this)" src="assets/legatus.png" height="30px"> ${filename}</h4><div style="padding-left: 10px; line-height: 25px"><h3><span class="material-icons">description</span> PKZ File</h5><p>${fileInfo['pkz']}</p></div></div>`);
+  loadInitialPKZ('pkz', globalFiles[filename]['fp'], false)
 }
 
 function replaceInitPKZ(fileType, name, subFile, files) {

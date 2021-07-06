@@ -232,6 +232,9 @@ table, th, td {
   color: var(--dark-grey);
   border-collapse: collapse;
 }
+#glyphs th, #glyphs td {
+	color: white !important;
+}
 table {
 	background-color: var(--text);
 	border-radius: 0.25em;
@@ -278,6 +281,9 @@ tr:nth-child(even) {
   display: none;
 }
 @media (max-width: 800px) {
+	table a .material-icons {
+		font-size: 20px
+	}
 	.sideBar {
 		display: none !important;
 	}

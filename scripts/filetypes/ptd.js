@@ -103,7 +103,8 @@ function loadInitialPTD(fileType, file) {
         // 2 - relative offset 1
         // 3 - count2 (always 2 since there are always 2 values?)
         // 4 - relative offset 2
-        var hashTable = [] 
+        var hashTable = []
+        var totalItems = 0;
         for (var y = 0; y < secondTableHeaders.length; y++) {
           console.log("Loading section " + y)
           var header2 = secondTableHeaders[y];
@@ -158,13 +159,13 @@ function loadInitialPTD(fileType, file) {
             form += `<tr><th class="hash">${hashes[0][i].toString(16).toUpperCase()}</th><th class="key"><input class="${file.name}?${i}" type="text" size="32" value="${Object.keys(dict)[i]}"></input></th>`
             form += `<th class="value1"><textarea class="${file.name}-0" rows="4" cols="36">${dict[Object.keys(dict)[i]][0]}</textarea></th><th class="value2"><textarea class="${file.name}-1" rows="4" cols="36">${dict[Object.keys(dict)[i]][1]}</textarea></th>`;
             form += "</tr>"
-
           }
+          totalItems += Object.keys(dict).length;
           form += "</table></div>"
           $('div[id="' + file.name + '"]').append(`<h3 style="margin-left: 10px;">Section ${y}</h3><div id='files' style='display: inline-block;' class='scroll'>` + form + "</table></div>")
         }
         $('div[id="' + file.name + '"]').find('h4').append(`<span style="display: none;" class="sectionCount" count="${secondTableHeaders.length}"></span>`)
-        $('div[id="' + file.name + '"]').find('h4').append(` - ${secondTableHeaders.length} sections <a class='download' onclick="downloadPTD(\'ptd\', '${file.name}', 'false')"><span class='material-icons'>insert_drive_file</span> DOWNLOAD AS JSON</a>`)
+        $('div[id="' + file.name + '"]').find('h4').append(` - ${secondTableHeaders.length} sections (${totalItems} items total) <a class='download' onclick="downloadPTD(\'ptd\', '${file.name}', 'false')"><span class='material-icons'>insert_drive_file</span> DOWNLOAD AS JSON</a>`)
         $('div[id="' + file.name + '"]').find('h4').append(` <a class='repack' title='Repack the file into a game-ready PTD.' onclick="packPTD(\'ptd\', '${file.name}')"><span class='material-icons'>auto_fix_high</span> REPACK</a>`)
         $('div[id="' + file.name + '"]').find('h4').prepend(`<a class='minimize' onclick="minimize(this)"><span class="material-icons">expand_less</span></a>`)
         console.log("Loaded PTD successfully :)")
