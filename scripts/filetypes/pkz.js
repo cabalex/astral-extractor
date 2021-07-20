@@ -94,11 +94,14 @@ function PKZHideDetail(filename, elem) {
 }
 
 function replaceInitPKZ(fileType, name, subFile, files) {
+  if (files[0].size > 16000000) {
+    if (confirm("WARNING: The current ZSTD encoder used does not support files above ~16 MB. For individual files, I recommend using my Python-based PKZ Repacker.\n\nOK - See the Python implementation\nCANCEL - Proceed (may not work!)")) {
+      window.location = "https://gist.github.com/cabalex/167bb168ccbe72a7ce829a2351db49e0"
+      return false;
+    }
+  }
   globalFiles[name]['files'][subFile] = {'fp': files[0], 'size': files[0].size, 'kind': 'custom'}
   $(this).val('');
-  if (files[0].size > 16000000) {
-    alert("WARNING: The current ZSTD encoder used does not support files above ~16 MB, as it runs out of memory. While I am trying to find a fix, you may not be able to export this PKZ. Proceed with caution!")
-  }
   console.log(`custom file - ${files[0].name} -> ${subFile}`)
   return true;
 }
