@@ -232,6 +232,11 @@ table, th, td {
   color: var(--dark-grey);
   border-collapse: collapse;
 }
+.LODslider {
+	width: 70%;
+	vertical-align: middle;
+	display: inline-block
+}
 #glyphs th, #glyphs td {
 	color: white !important;
 }

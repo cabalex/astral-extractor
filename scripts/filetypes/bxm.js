@@ -165,3 +165,9 @@ function downloadBXM(fileType, name) {
   var blob = new Blob([output], {type: "application/text"})
   saveAs(blob, name.replace(".bxm", ".xml"));
 }
+
+function downloadBXMasJSON(elem) {
+  const filename = $(elem).parents('h4').attr('title')
+  var blob = new Blob([JSON.stringify(globalFiles[filename]['json'])], {type: "application/text"})
+  saveAs(blob, filename.replace(".bxm", ".json"));
+}

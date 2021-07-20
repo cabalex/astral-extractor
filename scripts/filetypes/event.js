@@ -58,6 +58,9 @@ class Cut {
 		this.CutNo = child['attributes']['CutNo']
 		this.FrameNum = child['attributes']['FrameNum'] // length
     this.ModelControl = [];
+    this.Bgm = [];
+    this.Sub = [];
+    this.Se = [];
 	}
 
 	prettyPrint() {
@@ -68,6 +71,15 @@ class Cut {
     output += "</h3>"
     for (var i = 0; i < this.ModelControl.length; i++) {
       output += `<div style="overflow-wrap: anywhere; line-height: 25px; position: relative; margin-top: ${this.ModelControl[i]['LaunchFrame']*2}px;">${JSON.stringify(this.ModelControl[i])}</div>`
+    }
+    for (var i = 0; i < this.Bgm.length; i++) {
+      output += `<div style="background-color: var(--accent-color) !important; color: white !important; overflow-wrap: anywhere; line-height: 25px; position: relative; margin-top: ${this.Bgm[i]['LaunchFrame']*2}px;">Play BGM <b>${this.Bgm[i]['BgmEventName0']}</b> (ID ${this.Bgm[i]['BgmEventId0']})</div>`
+    }
+    for (var i = 0; i < this.Se.length; i++) {
+      output += `<div style="background-color: var(--accent-color) !important; color: white !important; overflow-wrap: anywhere; line-height: 25px; position: relative; margin-top: ${this.Se[i]['LaunchFrame']*2}px;">Play SFX <b>${this.Se[i]['SeEventName0']}</b> (ID ${this.Se[i]['SeEventId0']})</div>`
+    }
+    for (var i = 0; i < this.Sub.length; i++) {
+      output += `<div style="background-color: var(--secondary-color) !important; color: white !important; overflow-wrap: anywhere; line-height: 25px; position: relative; margin-top: ${this.Sub[i]['LaunchFrame']*2}px;">Dialogue <b>${this.Sub[i]['StrArg']}</b> (Act ${this.Sub[i]['Act']})</div>`
     }
     return output + "</div>";
 	}
@@ -82,6 +94,28 @@ class Cut {
     child['attributes']['LaunchFlag'] = child['attributes']['LaunchFlag'].toString(16);
     this.ModelControl.push(child['attributes']);
 	}
+
+  addBgm(child) {
+    Object.keys(child['attributes']).map(function(key) {if (key != "BgmEventName0") {child[key] = parseInt(child[key])}});
+    child['attributes']['LaunchId'] = child['attributes']['LaunchId'].toString(16);
+    child['attributes']['LaunchFlag'] = child['attributes']['LaunchFlag'].toString(16);
+    this.Bgm.push(child['attributes']);
+  }
+
+  addSe(child) {
+    Object.keys(child['attributes']).map(function(key) {if (key != "SeEventName0") {child[key] = parseInt(child[key])}});
+    child['attributes']['Rtpc'] = child['children'];
+    child['attributes']['LaunchId'] = child['attributes']['LaunchId'].toString(16);
+    child['attributes']['LaunchFlag'] = child['attributes']['LaunchFlag'].toString(16);
+    this.Se.push(child['attributes']);
+  }
+
+  addSub(child) {
+    Object.keys(child['attributes']).map(function(key) {if (key != "StrArg" || key != "IntArgs") {child[key] = parseInt(child[key])}});
+    child['attributes']['LaunchId'] = child['attributes']['LaunchId'].toString(16);
+    child['attributes']['LaunchFlag'] = child['attributes']['LaunchFlag'].toString(16);
+    this.Sub.push(child['attributes']);
+  }
 }
 
 class CutList {
@@ -116,19 +150,38 @@ class CutList {
       this.cuts[parseInt(children[i]['attributes']['LaunchCutNo'])].addModelControl(children[i])
     }
   }
+
+  addBgmSeq(children) {
+    for (var i = 0; i < children.length; i++) {
+      this.cuts[parseInt(children[i]['attributes']['LaunchCutNo'])].addBgm(children[i])
+    }
+  }
+
+  addSeSeq(children) {
+    for (var i = 0; i < children.length; i++) {
+      this.cuts[parseInt(children[i]['attributes']['LaunchCutNo'])].addSe(children[i])
+    }
+  }
+
+  addSubSeq(children) {
+    for (var i = 0; i < children.length; i++) {
+      this.cuts[parseInt(children[i]['attributes']['LaunchCutNo'])].addSub(children[i])
+    }
+  }
 }
 
 class Obj {
   constructor(child) {
     this.ObjId = child['attributes']['ObjId'];
     this.readObjId = child['attributes']['readObjId'];
-    this.SubNo = parseInt(child['attributes']['SubNo']);
+    this.SubNo = parseInt(Number("0x" + child['attributes']['SubNo']));
     this.AttachType = parseInt(child['attributes']['AttachType']);
     this.HasParent = parseInt(child['attributes']['HasParent']);
+    this.Identifier = child['attributes']['Identifier'];
   }
 
   prettyPrint() {
-    var output = `<p><b style="color: #EF5184; font-size: larger" title="${this.ObjId}"><span style="color: #808080">${this.SubNo}</span> ${lookup(this.ObjId)}</b>`
+    var output = `<p><b style="color: #EF5184; font-size: larger" title="${this.ObjId}"><span style="color: #808080">${this.SubNo}</span> ${lookup(this.ObjId)}</b> ${this.Identifier}`
     return output + "</p>"
   }
 
@@ -180,10 +233,29 @@ function EventEditorSetup(filename) {
 	const id = workingfile['id'];
   
   // required
-	var cutList = new CutList(workingfile['files']['CutList.bxm']['extracted']);
-  cutList.addCameraList(workingfile['files']['CameraList.bxm']['extracted']['children']);
+  try {
+	  var cutList = new CutList(workingfile['files']['CutList.bxm']['extracted']);
+    cutList.addCameraList(workingfile['files']['CameraList.bxm']['extracted']['children']);
+  } catch {
+    // Some files don't have these for some reason ??? Fall back
+    questToDAT(filename, this)
+    return
+  }
   if (Object.keys(workingfile['files']).includes(`ev${id}_ModelControlSeq.seq`)) {
     cutList.addModelControlSeq(workingfile['files'][`ev${id}_ModelControlSeq.seq`]['extracted']['children']);
+  }
+
+  if (Object.keys(workingfile['files']).includes(`ev${id}_BgmSeq.seq`)) {
+    cutList.addBgmSeq(workingfile['files'][`ev${id}_BgmSeq.seq`]['extracted']['children']);
+  }
+
+  // SeSeq ?? - Sound effect?
+  if (Object.keys(workingfile['files']).includes(`ev${id}_SeSeq.seq`)) {
+    cutList.addSeSeq(workingfile['files'][`ev${id}_SeSeq.seq`]['extracted']['children']);
+  } 
+
+  if (Object.keys(workingfile['files']).includes(`ev${id}_SubSeq.seq`)) {
+    cutList.addSubSeq(workingfile['files'][`ev${id}_SubSeq.seq`]['extracted']['children']);
   }
 
 
@@ -194,5 +266,5 @@ function EventEditorSetup(filename) {
   if (Object.keys(workingfile['files']).includes('ObjSubInfo.bxm')) {
     objList.addObjSubInfo(workingfile['files']['ObjSubInfo.bxm']['extracted']['children']);
   }
-  $('div[id="' + filename + '"]').find("#files").append("<div style='display: block; margin-left: 10px;' class='scroll'>" + objList.prettyPrint() + "</div>");
+  $('div[id="' + filename + '"]').find("#files").append("<div style='display: block; margin-left: 10px;' class='scroll'><h3>ObjList</h3>" + objList.prettyPrint() + "</div>");
 }

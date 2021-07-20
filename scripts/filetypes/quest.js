@@ -501,9 +501,7 @@ function QuestBXMLoader(arrayBuffer) {
     // value offset - 1
     offset += 4;
   }
-  var enc;
-  var encAlt;
-  enc = new TextDecoder("UTF-8")
+  var enc = new TextDecoder("UTF-8");
   function readString(pos) {
     pos = pos + offset;
     var tmppos = pos;

@@ -47,11 +47,8 @@ function convertChars(text) {
 }
 
 function formatChars(text) {
-  var returning = new Uint8Array()
-  for (var i = 0; i < text.length; i++) {
-    returning = concatenateToUint8(returning, Uint8Array.from([text.charCodeAt(i)]))
-  }
-  return returning;
+  const encoder = new TextEncoder()
+  return encoder.encode(text);
 }
 
 function loadInitialCSV(fileTypes, file, translateView=false) {
@@ -98,7 +95,11 @@ function loadInitialCSV(fileTypes, file, translateView=false) {
               if (unitext.length == 0) {
                 form += `<th style="background-color: ${color}"><span class="csv-text" style="background-color: transparent" class="${file.name}-${x}" type="text"></span></th>`
               } else {
-                form += `<th style="background-color: ${color}"><span class="csv-text" class="${file.name}-${x}" type="text" title="${unitext}">${lookup(unitext)}</span></th>`
+                if (unitext.startsWith("0x")) {
+                  form += `<th style="background-color: ${color}"><span class="csv-text" class="${file.name}-${x}" type="text" title="${unitext}">${itemLookup(unitext)}</span></th>`
+                } else {
+                  form += `<th style="background-color: ${color}"><span class="csv-text" class="${file.name}-${x}" type="text" title="${unitext}">${lookup(unitext)}</span></th>`
+                }
               }
             }
             currentLine.push(unitext);
@@ -111,8 +112,8 @@ function loadInitialCSV(fileTypes, file, translateView=false) {
 
         }
         form += "</table></div>"
-        $('div[id="' + file.name + '"]').find('h4').append(` - ${lines.length} lines <a class='download' onclick="downloadCSV(\'csv\', '${file.name}', 'false')"><span class='material-icons'>insert_drive_file</span> DOWNLOAD CSV</a>`)
-        $('div[id="' + file.name + '"]').find('h4').append(` <a class='repack' title='Repack the file into a game-ready CSV.' onclick="downloadCSV(\'csv\', '${file.name}', 'true')"><span class='material-icons'>auto_fix_high</span> REPACK</a>`)
+        $('div[id="' + file.name + '"]').find('h4').append(` - ${lines.length} lines <a class='download' onclick="downloadCSV(\'csv\', '${file.name}', false)"><span class='material-icons'>insert_drive_file</span> DOWNLOAD CSV</a>`)
+        $('div[id="' + file.name + '"]').find('h4').append(` <a class='repack' title='Repack the file into a game-ready CSV.' onclick="downloadCSV(\'csv\', '${file.name}', true)"><span class='material-icons'>auto_fix_high</span> REPACK</a>`)
         $('div[id="' + file.name + '"]').find('h4').prepend(`<a class='minimize' onclick="minimize(this)"><span class="material-icons">expand_less</span></a>`)
         $('div[id="' + file.name + '"]').find('h4').find('img').after(hamburgers['csv'])
         $('div[id="' + file.name + '"]').append("<div id='files' class='scroll'>" + form + "</table></div>")
@@ -136,7 +137,7 @@ function downloadCSV(fileType, name, repack=false) {
         if (globalFiles[name]['translateView']) {
           itemstr = $(this).find('.csv-text').attr('title') + ",";
         } else {
-          $(this).find('input').val() + ","
+          itemstr = $(this).find('input').val() + ","
         }
         if (repack) {
           output = concatenateToUint8(output, convertChars(itemstr));

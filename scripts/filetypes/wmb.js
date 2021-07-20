@@ -40,20 +40,18 @@ class wmb3_mesh {
 class wmb3_bone {
 	constructor(arrayBuffer, i) {
 		this.boneIndex = i;
-		var bone32Arr = new Float32Array(arrayBuffer);
-		[this.boneNumber, this.parentIndex] = new Uint16Array(arrayBuffer.slice(0, 4))
+		var bone32Arr = new Float32Array(arrayBuffer.slice(4));
+		[this.boneNumber, this.parentIndex] = new Int16Array(arrayBuffer.slice(0, 4))
 
-		this.local_scaleX = bone32Arr[7];
-		this.local_scaleY = bone32Arr[8];
-		this.local_scaleZ = bone32Arr[9];
-		this.local_position = bone32Arr.slice(1, 3);
-		this.local_rotation = bone32Arr.slice(4, 6);
+		this.local_position = bone32Arr.slice(0, 3);
+		this.local_rotation = bone32Arr.slice(3, 6);
+		[this.local_scaleX, this.local_scaleY, this.local_scaleZ] = bone32Arr.slice(6, 9);
 
-		this.world_position = bone32Arr.slice(10, 12);
-		this.world_rotation = bone32Arr.slice(13, 15);
-		this.world_scale = bone32Arr.slice(16, 18);
+		this.world_position = bone32Arr.slice(9, 12);
+		this.world_rotation = bone32Arr.slice(12, 15);
+		this.world_scale = bone32Arr.slice(15, 18);
 
-		this.world_position_tpose = bone32Arr.slice(19, 21);
+		this.world_position_tpose = bone32Arr.slice(18, 21);
 	}
 }
 
@@ -63,7 +61,7 @@ class wmb3_boneSet {
 		this.boneSetCount = boneSetCount;
 		for (var i = 0; i < boneSetCount; i++) {
 			var [offset, count] = new Uint32Array(arrayBuffer.slice(pos+i*8, pos+(i+1)*8))
-			this.boneSetArray.push(new Uint16Array(offset, offset+count*2))
+			this.boneSetArray.push(new Uint16Array(arrayBuffer.slice(offset, offset+count*2)))
 		}
 	}
 }
@@ -330,32 +328,25 @@ class WMB3 {
 		// indexBoneTranslateTable
 		pos = this.wmb3_header.offsetBoneIndexTranslateTable;
 		var firstLevel_Entry_Count = 0
-		this.firstLevel = new Uint16Array(arrayBuffer.slice(pos, pos+32));
+		this.firstLevel = new Int16Array(arrayBuffer.slice(pos, pos+32));
 		for (var i = 0; i < 16; i++) {
-			if (this.firstLevel[i] == 65535) {
-				this.firstLevel[i] = -1;
-			} else {
+			if (this.firstLevel[i] != -1) {
 				firstLevel_Entry_Count += 1
 			}
 			pos += 2
 		}
 
 		var secondLevel_Entry_Count = 0
-		this.secondLevel = new Uint16Array(arrayBuffer.slice(pos, pos+(firstLevel_Entry_Count*32)));
+		this.secondLevel = new Int16Array(arrayBuffer.slice(pos, pos+(firstLevel_Entry_Count*32)));
 		for (var i = 0; i < (firstLevel_Entry_Count * 16); i++) {
-			if (this.secondLevel[i] == 65535) {
-				this.secondLevel[i] = -1;
-			} else {
+			if (this.secondLevel[i] != -1) {
 				secondLevel_Entry_Count += 1
 			}
 			pos += 2
 		}
 
-		this.thirdLevel = new Uint16Array(arrayBuffer.slice(pos, pos+(secondLevel_Entry_Count*32)));
+		this.thirdLevel = new Int16Array(arrayBuffer.slice(pos, pos+(secondLevel_Entry_Count*32)));
 		for (var i = 0; i < (secondLevel_Entry_Count * 16); i++) {
-			if (this.secondLevel[i] == 65535) {
-				this.secondLevel[i] = -1;
-			}
 			pos += 2
 		}
 		// offsetBoneIndexTranslateTable
@@ -492,7 +483,7 @@ function format_wmb_mesh(wmb, gltf) {
 	function uvmapper3(vertex) {return [vertex.textureU4, 1 - vertex.textureV4];}
 	function uvmapper3(vertex) {return [vertex.textureU5, 1 - vertex.textureV5];}
 	// each vertexgroup -> each lod -> each group -> mesh
-	var finalArr = new ArrayBuffer()
+	var finalArr = new ArrayBuffer();
 	for (var vertexGroupIndex = 0; vertexGroupIndex < wmb.wmb3_header.vertexGroupCount; vertexGroupIndex++) {
 		var vertex_flags = wmb.vertexGroupArray[vertexGroupIndex].vertexFlags
 
@@ -604,8 +595,13 @@ function format_wmb_mesh(wmb, gltf) {
 								'indices': gltf['accessors'].length-2,
 								//'material': 0
 							}]
+						})
+						if (wmb.hasBone) {
+							var [finalArr, faceoffset, gltf] = addDataToBuffer(gltf, finalArr, boneWeightInfoArray.map(k => k[0]), "joints");
+							gltf['meshes'][gltf['meshes'].length-1]['primitives'][0]['attributes']['JOINTS_0'] = gltf['accessors'].length-1;
+							var [finalArr, vertoffset, gltf] = addDataToBuffer(gltf, finalArr, boneWeightInfoArray.map(k => k[1]), "weights");
+							gltf['meshes'][gltf['meshes'].length-1]['primitives'][0]['attributes']['WEIGHTS_0'] = gltf['accessors'].length-1;
 						}
-						)
 					}
 				}
 			}
@@ -630,7 +626,7 @@ function addDataToBuffer(gltf, arrayBuffer, arrayBeingAdded, type) {
 	var ylist = [];
 	var zlist = [];
 	var all = [];
-	if (type != "texcoord") {
+	if (type == "vertices") {
 		var invalidVerts = false;
 		arrayBeingAdded.map(function(x) {if (Math.max(...x) < 10000000000000 && Math.min(...x) > -10000000000000) {
 			xlist.push(x[0]); ylist.push(x[1]); zlist.push(x[2]); all.push(...x)
@@ -660,7 +656,7 @@ function addDataToBuffer(gltf, arrayBuffer, arrayBeingAdded, type) {
 	} else {
 		arrayBeingAdded.map(function(x) {all.push(...x)})
 	}
-	if (type == "faces") {
+	if (type == "faces" || type == "joints") {
 		tmpArr = Uint16Array.from(all);
 	} else {
 		tmpArr = Float32Array.from(all);
@@ -676,6 +672,16 @@ function addDataToBuffer(gltf, arrayBuffer, arrayBeingAdded, type) {
 	} else if (type == "texcoord") {
 		gltf['accessors'].push({'bufferView': gltf['bufferViews'].length, 'byteOffset': 0, 'type': 'VEC2', 'componentType': 5126, 'count': count, 'max': [1.0, 1.0], 'min': [0.0, 0.0]})
 		gltf['bufferViews'].push({'buffer': 0, 'byteOffset': arrayBuffer.byteLength, 'byteLength': arrayBeingAdded.byteLength})
+	} else if (type == "joints") {
+		// Joints also use uint16
+		gltf['accessors'].push({'bufferView': gltf['bufferViews'].length, 'byteOffset': 0, 'type': 'VEC4', 'componentType': 5123, 'count': count})
+		gltf['bufferViews'].push({'buffer': 0, 'byteOffset': arrayBuffer.byteLength, 'byteLength': arrayBeingAdded.byteLength})
+	} else if (type == "weights") {
+		gltf['accessors'].push({'bufferView': gltf['bufferViews'].length, 'byteOffset': 0, 'type': 'VEC4', 'componentType': 5126, 'count': count})
+		gltf['bufferViews'].push({'buffer': 0, 'byteOffset': arrayBuffer.byteLength, 'byteLength': arrayBeingAdded.byteLength})
+	} else if (type == "ibm") {
+		gltf['accessors'].push({'bufferView': gltf['bufferViews'].length, 'byteOffset': 0, 'type': 'MAT4', 'componentType': 5126, 'count': count})
+		gltf['bufferViews'].push({'buffer': 0, 'byteOffset': arrayBuffer.byteLength, 'byteLength': arrayBeingAdded.byteLength})
 	} else {
 		gltf['accessors'].push({'bufferView': gltf['bufferViews'].length, 'byteOffset': 0, 'type': 'SCALAR', 'componentType': 5123, 'count': count*3})
 		gltf['bufferViews'].push({'buffer': 0, 'byteOffset': arrayBuffer.byteLength, 'byteLength': arrayBeingAdded.byteLength})
@@ -684,8 +690,26 @@ function addDataToBuffer(gltf, arrayBuffer, arrayBeingAdded, type) {
 	return [newArr.buffer, arrayBuffer.byteLength, gltf];
 }
 
-function construct_armature(name, bone_data_array, firstLevel, secondLevel, thirdLevel, boneMap, boneSetArray) {
-	// todo
+function construct_armature(gltf, finalArr, wmb, name, bone_data_array, firstLevel, secondLevel, thirdLevel, boneMap, boneSetArray) {
+	gltf['skins'][0] = {"joints": [], "inverseBindMatrices": 0};
+	for (var i = 0; i < bone_data_array.length; i++) {
+		gltf['nodes'].push({
+			"n": bone_data_array[1],
+			"translation": Array.from(bone_data_array[i][4]),
+			"rotation": Array.from([...bone_data_array[i][5], 1.0]),
+			"children": []
+		});
+		gltf['skins'][0]['joints'].push(i)
+	}
+	
+	for (var i = 0; i < bone_data_array.length; i++) {
+		gltf['nodes'][i]['children'] = bone_data_array.filter(item => item[2] == i).map(item => item[0]);
+		if (gltf['nodes'][i]['children'].length == 0) {
+			delete gltf['nodes'][i]['children']
+		}
+	}
+	var [finalArr, IBMoffset, gltf] = addDataToBuffer(gltf, finalArr, [new Array(gltf['nodes'].length).fill(0)], "weights");
+	return [gltf, finalArr];
 }
 
 function loadInitialWMB(fileType, file) {
@@ -716,25 +740,35 @@ function loadInitialWMB(fileType, file) {
 					"buffers": [],
 					"meshes": [],
 					"nodes": [],
+					"skins": [],
 					"scene": 0,
-					"scenes": [{"nodes": [0]}]
+					"scenes": [{"nodes": []}]
 				}
 				var wmb = new WMB3(e.target.result);
-				if (wmb.wmb3_header.hasBone == true) {
-					console.log("[!] This model has a bone structure we can't handle yet.")
+				var finalArr = new ArrayBuffer();
+				// FORCE BONE OFF FOR TESTING
+				wmb.hasBone = false
+				//
+				if (wmb.hasBone) {
+					console.log("Attempting to create bone structure...")
 					var boneArray = wmb.boneArray.map(function(bone) {return [bone.boneIndex, `bone${bone.boneIndex}`, bone.parentIndex,`bone${bone.parentIndex}`, bone.world_position, bone.world_rotation, bone.boneNumber, bone.local_position, bone.local_rotation, bone.world_rotation, bone.world_position_tpose]})
-					var armature_no_wmb = wmbname.replace('.wmb','')
+					var armature_no_wmb = file.name.replace('.wmb','')
 					var armature_name_split = armature_no_wmb.split('/')
 					var armature_name = armature_name_split[armature_name_split.length-1]
-					construct_armature(armature_name, boneArray, wmb.firstLevel, wmb.secondLevel, wmb.thirdLevel, wmb.boneMap, wmb.boneSetArray) 
+					[gltf, finalArr] = construct_armature(gltf, finalArr, wmb, armature_name, boneArray, wmb.firstLevel, wmb.secondLevel, wmb.thirdLevel, wmb.boneMap, wmb.boneSetArray) 
 				}
-				var [wmb, gltf, finalBlob, blobLength] = await format_wmb_mesh(wmb, gltf)
+				var [wmb, gltf, finalBlob, blobLength] = await format_wmb_mesh(wmb, gltf, finalArr)
 				var numNodes = [];
-				for (var i = 0; i < gltf['meshes'].length; i++) {
-					gltf['nodes'].push({'mesh': i, 'name': gltf['meshes'][i]['name']})
-					numNodes.push(i)
+				if (wmb.hasBone) {
+					for (var i = 0; i < gltf['meshes'].length; i++) {
+						gltf['nodes'].push({'mesh': i, 'skin': 0, 'name': gltf['meshes'][i]['name']})
+					}
+				} else {
+					for (var i = 0; i < gltf['meshes'].length; i++) {
+						gltf['nodes'].push({'mesh': i, 'name': gltf['meshes'][i]['name']})
+						gltf['scenes'][0]['nodes'].push(i)
+					}
 				}
-				gltf['scenes'][0]['nodes'] = numNodes
 				var url1  = URL.createObjectURL(finalBlob);
 				gltf["buffers"].push({"uri": url1, "byteLength": blobLength})
 				console.log(gltf)
@@ -743,7 +777,7 @@ function loadInitialWMB(fileType, file) {
 				var url2  = URL.createObjectURL(blob);
 				// for when i add other uv maps
 				// skybox-image="assets/skybox.png"
-				$('div[id="' + file.name + '"]').closest('div').append(`<model-viewer ar camera-controls touch-action shadow-intensity="1" shadow-softness="0.5" interaction-prompt="none" id="modelViewer" poster="assets/loading.png" style="--poster-color: #2C2C2C; width: calc(100vw - 400px); height: 500px;" src="${url2}"></model-viewer>`)
+				$('div[id="' + file.name + '"]').closest('div').append(`<model-viewer camera-controls ar autoplay touch-action shadow-intensity="1" shadow-softness="0.5" interaction-prompt="none" id="modelViewer" poster="assets/loading.png" style="--poster-color: #2C2C2C; width: calc(100vw - 400px); height: 500px;" src="${url2}"></model-viewer>`)
 				globalFiles[file.name] = {'fp': file, 'gltf': gltf, 'bin': finalBlob, 'textures': [], 'og-primitives': gltf['meshes'], 'disabled-primitives': []}
 				// debug error logging
 				document.getElementById("modelViewer").addEventListener('error', function(event) {
@@ -754,7 +788,7 @@ function loadInitialWMB(fileType, file) {
 					items.push(`<li title="${gltf['meshes'][i]['name']}"><img height="30px" style="cursor: pointer" onclick="disableLayerWMB(this);" src="assets/enabled.png">${gltf['meshes'][i]['name']}</li>`)
 				}
 				$('.spinner').remove();
-				$('div[id="' + file.name + '"]').closest('div').append(`<div class='model-sidebar' id='${file.name}-sidebar'><h3 style="margin-left: 10px">${file.name.split(".")[0]}</h3><ul>${items.join('')}</ul></div>`)
+				$('div[id="' + file.name + '"]').closest('div').append(`<div class='model-sidebar' id='${file.name}-sidebar'><h3 style="margin-left: 10px">${file.name.split(".")[0]}</h3><div style="margin: 10px;">LOD <input oninput="WMBLODslider('${file.name}', this)" type="range" min="0" max="${parseInt(gltf['meshes'][gltf['meshes'].length-1]['name'].split("-")[2])}" value="${parseInt(gltf['meshes'][gltf['meshes'].length-1]['name'].split("-")[2])}" class="LODslider"></div><ul>${items.join('')}</ul></div>`)
 				$('div[id="' + file.name + '"]').find('h4').append(` <a class='download' title='Export the selected model to GLTF.' onclick="downloadFile(\'wmb\', '${file.name}')"><span class='material-icons'>folder</span> EXPORT AS ZIPPED GLTF</a>`)
 				$('div[id="' + file.name + '"]').find('h4').find('img').after(hamburgers['wmb'])
 				$('div[id="' + file.name + '"]').find('h4').prepend(`<a class='minimize' onclick="minimize(this)"><span class="material-icons">expand_less</span></a>`)
@@ -783,6 +817,35 @@ async function downloadWMB(fileType, name) {
 	await writer.close()
 	const blob = await blobWriter.getData();
 	saveAs(blob, name.split('.')[0] + '.zip');
+}
+
+function WMBLODslider(filename, elem) {
+	var sliderValue = $(elem).val();
+	const modelviewer = $(elem).parents('div[class="model-sidebar"]').parent().find("model-viewer");
+	var nums = [];
+	var gltf = globalFiles[filename]['gltf'];
+	globalFiles[filename]['disabled-primitives'] = [];
+	for (var i = 0; i < globalFiles[filename]['og-primitives'].length; i++) {
+		if (parseInt(globalFiles[filename]['og-primitives'][i]['name'].split("-")[2]) > sliderValue) {
+			globalFiles[filename]['disabled-primitives'].push(globalFiles[filename]['og-primitives'][i]['name']);
+		} else {
+			nums.push(i);
+		}
+	}
+	$(elem).parent().siblings('ul').find("li").each(function(index) {
+		if (globalFiles[filename]['disabled-primitives'].includes($(this).attr('title'))) {
+			$(this).find("img").replaceWith(`<img height="30px" style="cursor: pointer" onclick="enableLayerWMB(this);" src="assets/disabled.png">`)
+		} else {
+			$(this).find("img").replaceWith(`<img height="30px" style="cursor: pointer" onclick="disableLayerWMB(this);" src="assets/enabled.png">`)
+		}
+	})
+	gltf['scenes'][0]['nodes'] = nums;
+	var jsonse = JSON.stringify(gltf);
+	var blob = new Blob([jsonse], {type: "application/json"});
+	var url  = URL.createObjectURL(blob);
+	const currenturl = modelviewer.attr('src');
+	modelviewer.attr('src', url);
+	URL.revokeObjectURL(currenturl);
 }
 
 function disableLayerWMB(elem) {
@@ -840,5 +903,9 @@ function addTexturesWMB(fileType, elem) {
 
 function addAnimationsWMB(fileType, elem) {
 	// may need to add more functionality; animations aren't as clear cut
-	alert("Coming soon!")
+	const text = $(elem).parent().text().trim()
+	const filename = $(elem).parents('div[class="model-sidebar"]').attr('id').split("-")[0]
+	const modelviewer = $(elem).parents('div[class="model-sidebar"]').parent().find("model-viewer")
+	const animfilename = prompt("Enter the animation's filename that has already been loaded. (Yes, this is an ugly prompt. I'll replace it soon)", filename.replace(".wmb", ".mot"))
+
 }

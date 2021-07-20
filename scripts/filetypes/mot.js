@@ -61,23 +61,28 @@ class MOTRecord {
     addData(arrayBuffer) {
         var view = new DataView(arrayBuffer);
         var dh, da;
+        if (arrayBuffer.length == 0) {
+            this.dataHeader = null;
+            this.data = null;
+            return
+        }
         switch(this.recordType) {
             case 0x01:
                 // float every value
                 this.data = new Float32Array(arrayBuffer);
                 break;
             case 0x02:
-                this.dataHeader = {"p": view.getFloat32(0), "dp": view.getFloat32(4)};
+                this.dataHeader = {"p": view.getFloat32(0, true), "dp": view.getFloat32(4, true)};
                 this.data = new Uint16Array(arrayBuffer.slice(8));
                 break;
             case 0x03:
-                this.dataHeader = {"p": view.getFloat16(0), "dp": view.getFloat16(2)}
+                this.dataHeader = {"p": getFloat16(view, 0, true), "dp": getFloat16(view, 2, true)}
                 this.data = new Float16Array(arrayBuffer.slice(4))
                 break;
             case 0x04:
                 this.data = [];
                 for (var i = 0; i < this.valueCount; i++) {
-                    this.data.push({"absoluteFrameIndex": view.getUint16(i*16), "p": view.getFloat32(i*16+4), "m0": view.getFloat32(i*16+8), "m1": view.getFloat32(i*16+12)})
+                    this.data.push({"absoluteFrameIndex": view.getUint16(i*16, true), "p": view.getFloat32(i*16+4, true), "m0": view.getFloat32(i*16+8, true), "m1": view.getFloat32(i*16+12, true)})
                 }
                 break;
             case 0x05:
