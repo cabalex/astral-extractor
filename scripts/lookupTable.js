@@ -501,7 +501,7 @@ const em = {
     "em07ff": "Elemental-Type Chimera sound bank",
     "em0800": "SHE-C-4F413-00 (Ker)",
     "em0801": "SHE-C-4F413-00 (Ker)",
-    "em0851": "SHE-C-4F413-00 (Ker)",
+    "em080a": "SHE-C-2FF4ED-00 (Lampas)",
     "em0810": "SHE-C-2FF4ED-00 (Lampas)",
     "em0811": "SHE-C-2FF4ED-00 (Lampas)",
     "em0820": "SHE-C-C10CD-00",
@@ -510,6 +510,7 @@ const em = {
     "em0831": "SHE-C-7B74E-00",
     "em0840": "SHE-C-104A7-00",
     "em0841": "SHE-C-104A7-00",
+    "em0851": "SHE-C-4F413-00 (Ker)",
     "em0860": "SHE-C-1B635-00 (Naiad)",
     "em0861": "SHE-C-1B635-00 (Naiad)",
     "em08ff": "Shell-Type Chimera sound bank",
@@ -1108,6 +1109,15 @@ const items = {
     0xA019: "Organic Battery"
 }
 
+const ba = {
+    "ba002f": "Red Matter",
+    "bab040": "Supply Crate"
+}
+
+const bg = {
+    "bga002": "No-Entry Wall"
+}
+
 function itemLookup(id) {
     if (items[parseInt(id)] != undefined) {
         return items[parseInt(id)];
@@ -1118,7 +1128,7 @@ function itemLookup(id) {
 
 function lookup(name) {
     // Looks up an enemy from database lists.
-    if (!defaultSettings['useLookupTable']) { return name }
+    if (!defaultSettings['useLookupTable'] || !name) { return name }
     var formatted = name.toLowerCase().substr(0, 6);
     if (formatted.startsWith("q")) {
         // Quest formatting ("qXXXX" and "questXXXX")
@@ -1148,6 +1158,14 @@ function lookup(name) {
         case "wp":
             if (Object.keys(wp).includes(formatted)) {
                 return wp[formatted] + name.substr(6);
+            }
+        case "bg":
+            if (Object.keys(bg).includes(formatted)) {
+                return bg[formatted] + name.substr(6);
+            }
+        case "ba":
+            if (Object.keys(ba).includes(formatted)) {
+                return ba[formatted] + name.substr(6);
             }
         default:
             return name;

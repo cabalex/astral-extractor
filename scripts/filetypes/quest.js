@@ -27,8 +27,13 @@ function loadInitialQuest(fileType, file) {
             tmpstr = "";
           }
         }
+        var firstOffset = 0;
         for (var i = 0; i < header[1]; i++) {
           localFiles[names[i]] = {'offset': fileOffsetsTable[i], 'size': sizesTable[i], 'kind': 'extracted', 'raw': e.target.result.slice(fileOffsetsTable[i], fileOffsetsTable[i] + sizesTable[i])}; // kinds: "extracted" and "custom"
+          // Sometimes the first offset is 0 (0-byte file), find the first real file
+          if (!firstOffset && fileOffsetsTable[i]) {
+            firstOffset = fileOffsetsTable[i];
+          }
           if (sizesTable[i] != 0) {
             if (wholeFileExt.substr(i*4, 3) == "bxm") {
               localFiles[names[i]]['extracted'] = QuestBXMLoader(localFiles[names[i]]['raw'])
@@ -43,7 +48,7 @@ function loadInitialQuest(fileType, file) {
         $('div[id="' + file.name + '"]').find('h4').prepend(`<a class='minimize' onclick="minimize(this)"><span class="material-icons">expand_less</span></a>`)
         $('div[id="' + file.name + '"]').find('h4').find('img').after(hamburgers['quest'].replace(/{filename}/g, file.name))
 
-        globalFiles[file.name] = {'fp': file, 'files': localFiles, 'fileOrder': names.slice(0, Object.keys(localFiles).length), 'hashMap': e.target.result.slice(header[6], fileOffsetsTable[0]), 'id': questId}
+        globalFiles[file.name] = {'fp': file, 'files': localFiles, 'fileOrder': names.slice(0, Object.keys(localFiles).length), 'hashMap': e.target.result.slice(header[6], firstOffset), 'id': questId}
         QuestEditorSetup(file.name);
         resolve();
       }
@@ -59,6 +64,14 @@ function findChild(childrenList, name) {
 // questData classes
 
 const states = [false, true]
+// Might not be right on the operations
+// 0 == [confirmed]
+// 1 !=
+// 2 <
+// 3 > [confirmed]
+// 4 <=
+// 5 >=
+const operations = ["==", "!=", "<", ">", "<=", ">="]
 class questDataTaskList {
   constructor(child) {
     this.TaskName = child['attributes']['TaskName']
@@ -105,7 +118,7 @@ class questDataCommandList {
         output.push(`IF GroupNo ${this.IFGroupNo} is ${states[this.IFbCheck]}`)
         break;
       case 2:
-        output.push(`IF Command ${this.IFCommand} of GroupNo ${this.IFGroupNo} == ${this.IFValue} (type ${this.IfType})`)
+        output.push(`IF GroupNo ${this.IFGroupNo} ${operations[this.IFCommand]} ${this.IFValue} (type ${this.IfType})`)
         break;
       case 3:
         output.push(`IF Hash ${this.IFHash} is ${states[this.IFbCheck]}`);
@@ -122,16 +135,16 @@ class questDataCommandList {
         break;
       case 5:
       case 8:
-        output.push(`IF Counter ${this.IFCntNo} == ${this.IFValue} (Command ${this.IFCommand})`);
+        output.push(`IF Counter ${this.IFCntNo} ${operations[this.IFCommand]} ${this.IFValue}`);
         break;
       case 10:
-        output.push(`IF Event ev${this.EventNo} is in state ${this.EventState} (type ${this.EventType}, condition ${this.Condition})`)
+        output.push(`IF Event ev${this.EventNo} ${operations[this.Condition]} state ${this.EventState} (type ${this.EventType})`)
         break;
       case 11:
-        output.push(`IF ${this.IFValueHash} == ${this.IFValue2Hash} (IFHash ${this.IFHash}, condition ${this.IFCondition})`)
+        output.push(`IF ${this.IFValueHash} ${operations[this.IFCondition]} ${this.IFValue2Hash} (Hash ${this.IFHash})`)
         break;
       case 14:
-        output.push(`IF Player has ${this.HasItemValue}x of Item ${this.HasItemId} (condition ${this.HasItemCondition})`)
+        output.push(`IF Player's Inventory ${operations[this.HasItemCondition]} ${this.HasItemValue}x of Item ${this.HasItemId}`)
         break;
       case 15:
         output.push(`IF index ${this.IfAreaIndex} of AreaGroup ${this.IfAreaGroup} // EmSetNo ${this.IfEmSetNo} of EmGroupNo ${this.IfEmGroupNo} (check ${this.IfCheck}, isGroup ${states[this.IfIsGroup]}`)
@@ -145,11 +158,12 @@ class questDataCommandList {
       case 22:
       case 30:
       case 33:
+      case 35:
       case 36:
         output.push(`IF bCheck is ${states[this.bCheck]}`)
         break;
       case 37:
-        output.push(`IF EmSetNo ${this.IfEmSetNo} of EmGroupNo ${this.IfEmGroupNo} == ${this.IfValue} (condition ${this.IfCondition}, isGroup ${states[this.IfIsGroup]})`)
+        output.push(`IF EmSetNo ${this.IfEmSetNo} of EmGroupNo ${this.IfEmGroupNo} ${operations[this.IfCondition]} ${this.IfValue} (isGroup ${states[this.IfIsGroup]})`)
         break;
       default:
         output.push(`?? Unknown IF ${this.typeIF}`)
@@ -175,7 +189,7 @@ class questDataCommandList {
         output.push(`EXEC Wait ${this.EXECTimer} seconds`);
         break;
       case 5:
-        output.push(`EXEC Load GroupNo ${this.EXECGroupNo} with SetMax ${this.EXECSetMax}`);
+        output.push(`EXEC Load GroupNo ${this.EXECGroupNo} (SetMax ${states[this.EXECSetMax]})`);
         break;
       case 6:
       case 21:
@@ -184,7 +198,7 @@ class questDataCommandList {
         break;
       case 7:
         // THIS HAS MUCH MORE PARAMS: add later
-        output.push(`EXEC Load Event ev${this.EXECEventNo}`)
+        output.push(`EXEC Load Event ev${this.EXECEventNo.toString(16)}`)
         break;
       case 8:
         output.push(`EXEC Hash ${this.ExecHash}`)
@@ -195,6 +209,7 @@ class questDataCommandList {
         output.push(`EXEC Set FlagNo ${this.ExecFlagNo} to ${states[this.ExecbCheck]}`);
         break;
       case 10:
+      case 13:
         output.push(`EXEC Set Counter ${this.ExecCntNo} to ${this.ExecValue1} and ${this.ExecValue2} (Command ${this.ExecCommand}`);
         break;
       case 15:
@@ -430,7 +445,25 @@ function QuestEditorSetup(filename) {
   $('div[id="' + filename + '"]').find("#files").append("<div style='display: block; margin-left: 10px;' class='scroll'>" + output + "</div>");
 }
 
-function questLookup(id) {
+function questUnlookup(id) {
+  if (!id) {
+    return
+  }
+  switch(id.substr(0, 2)) {
+    case "pl":
+      return parseInt("1" + id.substr(2, 5), 16);
+    case "em": // 2 == em
+      return parseInt("2" + id.substr(2, 5), 16);
+    case "bg":
+      return parseInt("C" + id.substr(2, 5), 16);
+    case "ba":
+      return parseInt("F" + id.substr(2, 5), 16);
+    default:
+      return parseInt(id, 16);
+  }
+}
+
+function questLookup(id, returnId=false) {
   /*
   1 - pl/
   2 - em/
@@ -448,14 +481,29 @@ function questLookup(id) {
   E - ???
   F - ba/?
   */
+  if (!id) {
+    return
+  }
   switch(id[0]) {
     case "1":
+      if (returnId) {
+        return "pl" + id.substr(1, 4);
+      }
       return lookup("pl" + id.substr(1, 4));
     case "2": // 2 == em
+      if (returnId) {
+        return "em" + id.substr(1, 4);
+      }
       return lookup("em" + id.substr(1, 4));
     case "c":
+      if (returnId) {
+        return "bg" + id.substr(1, 4);
+      }
       return lookup("bg" + id.substr(1, 4));
     case "f":
+      if (returnId) {
+        return "ba" + id.substr(1, 4);
+      }
       return lookup("ba" + id.substr(1, 4));
     default:
       return id;
@@ -501,7 +549,7 @@ function QuestBXMLoader(arrayBuffer) {
     // value offset - 1
     offset += 4;
   }
-  var enc = new TextDecoder("UTF-8");
+  var enc = new TextDecoder("utf-8");
   function readString(pos) {
     pos = pos + offset;
     var tmppos = pos;
@@ -551,6 +599,97 @@ function QuestBXMLoader(arrayBuffer) {
   }
   return readTree(0);
   //globalFiles[file.name] = {'fp': file, 'json': output, 'xml': xmlOutput, 'encoding': encoding}
+}
+
+function questBXMWriter(inputJSON) {
+  var nodeInfo = [0];
+  var dataOffsets = [];
+  var strings = [];
+  const enc = new TextEncoder();
+  function calculateStringsLength(index) {
+    var len = 0;
+    for (var i = 0; i < index; i++) {
+      len += enc.encode(strings[i]).byteLength + 1; // Zero-terminated C-strings
+    }
+    return len;
+  }
+  function applyToDataOffsets(dataoff) {
+    var dataoffcount = 0;
+    for (var i = 0; i < dataOffsets.length; i++) {
+      if (dataOffsets[i].length == dataoff.length && dataOffsets[i].every((element, index) => element == dataoff[index])) {
+        return dataoffcount/2;
+      }
+      dataoffcount += dataOffsets[i].length;
+    }
+    dataOffsets.push(dataoff);
+    return dataoffcount/2;
+  }
+  function readJSONTree(input, iter) {
+    // Create NodeInfo
+    nodeInfo[iter] = [input['children'].length, nodeInfo.length, Object.keys(input['attributes']).length, null]; // last is filled in later!
+    var dataOffset = [];
+    // create DataOffsets for name, value, and [potential] attributes
+    if (!strings.includes(input['name'])) {
+      strings.push(input['name']);
+    }
+    dataOffset.push(calculateStringsLength(strings.indexOf(input['name'])))
+    if (input['value'].toString()) {
+      if (!strings.includes(input['value'].toString())) {
+        strings.push(input['value'].toString());
+      }
+      dataOffset.push(calculateStringsLength(strings.indexOf(input['value'].toString())))
+    } else {
+      dataOffset.push(0xFFFF)
+    }
+    for (const [key, value] of Object.entries(input['attributes'])) {
+      if (!strings.includes(key)) {
+        strings.push(key);
+      }
+      dataOffset.push(calculateStringsLength(strings.indexOf(key)))
+      if (value.toString()) {
+        if (!strings.includes(value.toString())) {
+          strings.push(value.toString());
+        }
+        dataOffset.push(calculateStringsLength(strings.indexOf(value.toString())))
+      } else {
+        dataOffset.push(0xFFFF)
+      }
+    }
+    nodeInfo[iter][3] = applyToDataOffsets(dataOffset)
+    const startChildren = nodeInfo.length; 
+    nodeInfo = nodeInfo.concat(new Array(input['children'].length))
+    for (var i = 0; i < input['children'].length; i++) {
+      readJSONTree(input['children'][i], startChildren+i);
+    }
+  }
+  readJSONTree(inputJSON, 0)
+  // Construct the BXM file
+  // BXMs are big endian!!
+  function swap16(val) {
+    return ((val & 0xFF) << 8) | ((val >> 8) & 0xFF);
+  }
+  var newNodeInfo = []
+  var newDataOffsets = []
+  var newStrings = ""
+  nodeInfo.map(function(item) {newNodeInfo.push(...item)})
+  newNodeInfo = newNodeInfo.map(item => swap16(item))
+  dataOffsets.map(function(item) {newDataOffsets.push(...item)})
+  newDataOffsets = newDataOffsets.map(item => swap16(item))
+  strings.map(function(item) {newStrings += item + "\x00"})
+  var stringData = enc.encode(newStrings)
+  var header = Uint16Array.from([19800, 76, 0, 0, swap16(nodeInfo.length), swap16(newDataOffsets.length/2)]);
+  var stringDataLenBE = ((stringData.byteLength & 0xFF) << 24) | ((stringData.byteLength & 0xFF00) << 8) | ((stringData.byteLength >> 8) & 0xFF00) | ((stringData.byteLength >> 24) & 0xFF);
+  output = concatenateToUint8(header, Uint32Array.from([stringDataLenBE]), Uint16Array.from(newNodeInfo), Uint16Array.from(newDataOffsets), new Uint8Array(stringData));
+  return output.buffer;
+}
+
+function questCSVWriter(inputArr) {
+  var output = new Uint8Array();
+  for (var i = 0; i < inputArr.length; i++) {
+    var line = inputArr[i].join(",")
+    output = concatenateToUint8(output, new Uint8Array(convertChars(line)), Uint8Array.from([13, 10]))
+  }
+  return output.buffer;
 }
 
 function questToDAT(filename, elem) {

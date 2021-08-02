@@ -37,20 +37,33 @@ function loadInitialDAT(fileType, file) {
           for (var i = 0; i < substring.length; i++) {
             tmpstr += substring[i];
             if (tmpstr.charAt(tmpstr.length-4) == ".") {
-              names.push(tmpstr);
+              if (names.includes(tmpstr)) { 
+                var z = 1;
+                while (names.includes(tmpstr + `~${z}`)) {
+                  z += 1;
+                }
+                names.push(tmpstr + `~${z}`)
+              } else {
+                names.push(tmpstr);
+              }
               tmpstr = "";
             }
           }
+          var firstOffset = 0;
           for (var i = 0; i < header[1]; i++) {
+            // Sometimes the first offset is 0 (0-byte file), find the first real file
+            if (!firstOffset && fileOffsetsTable[i]) {
+              firstOffset = fileOffsetsTable[i];
+            }
             localFiles[names[i]] = {'offset': fileOffsetsTable[i], 'size': sizesTable[i], 'kind': 'extracted'}; // kinds: "extracted" and "custom"
           }
           hashes = true
-          reader.readAsArrayBuffer(file.slice(header[6], fileOffsetsTable[0]))
+          reader.readAsArrayBuffer(file.slice(header[6], firstOffset))
         } else {
           var form = `<table><tr><th style="text-align: center;"><a onclick='loadAllSubFiles(\"dat\", \"${file.name}\")'>OPEN ALL</a></th><th>NAME</th><th>SIZE</th><th>OFFSET</th>`;
           for (const [ key, value ] of Object.entries(localFiles)) {
             let supported = "hidden"
-            if (endsWithAny(fileTypes, key)) {
+            if (endsWithAny(fileTypes, key.split("~")[0])) {
               supported = "open_in_new"
             }
             form += `<tr><th><a title="Download this file." onclick="downloadSubFile(\'dat\', '${file.name}', '${key}')"><span class="material-icons">download</span></a><a class="${supported}" title="Open this file in a new editor section." onclick="loadSubFile(\'dat\', '${file.name}', '${key}')"><span class="material-icons">open_in_new</span></a><input type="file" id="${file.name}-${key}-upload" accept=".${key.split('.')[1]}" style="display:none"/><a class="file_upload" title="Replace this file." onclick="$('input[id=&quot;${file.name}-${key}-upload&quot;]').trigger('click');"><span class="material-icons">file_upload</span></a><a title="Remove this file permanently from the DAT." onclick="removeSubFile(\'dat\', \'${file.name}\', \'${key}\', this)"><span class="material-icons">close</span></a></th><th><input type="text" size="25" value='${key}'></input></th><th title="${value['size']} bytes">${readableBytes(value['size'])}</th><th title="${readableBytes(value['offset'])}">${value.offset}</th><th class="replacedIndicator"><img height="30px" title="File has not been replaced." alt="Not replaced" src="assets/unreplaced-black.png"</th></tr>`
@@ -78,7 +91,7 @@ function exportSubFileDAT(fileType, name, subFile, returnFile) {
     reader.onloadend = async function(e) {
       if (e.target.readyState == FileReader.DONE) {
         var blob = new Blob([e.target.result], {type: 'application/octet-stream'});
-        await sendOutSubFile(fileType, name, subFile, blob, returnFile);
+        await sendOutSubFile(fileType, name, subFile.split("~")[0], blob, returnFile);
         resolve()
       }
     }
@@ -158,7 +171,7 @@ async function packDAT(file) {
   for (var i = 0; i < numFiles; i++) {
     let subFile = workingfile['fileOrder'][i]
     let extArray = subFile.split(".")
-    let ext = extArray[extArray.length-1]
+    let ext = extArray[extArray.length-1].split("~")[0] // Remove any "~"s from duplication prevention
     if (subFile.length + 1 > nameLength) {
       nameLength = subFile.length+1
     }

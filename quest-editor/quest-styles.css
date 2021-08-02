@@ -1,0 +1,277 @@
+:root {
+    --mapSize: 2000px;
+    --mapZoom: 1;
+}
+#drop_zone {
+    width: 200px;
+    margin: 0 0 0 10px;
+    padding: 5px;
+}
+#initial {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-direction: column;
+}
+#repack {
+    background-color: var(--dark-grey);
+    color: white;
+    padding-right: 5px;
+    padding: 0 10px 0 0;
+    margin: 5px;
+    width: 113px;
+    white-space: nowrap;
+    overflow-x: hidden;
+    transition: background-color 100ms, width 100ms;
+}
+#repack:hover {
+    background-color: var(--grey);
+}
+@media (min-width: 950px) {
+    #repack:hover {
+        width: 285px;
+    }
+}
+#create_one {
+    background-color: var(--accent-color);
+    border-radius: 3px;
+    padding: 5px;
+    color: var(--text);
+    cursor: pointer;
+    display: inline-block;
+    transition: background-color 0.2s;
+}
+#create_one:hover {
+    background-color: var(--primary-color)
+}
+#content {
+    display: flex;
+    flex-direction: row;
+}
+#map {
+    z-index: 0;
+    position: relative;
+    left: calc(var(--mapSize) /  4);
+    top: calc(var(--mapSize) / 4);
+}
+#mapcontainer {
+    width: 80%;
+    flex-shrink: 1;
+}
+.marker {
+    position: absolute;
+    z-index: 1;
+    margin-left: -15px;
+    margin-top: -15px;
+    left: 0;
+    top: 0;
+    filter: opacity(0.5);
+    cursor: pointer;
+}
+#mapSideBar {
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--darker-grey);
+    color: white;
+    height: 100vh;
+    width: 20%;
+    min-width: 300px;
+    box-shadow: 0 0 0.25em rgba(0, 0, 0, 0.5);
+    flex-shrink: 0;
+}
+#map-main {
+    margin-left: calc(var(--mapSize) / calc(-2 / var(--mapZoom)));
+    margin-top: calc(var(--mapSize) / calc(-2 / var(--mapZoom)));
+}
+#contextMenu, #rightClickMenu {
+    display: none;
+    z-index: 2;
+    position: absolute;
+    overflow: hidden;
+    border-radius: 0.25em;
+    white-space: nowrap;
+    background: var(--dark-grey);
+    color: white;
+    min-width: 200px;
+}
+#rightClickMenu * {
+    margin: 0;
+    user-select: none;
+    padding: 5px;
+}
+#rightClickMenu ul li:hover {
+    background-color: var(--primary-color)
+}
+.warningBtn {
+    color: var(--secondary-color);
+}
+.warningBtn:hover {
+    color: white;
+    background-color: var(--secondary-color) !important;
+}
+#rightClickMenu .material-icons {
+    font-size: 20px;
+}
+#rightClickMenu ul li {
+    padding: 5px;
+    height: 30px;
+    cursor: pointer;
+    border-radius: 0.25em;
+}
+h1 {
+    font-family: 'Work Sans', Roboto, sans-serif;
+    font-weight: 900;
+}
+#emName {
+    left: 100px;
+    position: relative;
+    z-index: 4;
+    margin-right: 100px;
+}
+#contextMenuSelector {
+    background-color: var(--grey);
+    z-index: 3;
+    position: relative;
+    display: flex;
+    justify-content: space-around;
+}
+#contextMenuSelector div {
+    border-radius: 0.25em;
+    cursor: pointer;
+    user-select: none;
+    text-align: center;
+    margin: 5px;
+    padding: 5px;
+    flex-grow: 1;
+    transition: background-color 100ms, filter 100ms;
+}
+.active {
+    background-color: var(--primary-color);
+}
+.inactive {
+    background-color: var(--dark-grey);
+}
+.inactive:hover {
+    background-color: var(--primary-color);
+    filter: saturate(0.5);
+}
+#contextMenuBody {
+    z-index: 3;
+    margin-left: 0;
+    position: relative;
+    overflow-y: auto;
+    max-height: 50vh;
+    background-color: var(--grey);
+}
+#contextMenuThumb {
+    background-color: var(--secondary-color);
+    padding: 10px;
+    height: 50px;
+    z-index: 2
+}
+#contextMenuAttrs, #contextMenuBasicAttrs {
+    background-color: var(--grey);
+    list-style: none;
+    z-index: 3;
+    margin-left: 0;
+}
+#contextMenuImg {
+    position: fixed;
+    margin-left: -10px;
+    margin-top: -30px;
+    z-index: 1;
+    pointer-events: none;
+}
+#emSubtext {
+    font-size: 16px;
+    vertical-align: baseline;
+}
+table, th, td {
+    color: var(--text);
+}
+table {
+    background-color: transparent;
+}
+tr:nth-child(even) {
+    background-color: var(--grey) !important;
+}
+#mapselector, #zoomselector, #positionindicator {
+    position: absolute;
+    font-family: 'Work Sans', Roboto, sans-serif;
+    font-weight: 700;
+    color: white;
+    white-space: nowrap;
+    margin: 10px;
+    border-radius: 0.25em;
+    cursor: pointer;
+    background-color: var(--grey);
+    z-index: 10;
+    user-select: none;
+    overflow: hidden;
+}
+#mapselector {
+    width: 210px;
+}
+#zoomselector {
+    height: 40px;
+    margin-left: 230px;
+    display: flex;
+    flex-direction: row;
+}
+#zoomselector div, #positionindicator div {
+    padding: 5px;
+    line-height: 30px;
+}
+#positionindicator div {
+    width: 40px;
+}
+#positionindicator {
+    cursor: default;
+    display: flex;
+    flex-direction: row;
+    margin-left: 370px;
+}
+#zoomin:hover, #zoomout:hover {
+    background-color: var(--dark-grey)
+}
+#selectormain {
+    padding: 5px;
+}
+#selector-dropdown {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display:none;
+}
+#selector-dropdown li, #mainselector {
+    padding: 5px;
+    background-position: center;
+    background-blend-mode: multiply;
+    background-color: var(--grey);
+    background-size: cover;
+}
+#mainselector {
+    line-height: 30px;
+    height: 30px;
+    background-blend-mode: overlay;
+    background-image: url('../assets/r800-thumb.png');
+}
+#sidebar-header {
+    background-color: var(--dark-grey);
+    display: none;
+    justify-content: space-between;
+}
+#sidebar-content {
+    overflow-y: auto;
+}
+#close-btn {
+    cursor: pointer;
+    min-width: 40px;
+    flex-shrink: 0;
+}
+.emSearch {
+    width: 300px;
+    background-color: var(--dark-grey);
+    color: white;
+}

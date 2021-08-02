@@ -42,6 +42,7 @@ function loadInitialGameData(fileType, file) {
         $('div[id="' + file.name + '"]').append("<p style='margin-left: 10px;'><b>WARNING:</b> While repacking images is supported, the game may not display them correctly if they are incompatible, and will softlock in places where the image is shown (e.g. the photo album). You have been warned!</p>")
         var saveSlots = ["Slot A", "Slot B"]
         $('div[id="' + file.name + '"]').append(`<p>In progress slot (0x08): <b>${saveSlots[arr[8]]}</b></p>`)
+        $('div[id="' + file.name + '"]').append(`<p>In progress slot data (0x10): <b>SlotData_${arr[0x10]+1}.dat</b></p>`)
         $('div[id="' + file.name + '"]').append("<div id='files'>" + form + "</table></div>")
         for (const key of Object.keys(localFiles)) {
           document.getElementById(`${file.name}-${key}-upload`).addEventListener("change", function(event) { if (replaceInitGameData("dat", file.name, key, event.target.files, this) == true) {$(this).closest('tr').find('th.replacedIndicator').replaceWith('<th class="replacedIndicator"><img height="30px" title="Replaced file." alt="Replaced file." src="assets/replaced-black.png"></img></th>')}}, false);
@@ -92,5 +93,26 @@ function exportSubFileGameData(fileType, name, subFile, returnFile) {
 }
 
 function loadInitialSlotData(fileType, file) {
-  alert('Currently, only GameData editing is supported. SlotData save editing is coming soon!')
+  return new Promise((resolve, reject) => {
+    reader = new FileReader();
+    reader.onloadend = function(e) {
+      if (e.target.readyState == FileReader.DONE) {
+        /*
+        - place begins at 0x74E60
+        - garbled... header data? begins at 0x74F58
+        - item data? begins at 0x75DC0 and ends at 0x7710C
+        */
+        var itemArr = new Uint32Array(e.target.result.slice(0x74FDC, 0x7710C))
+        var itemDict = {}
+        for (var i = 0; i < itemArr.length/2; i++) {
+          if (itemArr[i*2] != 0) {
+            itemDict[itemLookup(itemArr[i*2])] = itemArr[i*2+1]
+          }
+        }
+        console.log(itemDict)
+        resolve();
+      }
+    }
+    reader.readAsArrayBuffer(file)
+  })
 }

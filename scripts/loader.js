@@ -86,7 +86,7 @@ function loadInitial(fileType, file) {
         case "dat":
         if (file.name.startsWith('quest')) {
           await loadInitialQuest('dat', file)
-          $('div#loading').replaceWith(`<div style="padding-left: 10px; line-height: 25px"><h3><span class="material-icons">auto_awesome</span> QUEST Viewer</h5><p>This viewer is specifically built for quest DAT files, still in development!</p></div>`)
+          $('div#loading').replaceWith(`<div style="padding-left: 10px; line-height: 25px"><h3><span class="material-icons">auto_awesome</span> QUEST Viewer</h5><p>Basic quest viewer. Try the new <a href="https://cabalex.github.io/astral-extractor/quest-editor">Quest Editor</a>!</p></div>`)
           resolve();
           return;
         }
@@ -110,6 +110,12 @@ function loadInitial(fileType, file) {
         break;
       case "mot":
         await loadInitialMOT('mot', file);
+        break;
+      case "bnk":
+        await loadInitialBNK('bnk', file);
+        break;
+      case "lay":
+        await loadInitialLAY('lay', file);
         break;
       case "bxm":
       case "sar":
@@ -337,7 +343,7 @@ function readableBytes(bytes) {
   return (bytes / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + sizes[i];
 }
 
-var fileTypes = ['.pkz', '.dat', '.dtt', '.eff', '.evn', '.csv', '.wmb', '.mot', '.bxm', '.sar', '.seq', '.gad', '.ccd', '.rld', '.mcd', '.bin', 'GameData.dat']
+var fileTypes = ['.pkz', '.dat', '.dtt', '.eff', '.evn', '.csv', '.wmb', '.lay', '.mot', '.bxm', '.sar', '.seq', '.gad', '.ccd', '.rld', '.mcd', '.bnk', '.bin', 'GameData.dat']
 var fileInfo = {
   "bxm": "Binary XML. Used for storing information about the game, especially events, cases, and cutscenes. Some strings are in Japanese, usually encoded with SHIFT-JIS; however, in quest/, they are encoded with UTF-8. It should autodetect this, but if it doesn't, click \"Change encoding\" in the dropdown menu.<br><b>BXM files are currently read-only right now.</b> I've  yet to come up with a clean editor, but it's coming soon!",
   "sar": "Binary XML files.",
@@ -345,6 +351,8 @@ var fileInfo = {
   "gad": "Binary XML files. Deals with cutscene lighting, depth of field, shadows, fog, filters, etc.",
   "ccd": "Binary XML files. CCD files hold more environmental parameters (?).",
   "rld": "Binary XML files. RLD files hold lighting effects in environments (?).",
+  "bnk": "Audio bank.",
+  "lay": "Layout files. Stores the objects the game will place in an area.",
   "pkz": "Compressed ZSTD archives containing most of the game's files.<br><b>NOTE: For most use cases, you do not need to repack these.</b> Usually, you can just place your files in the directory, and the game will load them fine.<br><b>You DO need to repack files in:</b> event/, core/, Text/",
   "dat": "DAT archive. Holds most of the game's files.",
   "dtt": "DAT archive. Almost identical to .DAT, but separated for performance.",
@@ -365,7 +373,7 @@ var hamburgers = {
   'pkz': '<div class="hamburger" title=""><a onclick="showDropdown(this)"><span class="material-icons">menu</span></a><div style="display: none" class="dropdown"><span style="color: var(--light-grey)">PKZ FILE</span><a onclick="PKZShowDetail(\'{filename}\', this)"><span class="material-icons">article</span> View more details</a></div></div>'
 }
 
-var unzippable = ['csv', 'bxm', 'wmb', 'uvd', 'wta', 'wtp', 'mot', 'mcd']
+var unzippable = ['csv', 'bxm', 'sar', 'seq', 'gad', 'ccd', 'rld', 'wmb', 'uvd', 'wta', 'wtp', 'mot', 'mcd']
 $('#supportedFiles').text(fileTypes.join(", "))
 var globalFiles = {}
 var defaultSettings = {
@@ -399,4 +407,6 @@ function loadScript(src) {
     }
 });
 }
-loadScript("scripts/zstd-encoder.js") // like 3 MB JS file; load it in the background (usually you don't repack files that quickly)
+if (!window.location.toString().includes("quest-editor")) {
+  loadScript("scripts/zstd-encoder.js") // like 3 MB JS file; load it in the background (usually you don't repack files that quickly)
+}
