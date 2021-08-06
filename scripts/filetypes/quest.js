@@ -99,14 +99,14 @@ class questDataCommandList {
         this[child['children'][i]['name']] = child['children'][i]['value'];
       } else {
         this[child['children'][i]['name']] = parseInt(child['children'][i]['value']);
-        if (child['children'][i]['name'].includes("Hash") || child['children'][i]['name'].includes("QuestId") || child['children'][i]['name'].includes("HasItemId")) {
+        if (child['children'][i]['name'].includes("Hash") || child['children'][i]['name'].includes("Id") || child['children'][i]['name'].includes("EXECEventNo")) {
           this[child['children'][i]['name']] = this[child['children'][i]['name']].toString(16).toUpperCase();
         } 
       }
     }
   }
 
-  prettyPrint() {
+  prettyPrint(returnArr=false) {
     var output = [];
     switch (this.typeIF) {
       case 0:
@@ -278,6 +278,9 @@ class questDataCommandList {
         output.push(`?? Unknown EXEC ${this.typeEXEC}`)
         console.log(`Unknown EXEC found ${this.typeEXEC}; printing class`);
         console.log(this)
+    }
+    if (returnArr) {
+      return output;
     }
     output = output.map(item => `<span title='IF ${this.typeIF}\nEXEC ${this.typeEXEC}'>${item}</span>`)
     // SLOW - debug purposes only
@@ -483,6 +486,9 @@ function questLookup(id, returnId=false) {
   */
   if (!id) {
     return
+  }
+  if (typeof(id) == "number") {
+    id = id.toString(16)
   }
   switch(id[0]) {
     case "1":

@@ -1,84 +1,91 @@
 // Stuff for PKZ files (ZSTD archives)
 
-function loadInitialPKZ(fileType, file, showDetail=false) {
-  var header = null;
-  var tmpFiles = null;
-  var reader = new FileReader();
-  reader.onloadend = function(e) {
-    if (e.target.readyState == FileReader.DONE) {
-      if (header == null) {
-        header = new Uint32Array(e.target.result);
-        // magic - 0
-        // unk - 1
-        var size = new BigUint64Array(e.target.result.slice(8, 16));
-        // numFiles - 4
-        // offset_file_descriptors - 5
-        var fileNameTableLength = new BigUint64Array(e.target.result.slice(24, 32));
-        reader.readAsArrayBuffer(file.slice(header[5], header[5] + header[4] * 32))
-      } else if (tmpFiles == null) {
-        tmpFiles = [];
-        for (var i = 0; i < header[4]; i++) {
-          tmpFile = new BigUint64Array(e.target.result.slice(i*32, (i+1)*32));
-          tmpFiles.push({'nameOffset': tmpFile[0], 'size': tmpFile[1], 'offset': tmpFile[2], 'compressedSize': tmpFile[3], 'kind': 'extracted'})
-          // nameoffset - 0
-          // size - 1
-          // offset - 2
-          // compressedSize - 3
-        }
-        reader.readAsText(file.slice(header[5] + header[4] * 32, header[5] + header[4] * 32 + Number(tmpFiles[0]['offset'])))
-      } else {
-        var localFiles = {}
-        var names = []
-        var substring = e.target.result.substr(16, e.target.result.length).replace(/[^\x20-\x7E]/g, '')
-        var tmpstr = ""
-        for (var i = 0; i < substring.length; i++) {
-          tmpstr += substring[i]
-          if (tmpstr.charAt(tmpstr.length-4) == ".") {
-            if (tmpstr.endsWith(".bnv")) {
-              tmpstr += "ib"
-            }
-            names.push(tmpstr)
-            tmpstr = ""
+function loadInitialPKZ(fileType, file, showDetail=false, justReturnIt=false) {
+  return new Promise((resolve, reject) => {
+    var header = null;
+    var tmpFiles = null;
+    var reader = new FileReader();
+    reader.onloadend = function(e) {
+      if (e.target.readyState == FileReader.DONE) {
+        if (header == null) {
+          header = new Uint32Array(e.target.result);
+          // magic - 0
+          // unk - 1
+          var size = new BigUint64Array(e.target.result.slice(8, 16));
+          // numFiles - 4
+          // offset_file_descriptors - 5
+          var fileNameTableLength = new BigUint64Array(e.target.result.slice(24, 32));
+          reader.readAsArrayBuffer(file.slice(header[5], header[5] + header[4] * 32))
+        } else if (tmpFiles == null) {
+          tmpFiles = [];
+          for (var i = 0; i < header[4]; i++) {
+            tmpFile = new BigUint64Array(e.target.result.slice(i*32, (i+1)*32));
+            tmpFiles.push({'nameOffset': tmpFile[0], 'size': tmpFile[1], 'offset': tmpFile[2], 'compressedSize': tmpFile[3], 'kind': 'extracted'})
+            // nameoffset - 0
+            // size - 1
+            // offset - 2
+            // compressedSize - 3
           }
-        }
-        for (var i = 0; i < header[4]; i++) {
-          localFiles[names[i]] = tmpFiles[i]
-        }
-        if (showDetail) {
-          var form = `<table><tr><th style="text-align: center;"><a onclick='loadAllSubFiles(\"pkz\", \"${file.name}\")'>OPEN ALL</a></th><th>NAME</th><th>LOOKUP</th><th>SIZE</th><th>COMPR.</th><th>OFFSET</th>`;
-          for (const [ key, value ] of Object.entries(localFiles)) {
-            let supported = "hidden"
-            if (endsWithAny(fileTypes, key)) {
-              supported = "open_in_new"
-            }
-            let replace = "hidden"
-            form += `<tr><th><a title="Download this file." onclick="downloadSubFile(\'pkz\', '${file.name}', '${key}')"><span class="material-icons">download</span></a><a class="${supported}" title="Open this file in a new editor section." onclick="loadSubFile(\'pkz\', '${file.name}', '${key}')"><span class="material-icons">open_in_new</span></a><input type="file" id="${file.name}-${key}-upload" accept=".${key.split('.')[1]}" style="display:none"/><a class="file_upload" title="Replace this file." onclick="$('input[id=&quot;${file.name}-${key}-upload&quot;]').trigger('click');"><span class="material-icons">file_upload</span></a><a title="Remove this file permanently from the PKZ." onclick="removeSubFile(\'pkz\', \'${file.name}\', \'${key}\', this)"><span class="material-icons">close</span></a></th><th><input type="text" size="25" value='${key}'></input></th><th>${lookup(key)}</th><th title="${value['size']} bytes">${readableBytes(Number(value['size']))}</th><th title="${value['compressedSize']} bytes">${readableBytes(Number(value['compressedSize']))}</th><th title="${readableBytes(Number(value['offset']))}">${Number(value['offset'])}</th><th class="replacedIndicator"><img height="30px" title="File has not been replaced." alt="Not replaced" src="assets/unreplaced-black.png"</th></tr>`
-          }
-          $('div[id="' + file.name + '"]').find('h4').find('img').after(hamburgers['pkz'].replace("{filename}", file.name).replace("PKZShowDetail", "PKZHideDetail").replace("more details", "less details"))
+          reader.readAsText(file.slice(header[5] + header[4] * 32, header[5] + header[4] * 32 + Number(tmpFiles[0]['offset'])))
         } else {
-          var form = `<table><tr><th style="text-align: center;"><a onclick='loadAllSubFiles(\"pkz\", \"${file.name}\")'>OPEN ALL</a></th><th>NAME</th><th>LOOKUP</th><th>SIZE</th>`;
-          for (const [ key, value ] of Object.entries(localFiles)) {
-            let supported = "hidden"
-            if (endsWithAny(fileTypes, key)) {
-              supported = "open_in_new"
+          var localFiles = {}
+          var names = []
+          var substring = e.target.result.substr(16, e.target.result.length).replace(/[^\x20-\x7E]/g, '')
+          var tmpstr = ""
+          for (var i = 0; i < substring.length; i++) {
+            tmpstr += substring[i]
+            if (tmpstr.charAt(tmpstr.length-4) == ".") {
+              if (tmpstr.endsWith(".bnv")) {
+                tmpstr += "ib"
+              }
+              names.push(tmpstr)
+              tmpstr = ""
             }
-            let replace = "hidden"
-            form += `<tr><th><a title="Download this file." onclick="downloadSubFile(\'pkz\', '${file.name}', '${key}')"><span class="material-icons">download</span></a><a class="${supported}" title="Open this file in a new editor section." onclick="loadSubFile(\'pkz\', '${file.name}', '${key}')"><span class="material-icons">open_in_new</span></a><input type="file" id="${file.name}-${key}-upload" accept=".${key.split('.')[1]}" style="display:none"/><a class="file_upload" title="Replace this file." onclick="$('input[id=&quot;${file.name}-${key}-upload&quot;]').trigger('click');"><span class="material-icons">file_upload</span></a><a title="Remove this file permanently from the PKZ." onclick="removeSubFile(\'pkz\', \'${file.name}\', \'${key}\', this)"><span class="material-icons">close</span></a></th><th><input type="text" size="25" value='${key}'></input></th><th>${lookup(key)}</th><th title="${value['size']} bytes">${readableBytes(Number(value['size']))}</th><th class="replacedIndicator"><img height="30px" title="File has not been replaced." alt="Not replaced" src="assets/unreplaced-black.png"</th></tr>`
           }
-          $('div[id="' + file.name + '"]').find('h4').find('img').after(hamburgers['pkz'].replace("{filename}", file.name))
-        }
-        $('div[id="' + file.name + '"]').find('h4').append(` - ${Object.keys(localFiles).length} files <a class='download' title='Download the extracted files as a ZIP.' onclick="downloadFile(\'pkz\', '${file.name}')"><span class='material-icons'>folder</span> DOWNLOAD ZIP</a>`)
-        $('div[id="' + file.name + '"]').find('h4').append(`<a class='repack' title='Repack the file into a game-ready PKZ.' onclick="packPKZ('${file.name}')"><span class='material-icons'>auto_fix_high</span> REPACK</a>`)
-        $('div[id="' + file.name + '"]').find('h4').prepend(`<a class='minimize' onclick="minimize(this)"><span class="material-icons">expand_less</span></a>`)
-        $('div[id="' + file.name + '"]').append("<div id='files' class='scroll' style='display: inline-block;'>" + form + "</table></div>")
-        globalFiles[file.name] = {'fp': file, 'files': localFiles, 'fileOrder': names}
-        for (const key of Object.keys(localFiles)) {
-          document.getElementById(`${file.name}-${key}-upload`).addEventListener("change", function(event) { if (replaceInitPKZ("pkz", file.name, key, event.target.files) == true) {$(this).closest('tr').find('th.replacedIndicator').replaceWith('<th class="replacedIndicator"><img height="30px" title="Replaced file." alt="Replaced file." src="assets/replaced-black.png"></img></th>')}}, false);
+          for (var i = 0; i < header[4]; i++) {
+            localFiles[names[i]] = tmpFiles[i]
+          }
+          if (justReturnIt) {
+            resolve({'fp': file, 'files': localFiles, 'fileOrder': names.slice(0, header[4])});
+            return;
+          }
+          else if (showDetail) {
+            var form = `<table><tr><th style="text-align: center;"><a onclick='loadAllSubFiles(\"pkz\", \"${file.name}\")'>OPEN ALL</a></th><th>NAME</th><th>LOOKUP</th><th>SIZE</th><th>COMPR.</th><th>OFFSET</th>`;
+            for (const [ key, value ] of Object.entries(localFiles)) {
+              let supported = "hidden"
+              if (endsWithAny(fileTypes, key)) {
+                supported = "open_in_new"
+              }
+              let replace = "hidden"
+              form += `<tr><th><a title="Download this file." onclick="downloadSubFile(\'pkz\', '${file.name}', '${key}')"><span class="material-icons">download</span></a><a class="${supported}" title="Open this file in a new editor section." onclick="loadSubFile(\'pkz\', '${file.name}', '${key}')"><span class="material-icons">open_in_new</span></a><input type="file" id="${file.name}-${key}-upload" accept=".${key.split('.')[1]}" style="display:none"/><a class="file_upload" title="Replace this file." onclick="$('input[id=&quot;${file.name}-${key}-upload&quot;]').trigger('click');"><span class="material-icons">file_upload</span></a><a title="Remove this file permanently from the PKZ." onclick="removeSubFile(\'pkz\', \'${file.name}\', \'${key}\', this)"><span class="material-icons">close</span></a></th><th><input type="text" size="25" value='${key}'></input></th><th>${lookup(key)}</th><th title="${value['size']} bytes">${readableBytes(Number(value['size']))}</th><th title="${value['compressedSize']} bytes">${readableBytes(Number(value['compressedSize']))}</th><th title="${readableBytes(Number(value['offset']))}">${Number(value['offset'])}</th><th class="replacedIndicator"><img height="30px" title="File has not been replaced." alt="Not replaced" src="assets/unreplaced-black.png"</th></tr>`
+            }
+            $('div[id="' + file.name + '"]').find('h4').find('img').after(hamburgers['pkz'].replace("{filename}", file.name).replace("PKZShowDetail", "PKZHideDetail").replace("more details", "less details"))
+          } else {
+            var form = `<table><tr><th style="text-align: center;"><a onclick='loadAllSubFiles(\"pkz\", \"${file.name}\")'>OPEN ALL</a></th><th>NAME</th><th>LOOKUP</th><th>SIZE</th>`;
+            for (const [ key, value ] of Object.entries(localFiles)) {
+              let supported = "hidden"
+              if (endsWithAny(fileTypes, key)) {
+                supported = "open_in_new"
+              }
+              let replace = "hidden"
+              form += `<tr><th><a title="Download this file." onclick="downloadSubFile(\'pkz\', '${file.name}', '${key}')"><span class="material-icons">download</span></a><a class="${supported}" title="Open this file in a new editor section." onclick="loadSubFile(\'pkz\', '${file.name}', '${key}')"><span class="material-icons">open_in_new</span></a><input type="file" id="${file.name}-${key}-upload" accept=".${key.split('.')[1]}" style="display:none"/><a class="file_upload" title="Replace this file." onclick="$('input[id=&quot;${file.name}-${key}-upload&quot;]').trigger('click');"><span class="material-icons">file_upload</span></a><a title="Remove this file permanently from the PKZ." onclick="removeSubFile(\'pkz\', \'${file.name}\', \'${key}\', this)"><span class="material-icons">close</span></a></th><th><input type="text" size="25" value='${key}'></input></th><th>${lookup(key)}</th><th title="${value['size']} bytes">${readableBytes(Number(value['size']))}</th><th class="replacedIndicator"><img height="30px" title="File has not been replaced." alt="Not replaced" src="assets/unreplaced-black.png"</th></tr>`
+            }
+            $('div[id="' + file.name + '"]').find('h4').find('img').after(hamburgers['pkz'].replace("{filename}", file.name))
+          }
+          $('div[id="' + file.name + '"]').find('h4').append(` - ${Object.keys(localFiles).length} files <a class='download' title='Download the extracted files as a ZIP.' onclick="downloadFile(\'pkz\', '${file.name}')"><span class='material-icons'>folder</span> DOWNLOAD ZIP</a>`)
+          $('div[id="' + file.name + '"]').find('h4').append(`<a class='repack' title='Repack the file into a game-ready PKZ.' onclick="packPKZ('${file.name}')"><span class='material-icons'>auto_fix_high</span> REPACK</a>`)
+          $('div[id="' + file.name + '"]').find('h4').prepend(`<a class='minimize' onclick="minimize(this)"><span class="material-icons">expand_less</span></a>`)
+          $('div[id="' + file.name + '"]').append("<div id='files' class='scroll' style='display: inline-block;'>" + form + "</table></div>")
+          globalFiles[file.name] = {'fp': file, 'files': localFiles, 'fileOrder': names}
+          for (const key of Object.keys(localFiles)) {
+            document.getElementById(`${file.name}-${key}-upload`).addEventListener("change", function(event) { if (replaceInitPKZ("pkz", file.name, key, event.target.files) == true) {$(this).closest('tr').find('th.replacedIndicator').replaceWith('<th class="replacedIndicator"><img height="30px" title="Replaced file." alt="Replaced file." src="assets/replaced-black.png"></img></th>')}}, false);
+          }
+          resolve();
         }
       }
     }
-  }
-  reader.readAsArrayBuffer(file.slice(0, 32))
+    reader.readAsArrayBuffer(file.slice(0, 32))
+  })
 }
 
 function PKZShowDetail(filename, elem) {

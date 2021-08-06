@@ -1,7 +1,8 @@
 // Quest Creator scripts.
 
 var editorSettings = {
-    "useBasicEditor": true
+    "useBasicEditor": true,
+    "activeTab": "emsets"
 }
 
 
@@ -29,6 +30,8 @@ const imageSizes = {
     "rb01": 2000,
 }
 
+var loadedFile = {};
+var loadedPKZ = {};
 
 function dropHandler(ev) {
 
@@ -54,8 +57,8 @@ function dropHandler(ev) {
     }
 }
 function dragOverHandler(ev) {
-// Prevent default behavior (Prevent file from being opened)
-ev.preventDefault();
+    // Prevent default behavior (Prevent file from being opened)
+    ev.preventDefault();
 }
 
 async function clickFiles(event) {
@@ -63,9 +66,42 @@ async function clickFiles(event) {
     $(event).val('')
 }
 
-function loadFiles(files) {
-    $("#initial").css("display", "none")
-    startQuestLoad(files[0])
+async function loadFiles(files) {
+    if (files[0].name.endsWith(".dat")) {
+        $("#initial").css("display", "none")
+        startQuestLoad(files[0])
+    } else if (files[0].name.endsWith(".pkz")) {
+        $('#pkzSelectorArea').replaceWith('<ul id="pkzSelectorArea"></ul>')
+        loadedPKZ = await loadInitialPKZ("pkz", files[0], false, true);
+        for (var i = 0; i < loadedPKZ['fileOrder'].length; i++) {
+            $('#pkzSelectorArea').append(`<li class='clickableLi' title='${loadedPKZ['fileOrder'][i]}' onclick='exportToQuestDAT(this, "${loadedPKZ['fileOrder'][i]}")'>${loadedPKZ['fileOrder'][i].replace("quest", "").replace(".dat", "")} <b>${lookup(loadedPKZ['fileOrder'][i])}</b></li>`)
+        }
+        $("#initial-content").slideDown(100);
+    } else {
+        alert("We don't support that file type! Currently, we only support Quest .DATs and the main quest .PKZ.")
+    }
+}
+
+function exportToQuestDAT(elem, subFile) {
+    $('#initial-content').find('.li-selected').attr('class', 'clickableLi');
+    $(elem).attr('class', 'li-selected');
+    return new Promise(async (resolve, reject) => {
+        var reader = new FileReader();
+        reader.onloadend = async function(e) {
+            if (e.target.readyState == FileReader.DONE) {
+                // Old decoder is much faster for decoding purposes; using for decoding ZSTD
+                const decoder = new ZSTDDecoder();
+                await decoder.init();
+                const decompressedArray = decoder.decode(new Uint8Array(e.target.result), Number(loadedPKZ['files'][subFile]['size']))
+                var blob = new Blob([decompressedArray], {type: 'application/octet-stream'});
+                blob.name = subFile;
+                $("#initial").slideUp(100, complete=function() {$("#initial").css("display", "none")});
+                await startQuestLoad(blob);
+                resolve();
+            }
+        }
+        reader.readAsArrayBuffer(loadedPKZ.fp.slice(Number(loadedPKZ['files'][subFile]['offset']), Number(loadedPKZ['files'][subFile]['offset']) + Number(loadedPKZ['files'][subFile]['compressedSize'])));
+    })
 }
 
 function changeMap(elem, newMapId) {
@@ -73,7 +109,8 @@ function changeMap(elem, newMapId) {
     // for some reason using css('background-image') doesn't work??
     document.documentElement.style.setProperty('--mapSize', imageSizes[newMapId] + "px");
     $('#mainselector').attr('style', `background-image: url('../assets/${newMapId}-thumb.png')`).text($(elem).text())
-    $('#selector-dropdown').toggle(100);
+    mapZoom(0); // reset offsets and stuff
+    $('#selector-dropdown').slideUp(100);
 }
 
 function mapZoom(changeSize) {
@@ -91,9 +128,17 @@ function mapZoom(changeSize) {
 
 function deleteFile() {
     $('.marker').remove()
-    $('#sidebar-content').replaceWith('<div id="sidebar-content"></div>');
-    $('#sidebar-header').css('display', 'none').children('h1').remove();
-    $('#initial').css('display', '')
+    $('#sidebar-content').slideUp(100, complete=function() {$(this).replaceWith('<div id="sidebar-content"></div>')});
+    $('#sidebar-header').slideUp(100, complete=function() {$(this).css('display', 'none').children('h1').remove()});
+    $('#sidebar-contentHeader').slideUp(100);
+    $('#repack').slideUp(100);
+    $('#taskeditor').slideUp(100);
+    $('#initial').slideDown(100, complete=function() {$(this).css('display', '')});
+    var name = loadedFile['fp'].name
+    loadedFile = {};
+    if (Object.keys(loadedPKZ).length > 0) {
+        $('#initial-content').scrollTo(`li[title="${name}"]`, 0, {"offset": {"top": -20}});
+    }
 }
 
 function startQuestNew(event) {
@@ -252,27 +297,98 @@ function startQuestLoad(file) {
             }
             const questId = file.name.substr(5, 4);
             loadedFile = {'fp': file, 'files': localFiles, 'fileOrder': names.slice(0, Object.keys(localFiles).length), 'hashMap': e.target.result.slice(header[6], firstOffset), 'id': questId}
+            
+            var area = questAreaLookup("q" + questId)
+            if (area) {
+                changeMap(`li#${area}`, area)
+            }
+            /*
+            LOAD EM DATA
+            */
             var emSets = loadedFile['files']['EnemySet.bxm']['extracted']['children'][0]['children']
             
-            var output = "<ul id='emList' style='list-style: none'>"
+            var emListOutput = "<ul id='emList' style='list-style: none; padding: 5px;'>"
             for (var i = 0; i < emSets.length; i++) {
                 var set = emSets[i]['children'];
+                var setNo = emSets[i]['attributes']['number']
+                emListOutput += `<li class="listheader" translate="yes"><span title="Add an item" translate="no" class="material-icons">add</span> ${emSets[i]['attributes']['name']}</li>`
                 for (var ii = 0; ii < set.length; ii++) {
                     var id = parseInt(findItem(set[ii]['children'], 'Id')).toString(16);
-                    var pos = findItem(set[ii]['children'], 'Trans').split(" ").map(item => parseFloat(item));
+                    const pos = findItem(set[ii]['children'], 'Trans').split(" ").map(item => parseFloat(item));
+                    const pos2 = findItem(set[ii]['children'], 'TransL').split(" ").map(item => parseFloat(item));
+                    const rot = findItem(set[ii]['children'], 'Rotation')
                     var name = questLookup(id)
-                    console.log(i, id, name, pos)
-                    if (id.startsWith("2")) {
-                        $('#map').append(`<div class="marker" id="set-${i}-${ii}" oncontextmenu="showContextMenu(event, ${i}, ${ii}); return false" onclick="showContextMenu(event, ${i}, ${ii})" style="filter: hue-rotate(${i*45}deg); transform: translateX(calc(${pos[2] * -4 + "px"} * var(--mapZoom))) translateY(calc(${pos[0] * 4 + "px"} * var(--mapZoom)))"><img src="../assets/marker-3.png" height="30px"></div>`)
-                        output += `<li id="set-${i}-${ii}" style="filter: hue-rotate(${i*45}deg); color: var(--accent-color)">${i} <b>${name}<b></li>`
+                    if (id.startsWith("2") || id.startsWith("1")) {
+                        $('#map').append(`<div class="marker" id="set-${i}-${ii}" oncontextmenu="showContextMenu(event, ${i}, ${ii}); return false" onclick="showContextMenu(event, ${i}, ${ii})" style="filter: hue-rotate(${i*45}deg); transform: translateX(calc(${pos[2] * -4 + "px"} * var(--mapZoom))) translateY(calc(${pos[0] * 4 + "px"} * var(--mapZoom))) rotate(${rot}rad)"><img src="../assets/marker-3.png" height="30px"></div>`)
+                        if (pos[0] != pos2[0] || pos[1] != pos2[1] && pos[2] != pos2[2]) {
+                            $('#map').append(`<div class="marker" id="set-${i}-${ii}" oncontextmenu="showContextMenu(event, ${i}, ${ii}); return false" onclick="showContextMenu(event, ${i}, ${ii})" style="filter: hue-rotate(${i*45}deg); transform: translateX(calc(${pos2[2] * -4 + "px"} * var(--mapZoom))) translateY(calc(${pos2[0] * 4 + "px"} * var(--mapZoom)))"><img src="../assets/marker-2b.png" height="30px"></div>`)
+                        }
+                        emListOutput += `<li id="set-${i}-${ii}" class="clickableLi" oncontextmenu="showContextMenu(event, ${i}, ${ii}); return false" onclick="showContextMenu(event, ${i}, ${ii})" style="filter: hue-rotate(${i*45}deg); color: #F25086">${setNo} <b>${name}</b></li>`
                     } else if (true||id.startsWith("ba")) {
-                        $('#map').append(`<div class="marker" id="set-${i}-${ii}" oncontextmenu="showContextMenu(event, ${i}, ${ii}); return false" onclick="showContextMenu(event, ${i}, ${ii})" style="filter: hue-rotate(${i*45}deg); transform: translateX(calc(${pos[2] * -4 + "px"} * var(--mapZoom))) translateY(calc(${pos[0] * 4 + "px"} * var(--mapZoom)))"><img src="../assets/marker-1.png" height="30px"></div>`)
-                        output += `<li id="set-${i}-${ii}" style="filter: hue-rotate(${i*45 + 290}deg); color: var(--accent-color)">${i} <b>${name}<b></li>`
+                        $('#map').append(`<div class="marker" id="set-${i}-${ii}" oncontextmenu="showContextMenu(event, ${i}, ${ii}); return false" onclick="showContextMenu(event, ${i}, ${ii})" style="filter: hue-rotate(${i*45}deg); transform: translateX(calc(${pos[2] * -4 + "px"} * var(--mapZoom))) translateY(calc(${pos[0] * 4 + "px"} * var(--mapZoom))) rotate(${rot}rad)"><img src="../assets/marker-1b.png" height="30px"></div>`)
+                        if (parseInt(id, 16) > 827391 && parseInt(id, 16) < 827396) {
+                            const typ = findItem(set[ii]['children'], 'Type')
+                            $(`div#set-${i}-${ii}`).css('--markerHeight', typ*4 + 'px')
+                        }
+                        if (pos[0] != pos2[0] || pos[1] != pos2[1] && pos[2] != pos2[2]) {
+                            $('#map').append(`<div class="marker" id="set-${i}-${ii}" oncontextmenu="showContextMenu(event, ${i}, ${ii}); return false" onclick="showContextMenu(event, ${i}, ${ii})" style="filter: hue-rotate(${i*45}deg); transform: translateX(calc(${pos2[2] * -4 + "px"} * var(--mapZoom))) translateY(calc(${pos2[0] * 4 + "px"} * var(--mapZoom)))"><img src="../assets/marker-2b.png" height="30px"></div>`)
+                        }
+                        emListOutput += `<li id="set-${i}-${ii}" class="clickableLi" oncontextmenu="showContextMenu(event, ${i}, ${ii}); return false" onclick="showContextMenu(event, ${i}, ${ii})" style="filter: hue-rotate(${i*45}deg); color: #F25086">${setNo} <b>${name}</b></li>`
                     }
                 }
             }
-            $("#sidebar-header").css('display', 'flex').prepend(`<h1 style='padding-left: 10px'>${lookup(file.name).replace(".dat", "")} <span style="font-size: 16px; font-weight: 700; vertical-align: baseline">${file.name}</span></h1>`)
-            $("#sidebar-content").append(output + "</ul>")
+            /*
+            LOAD TASKS
+            */
+            var questData = loadedFile['files']['QuestData.bxm']['extracted']
+
+            var taskListOutput = "<ul class='taskeditor' id='taskList' style='list-style: none; padding: 5px;'>"
+            taskListOutput += `<li class="listheader"><span title="Add an item" class="material-icons">add</span> Task List<br><span class="li-subtext">Task repacking coming soon! You can still view each task, but your changes won't be saved.</span></li>`
+            const colors = ['#EF5184', '#C5C5C5', '#0000FF', '#808080', '#F7931E']
+            for (var i = 0; i < questData['children'][1]['children'].length; i++) {
+                const taskList = new questDataTaskList(questData['children'][1]['children'][i])
+                var rightnav = ""
+                if (taskList.TaskEnable) {
+                    rightnav += `<span class="material-icons" onclick="updateTaskAttribute(this, ${i}, 'TaskEnable', '0')">update</span>`
+                } else {
+                    rightnav += `<span class="material-icons" onclick="updateTaskAttribute(this, ${i}, 'TaskEnable', '1')">update_disabled</span>`
+                }
+                if (taskList.WorkInAdvanced) {
+                    rightnav += `<span class="material-icons" onclick="updateTaskAttribute(this, ${i}, 'WorkInAdvanced', '0')">check_circle</span>`
+                } else {
+                    rightnav += `<span class="material-icons" onclick="updateTaskAttribute(this, ${i}, 'WorkInAdvanced', '1')">cancel</span>`
+                }
+                taskListOutput += `<li class="clickableLi" onclick="renderTaskList(${i})" id="tl-${i}"><span style="color: ${colors[taskList.TaskColor]}">${i}</span> <b translate="yes">${taskList.TaskName}</b><span class="li-rightnav" title="Toggle if the task works in advance, and is enabled">${rightnav}</span><br><span class="li-subtext" translate="yes">${taskList.TemplateName}</span></li>`;
+            }
+            taskListOutput += `<li class="listheader"><span style="filter: opacity(0.5)" class="material-icons">add</span> Quest Flags<br><span class="li-subtext">Can't find a flag? It still exists, just has the default name (e.g. Flag05)</span></li>`
+            questData['children'][3]['children'].map(function (item, index) {if (item['attributes']['QuestFlagName'].startsWith("Flag")) { return }; taskListOutput += `<li class="clickableLi" style="cursor: default">${index} <b translate="yes">${item['attributes']['QuestFlagName']}</b></li>`})
+            taskListOutput += `<li class="listheader"><span style="filter: opacity(0.5)" class="material-icons">add</span> Save Flags<br><span class="li-subtext">Can't find a flag? It still exists, just has the default name (e.g. SaveFlag09)</span></li>`
+            questData['children'][4]['children'].map(function (item, index) {if (item['attributes']['SaveFlagName'].startsWith("SaveFlag")) { return }; taskListOutput += `<li class="clickableLi" style="cursor: default">${index} <b translate="yes">${item['attributes']['SaveFlagName']}</b></li>`})
+            /*
+            LOAD TALKSCRIPTS
+            */
+            var talkScripts = loadedFile['files']['TalkScript_' + questId + '.bxm']['extracted'];
+            var talkScriptSpeeches = loadedFile['files']['TalkScript_speech_' + questId + '.bxm']['extracted'];
+            var talkScriptOutput = "<ul id='talkScriptList' style='list-style: none; padding: 5px;'>"
+            talkScriptOutput += `<li class="listheader"><span title="Add an item" class="material-icons">add</span> TalkScripts</li>`
+            if (Object.keys(talkScripts).length) {
+                for (var i = 0; i < talkScripts['children'].length; i++) {
+                    talkScriptOutput += `<li class="clickableLi" onclick="renderTaskList(${i})" id="ts-${i}">${i} <b>${findItem(talkScripts['children'][i]['children'], 'ObjId')}</b> ${findItem(talkScripts['children'][i]['children'], 'QuestId')}</li>`;
+                }
+            }
+            talkScriptOutput += `<li class="listheader"><span title="Add an item" class="material-icons">add</span> Spoken TalkScripts</li>`
+            if (Object.keys(talkScriptSpeeches).length) {
+                for (var i = 0; i < talkScriptSpeeches['children'].length; i++) {
+                    talkScriptOutput += `<li class="clickableLi" onclick="showContextMenu(${i})" id="ts-${i}">${i} <b>${findItem(talkScriptSpeeches['children'][i]['children'], 'ObjId')}</b> ${findItem(talkScriptSpeeches['children'][i]['children'], 'QuestId')}</li>`;
+                }
+            }
+            $("#sidebar-header").prepend(`<h1 style='padding-left: 10px'>${lookup(file.name).replace(".dat", "")} <span style="font-size: 16px; font-weight: 700; vertical-align: baseline">${file.name}</span></h1>`).slideDown(100, complete=function() {$(this).css('display', 'flex')})
+            $("#sidebar-contentHeader").css('display', 'grid').hide().slideDown(100);
+            $('#repack').slideDown(100)
+            $("#sidebar-content").hide().append([emListOutput, taskListOutput, talkScriptOutput].join("</ul>") + "</ul>").slideDown(100)
+            
+            renderTaskList(0);
+            sidebarDisplay(editorSettings['activeTab'])
             resolve();
             }
         }
@@ -305,18 +421,52 @@ function updateEmAttribute(name, elem) {
     for (var i = 0; i < indexes.length; i++) {
         loadedFile['files']['EnemySet.bxm']['extracted']['children'][0]['children'][selectedItem['emSetNo']]['children'][selectedItem['SetNo']]['children'][indexes[i]]['value'] = val;
     }
+    var selected = loadedFile['files']['EnemySet.bxm']['extracted']['children'][0]['children'][selectedItem['emSetNo']]['children'][selectedItem['SetNo']]['children']
+    $(`li#set-${selectedItem['emSetNo']}-${selectedItem['SetNo']}`).find('b').html(questLookup(findItem(selected, 'Id')));
+    var pos = findItem(selected, 'Trans').split(" ")
+    var rot = findItem(selected, 'Rotation')
+    $(`div#set-${selectedItem['emSetNo']}-${selectedItem['SetNo']}`).css('transform', `translateX(calc(${pos[2] * -4 + "px"} * var(--mapZoom))) translateY(calc(${pos[0] * 4 + "px"} * var(--mapZoom))) rotate(${rot}rad)`)
     showContextMenu(elem, selectedItem['emSetNo'], selectedItem['SetNo'], true)
+}
+function updateTaskAttribute(elem, elemId, name, value) {
+    var index = findItem(loadedFile['files']['QuestData.bxm']['extracted']['children'][1]['children'][elemId]['children'], name, true);
+    loadedFile['files']['QuestData.bxm']['extracted']['children'][1]['children'][elemId]['children'][index]['value'] = value;
+    var out = `<span class="material-icons" onclick='updateTaskAttribute(this, ${elemId}, "${name}", "${[1,0][parseInt(value)]}")'>`
+    if (name == "TaskEnable")
+        if (value == "1") {
+            out += "update"
+        } else {
+            out += "update_disabled"
+        }
+    else if (name == "WorkInAdvanced") {
+        if (value == "1") {
+            out += "check_circle"
+        } else {
+            out += "cancel"
+        }
+    }
+    $(elem).replaceWith(out + "</span>")
 }
 function showContextMenu(event, emSetNo, SetNo, update=false) {
     var em = loadedFile['files']['EnemySet.bxm']['extracted']['children'][0]['children'][emSetNo]['children'][SetNo]
     var emid = parseInt(findItem(em['children'], 'Id')).toString(16)
+    if (event.pageX > 300) {
+        // Don't scroll the sidebar if selecting from it
+        $('#sidebar-content').scrollTo(`li#set-${emSetNo}-${SetNo}`, 100, {"offset": {"top": -50}});
+    }
     if (!update) {
         event.preventDefault();
     }
     selectedItem = {"emSetNo": emSetNo, "SetNo": SetNo, "em": em}
+    $('.marker-selected').attr('class', 'marker');
+    $('#emList').find('.li-selected').attr('class', 'clickableLi');
+    $(`div#set-${selectedItem['emSetNo']}-${selectedItem['SetNo']}`).attr('class', 'marker-selected');
+    $(`li#set-${selectedItem['emSetNo']}-${selectedItem['SetNo']}`).attr('class', 'li-selected');
+    $('.emSearch').val(questLookup(emid, returnId=true)).select2()
+
+    $('#rightClickMenuHeader').text(questLookup(emid)); // Updated with select2
     if (event.which === 3) {
-        $('#rightClickMenuHeader').text(questLookup(emid));
-        $('#rightClickMenu').css({"top": event.pageY, "left": event.pageX}).show(100);
+        $('#rightClickMenu').css({"top": event.pageY, "left": Math.max(event.pageX, 310)}).show(100);
     } else {
         // Advanced
         var cmattrs = "<table id='contextMenuAttrs'>"
@@ -324,7 +474,6 @@ function showContextMenu(event, emSetNo, SetNo, update=false) {
             cmattrs += `<tr><th class='tablekey'>${em['children'][i]['name']}</th><th class='tablevalue'><input onchange="updateEmAttribute('${em['children'][i]['name']}', this)" type="text" size="32" value="${em['children'][i]['value']}"></th></tr>`
         }
         // Basic
-        $('.emSearch').val(questLookup(emid, returnId=true)).select2();
         //
         if (emid.startsWith("2")) {
             $('#contextMenu').find('#contextMenuImg').attr('src', 'https://www.nintendo.co.jp/switch/ab48a/assets/images/legion/detail/item/01/chara.png').css('top', event.pageY-40)
@@ -344,9 +493,38 @@ function showContextMenu(event, emSetNo, SetNo, update=false) {
         $('#contextMenu').find('#contextMenuBody').css('max-height', window.innerHeight - (event.pageY + 120))
         $('#contextMenu').find('#emName').replaceWith(`<h1 id="emName">${questLookup(emid)} <span id='emSubtext'>${emid}</span></h1>`);
         if (!update) {
-            $('#contextMenu').css({"top": event.pageY, "left": event.pageX}).show(100)
+            $('#contextMenu').css({"top": event.pageY, "left": Math.max(event.pageX, 310)}).show(100)
         }
     }
+}
+
+const showhide = {
+    "tasks": ['inactive', 'none', 'active', 'block', 'inactive', 'none'],
+    "emsets": ['active', 'block', 'inactive', 'none', 'inactive', 'none'],
+    "talkscripts": ['inactive', 'none', 'inactive', 'none', 'active', 'block']
+}
+
+function sidebarDisplay(mode) {
+    let tabDisplay = showhide[mode];
+    $('#sidebar-contentHeader-emSets').attr('class', tabDisplay[0]);
+    if (tabDisplay[1] == "block") {
+        $('#emList').slideDown(100, function() {$('#emList').css('display', tabDisplay[1])});
+    } else if ($('#emList').css('display') != "none") {
+        $('#emList').slideUp(100, function() {$('#emList').css('display', tabDisplay[1])});
+    }
+    $('#sidebar-contentHeader-tasks').attr('class', tabDisplay[2]);
+    if (tabDisplay[3] == "block") {
+        $('.taskeditor').slideDown(100, function() {$('.taskeditor').css('display', tabDisplay[3])});
+    } else if ($('.taskeditor').css('display') != "none") {
+        $('.taskeditor').slideUp(100, function() {$('.taskeditor').css('display', tabDisplay[3])});
+    }
+    $('#sidebar-contentHeader-talkScripts').attr('class', tabDisplay[4]);
+    if (tabDisplay[5] == "block") {
+        $('#talkScriptList').slideDown(100, function() {$('#talkScriptList').css('display', tabDisplay[5])});
+    } else if ($('#talkScriptList').css('display') != "none") {
+        $('#talkScriptList').slideUp(100, function() {$('#talkScriptList').css('display', tabDisplay[5])});
+    }
+    editorSettings['activeTab'] = mode;
 }
 
 function contextMenuDisplay(difficulty) {
@@ -376,24 +554,25 @@ function mutateMap(operation, args="") {
     $("#rightClickMenu").hide(100);
 }
 
-var loadedFile = {};
-
 $(document).bind("mousedown", function (e) {
-    // If the clicked element is not the menu
+    // If clicked outside the active menu, hide it
     if (!$(e.target).parents("#contextMenu").length > 0) {
-        
-        // Hide it
         $("#contextMenu").hide(100);
     }
     if (!$(e.target).parents("#rightClickMenu").length > 0) {
-        
-        // Hide it
         $("#rightClickMenu").hide(100);
+    }
+    if (!$(e.target).parents("#contextMenu").length > 0 && !$(e.target).parents("#rightClickMenu").length > 0) {
+        $('.marker-selected').attr('class', 'marker');
+        $('#emList').find('.li-selected').attr('class', 'clickableLi');
     }
 });
 
 // MAP FUNCTIONALITY
 function mapDrag(e){
+    if (editorSettings['activeTab'] == "tasks" && Object.keys(loadedFile).length) {
+        return
+    }
     e.preventDefault()
     mapPos['pos'][0] = e.pageX;
     mapPos['pos'][1] = e.pageY;

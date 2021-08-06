@@ -11,6 +11,8 @@
     display: flex;
     justify-content: space-around;
     align-items: center;
+    height: 100%;
+    justify-content: flex-start;
     flex-direction: column;
 }
 #repack {
@@ -22,6 +24,7 @@
     width: 113px;
     white-space: nowrap;
     overflow-x: hidden;
+    display: none;
     transition: background-color 100ms, width 100ms;
 }
 #repack:hover {
@@ -46,6 +49,7 @@
 }
 #content {
     display: flex;
+    color: white;
     flex-direction: row;
 }
 #map {
@@ -58,15 +62,40 @@
     width: 80%;
     flex-shrink: 1;
 }
-.marker {
+.marker, .marker-selected {
     position: absolute;
+    user-select: none;
     z-index: 1;
     margin-left: -15px;
     margin-top: -15px;
     left: 0;
     top: 0;
+    text-align: center;
     filter: opacity(0.5);
     cursor: pointer;
+}
+.marker::after, .marker-selected::after {
+    content: "";
+    position: absolute;
+    background-color: red;
+    padding: calc(var(--markerHeight) * var(--mapZoom)) 5px;
+    left: 10px;
+    top: calc(calc(var(--markerHeight) * var(--mapZoom)) / -1.25);
+    z-index: -1;
+}
+.marker-selected {
+    background-color: red;
+    border-radius: 0.25em;
+    z-index: 3;
+}
+input[type=text] {
+    border-radius: 0.25em;
+    border: 0;
+    padding: 5px;
+    font-family: Consolas, sans-serif;
+}
+#contextMenu input[type=text] {
+    width: 95%
 }
 #mapSideBar {
     z-index: 10;
@@ -74,15 +103,16 @@
     flex-direction: column;
     background-color: var(--darker-grey);
     color: white;
-    height: 100vh;
-    width: 20%;
-    min-width: 300px;
+    height: calc(100vh - 50px);
+    width: 300px;
     box-shadow: 0 0 0.25em rgba(0, 0, 0, 0.5);
     flex-shrink: 0;
 }
 #map-main {
     margin-left: calc(var(--mapSize) / calc(-2 / var(--mapZoom)));
     margin-top: calc(var(--mapSize) / calc(-2 / var(--mapZoom)));
+    user-select: none;
+    z-index: 1;
 }
 #contextMenu, #rightClickMenu {
     display: none;
@@ -95,7 +125,7 @@
     color: white;
     min-width: 200px;
 }
-#rightClickMenu * {
+#rightClickMenu ul, #rightClickMenu p, #rightClickMenu .material-icons {
     margin: 0;
     user-select: none;
     padding: 5px;
@@ -121,6 +151,7 @@
 }
 h1 {
     font-family: 'Work Sans', Roboto, sans-serif;
+    color: white;
     font-weight: 900;
 }
 #emName {
@@ -129,14 +160,20 @@ h1 {
     z-index: 4;
     margin-right: 100px;
 }
-#contextMenuSelector {
+#contextMenuSelector, #sidebar-contentHeader {
     background-color: var(--grey);
+    grid-template-columns: repeat(2, 1fr);
     z-index: 3;
     position: relative;
-    display: flex;
+    display: grid;
     justify-content: space-around;
 }
-#contextMenuSelector div {
+#sidebar-contentHeader {
+    background-color: var(--dark-grey);
+    box-shadow: 0 0 0.5em rgb(0 0 0 / 50%);
+    display: none;
+}
+#contextMenuSelector div, #sidebar-contentHeader div {
     border-radius: 0.25em;
     cursor: pointer;
     user-select: none;
@@ -145,6 +182,28 @@ h1 {
     padding: 5px;
     flex-grow: 1;
     transition: background-color 100ms, filter 100ms;
+    font-family: 'Work Sans', Roboto, sans-serif;
+}
+#sidebar-contentHeader div {
+    padding: 2px 5px 2px 5px;
+}
+.listheader {
+    margin: 20px 0 5px 0;
+    cursor: default;
+    line-height: 20px;
+    font-family: "Work Sans", Roboto, sans-serif;
+}
+.clickableLi, .li-selected {
+    cursor: pointer;
+    background-color: var(--dark-grey);
+    border-radius: 0.25em;
+    display: flow-root;
+    padding: 2px;
+    margin: 5px;
+    transition: background-color 100ms;
+}
+.li-selected {
+    background-color: var(--grey);
 }
 .active {
     background-color: var(--primary-color);
@@ -152,8 +211,11 @@ h1 {
 .inactive {
     background-color: var(--dark-grey);
 }
+#sidebar-contentHeader .inactive {
+    background-color: var(--grey);
+}
 .inactive:hover {
-    background-color: var(--primary-color);
+    background-color: var(--primary-color) !important;
     filter: saturate(0.5);
 }
 #contextMenuBody {
@@ -260,10 +322,17 @@ tr:nth-child(even) {
 #sidebar-header {
     background-color: var(--dark-grey);
     display: none;
+    z-index: 4;
     justify-content: space-between;
 }
-#sidebar-content {
+#sidebar-content, #initial-content {
     overflow-y: auto;
+    overflow-x: hidden;
+    width: 100%;
+}
+#initial-content {
+    display: none;
+    margin: 20px 0;
 }
 #close-btn {
     cursor: pointer;
@@ -274,4 +343,50 @@ tr:nth-child(even) {
     width: 300px;
     background-color: var(--dark-grey);
     color: white;
+}
+span.select2-container {
+    padding: 0;
+}
+span.selection {
+    padding: 0 !important;
+}
+.li-subtext {
+    font-size: 12px;
+    line-height: 12px;
+    color: var(--light-grey);
+}
+#emList, #taskList, #talkScriptList, #pkzSelectorArea {
+    list-style: none;
+    padding: 5px;
+    margin-top: 0;
+}
+.li-rightnav {
+    float: right;
+    user-select: none;
+}
+#taskeditor {
+    margin: 10px;
+    padding: 10px;
+    width: calc(100vw - 340px);
+    height: calc(100vh - 90px);
+    cursor: default;
+    background-color: var(--grey);
+    border-radius: 0.25em;
+    z-index: 15;
+    position: absolute;
+    filter: opacity(0)
+}
+.blocklyToolboxDiv {
+    background-color: var(--dark-grey);
+    border-radius: 0.25em 0 0 0.25em;
+    height: 99% !important;
+}
+.blocklyFlyoutBackground {
+    fill: var(--dark-grey)
+}
+.blocklySvg {
+    background-color: transparent;
+}
+.blocklyMainBackground {
+    stroke: none;
 }
