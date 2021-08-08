@@ -138,8 +138,8 @@ function ifCommand(alt="IFCommand") {
             ["==", "0"],
             ["!=", "1"],
             [">", "2"],
-            ["<", "3"],
-            [">=", "4"],
+            ["=>", "3"],
+            ["<", "4"],
             ["<=", "5"]
         ]
     }
@@ -231,7 +231,7 @@ Blockly.defineBlocksWithJsonArray([
             "min": 0
         }]
     ),
-    ifDefine("if-3", "If Hash %1 is %2", [
+    ifDefine("if-3", "If Hash %1 is not %2", [
         {
             "type": "field_input",
             "name": "IFHash",
@@ -362,8 +362,17 @@ Blockly.defineBlocksWithJsonArray([
         },
         trueFalse("IfIsGroup")]
     ),
+    ifDefine("if-17", "If state of Quest %1 %2 %3", [
+        {
+            "type": "field_input",
+            "name": "IfQuestId",
+            "text": "0000"
+        },
+        ifCommand("IfCondition"),
+        trueFalse("IfbCheck", "done", "not done")]
+    ),
 
-    ifDefine("if-28", "If Flag %1 of quest %2 is %3", [
+    ifDefine("if-28", "If SaveFlag %1 of quest %2 is %3", [
         {
             "type": "field_number",
             "name": "IFFlagNo",
@@ -385,29 +394,50 @@ Blockly.defineBlocksWithJsonArray([
     ifDefine("if-36", "If %1", [
         trueFalse("IFbCheck")]
     ),
+    ifDefine("if-37", "If SetNo %1 of GroupNo %2 %3 %4 (isGroup %5)", [
+        {
+            "type": "field_number",
+            "name": "IfEmSetNo",
+            "value": 0,
+            "min": 0
+        },
+        {
+            "type": "field_number",
+            "name": "IfEmGroupNo",
+            "value": 0,
+            "min": 0
+        },
+        ifCommand("IfCondition"),
+        {
+            "type": "field_number",
+            "name": "IfValue",
+            "value": 0
+        },
+        trueFalse("IfIsGroup")]
+    ),
 ]);
 
 
 // EXEC
 Blockly.defineBlocksWithJsonArray([
     //execDefine("exec-1", "Execute next task fasfa", []),
-    execDefine("exec-2", "Execute line %1 (%2)", [
+    execDefine("exec-2", "%2 %1", [
         {
             "type": "field_number",
             "name": "EXECLine",
             "value": 0,
             "min": 0
         },
-        trueFalse("EXECIsNextLine", "next LineList", "not next LineList")
+        trueFalse("EXECIsNextLine", "Execute next LineList in sequence", "Execute LineList #")
     ]),
-    execDefine("exec-3", "Execute line %1 (next line %2)", [
+    execDefine("exec-3", "%2 %1", [
         {
             "type": "field_number",
             "name": "EXECLine",
             "value": 0,
             "min": 0
         },
-        trueFalse("EXECIsNextLine")
+        trueFalse("EXECIsNextLine", "Execute next LineList in sequence", "Execute LineList #")
     ]),
     execDefine("exec-4", "Wait %1 seconds", [{
         "type": "field_number",
@@ -467,6 +497,27 @@ Blockly.defineBlocksWithJsonArray([
         },
         trueFalse("ExecbCheck")
     ]),
+    execDefine("exec-10", "Set Counter %1 %2 %3 or %4", [
+        {
+            "type": "field_number",
+            "name": "ExecCntNo",
+            "value": 0,
+            "min": 0
+        },
+        ifCommand("ExecCommand"),
+        {
+            "type": "field_number",
+            "name": "ExecValue1",
+            "value": 0,
+            "min": 0
+        },
+        {
+            "type": "field_number",
+            "name": "ExecValue2",
+            "value": 0,
+            "min": 0
+        }
+    ]),
 
     execDefine("exec-12", "Set Flag %1 to %2", [
         {
@@ -505,6 +556,53 @@ Blockly.defineBlocksWithJsonArray([
             "name": "ExecFadeColor",
             "value": 0
         },
+    ]),
+    execDefine("exec-16", "Load New Area Data from Quest %1, PhaseNo %2, SubPhaseIndex %3 (POS %4, %5, %6, %7deg), LoadingType %8 (IsSet %9, IsCountUp %10)", [
+        {
+            "type": "field_input",
+            "name": "ExecQuestId",
+            "text": "0000"
+        },
+        {
+            "type": "field_number",
+            "name": "ExecPhaseNo",
+            "value": 0,
+            "min": 0
+        },
+        {
+            "type": "field_number",
+            "name": "ExecSubPhaseIndex",
+            "value": 0,
+            "min": 0
+        },
+        {
+            "type": "field_number",
+            "name": "ExecPosX",
+            "value": 0,
+        },
+        {
+            "type": "field_number",
+            "name": "ExecPosY",
+            "value": 0,
+        },
+        {
+            "type": "field_number",
+            "name": "ExecPosZ",
+            "value": 0,
+        },
+        {
+            "type": "field_number",
+            "name": "ExecRotY",
+            "value": 0,
+        },
+        {
+            "type": "field_number",
+            "name": "ExecLoadingType",
+            "value": 0,
+            "min": 0
+        },
+        trueFalse("ExecIsSet"),
+        trueFalse("ExecIsCountUp")
     ]),
 
     execDefine("exec-18", "%1 Button Prompt Dialog Box (Tip %2)", [
@@ -558,6 +656,20 @@ Blockly.defineBlocksWithJsonArray([
             "min": 0
         }
     ]),
+    execDefine("exec-23", "Load SubTitle %1 from Quest %2", [
+        {
+            "type": "field_number",
+            "name": "ExecCallSubTitleNo",
+            "value": 0,
+            "min": 0
+        },
+        {
+            "type": "field_input",
+            "name": "ExecCallSubTitleQuestId",
+            "text": "0000"
+        }
+    ]),
+
     execDefine("exec-30", "Call Task %1 (type %2)", [
         {
             "type": "field_number",
@@ -598,11 +710,45 @@ Blockly.defineBlocksWithJsonArray([
         trueFalse("ExistSpeaker", "Speaker exists", "Speaker does not exist")
     ]),
 
+    execDefine("exec-36", "Set SetNo %1 of GroupNo %2's position to (%3, %4, %5, %6deg)", [
+        {
+            "type": "field_number",
+            "name": "SetNo",
+            "value": 0,
+            "min": 0
+        },
+        {
+            "type": "field_number",
+            "name": "GroupNo",
+            "value": 0,
+            "min": 0
+        },
+        {
+            "type": "field_number",
+            "name": "PosX",
+            "value": 0
+        },
+        {
+            "type": "field_number",
+            "name": "PosY",
+            "value": 0
+        },
+        {
+            "type": "field_number",
+            "name": "PosZ",
+            "value": 0
+        },
+        {
+            "type": "field_number",
+            "name": "RotY",
+            "value": 0
+        }
+    ]),
     (() => {var def = execDefine("exec-37", "Return", []); def['nextStatement'] = undefined; return def })(),
 
     execDefine("exec-45", "Add Pin to Map", []),
     execDefine("exec-46", "Remove Pin from Map", []),
-    execDefine("exec-49", "Set global Flag %1 to %2", [
+    execDefine("exec-49", "Set SaveFlag %1 to %2", [
         {
             "type": "field_number",
             "name": "ExecFlagNo",
@@ -611,13 +757,180 @@ Blockly.defineBlocksWithJsonArray([
         },
         trueFalse("ExecbCheck")
     ]),
+    execDefine("exec-50", "Load File Results Screen | Quest %1, PhaseNo %2, SubPhaseIndex %3 (POS %4, %5, %6, %7deg), LoadingType %8 (IsSet %9, IsCountUp %10)", [
+        {
+            "type": "field_input",
+            "name": "ExecQuestId",
+            "text": "0"
+        },
+        {
+            "type": "field_number",
+            "name": "ExecPhaseNo",
+            "value": 1,
+            "min": 0
+        },
+        {
+            "type": "field_number",
+            "name": "ExecSubPhaseIndex",
+            "value": 0,
+            "min": 0
+        },
+        {
+            "type": "field_number",
+            "name": "ExecPosX",
+            "value": 0,
+            "min": 0
+        },
+        {
+            "type": "field_number",
+            "name": "ExecPosY",
+            "value": 0,
+            "min": 0
+        },
+        {
+            "type": "field_number",
+            "name": "ExecPosZ",
+            "value": 0,
+            "min": 0
+        },
+        {
+            "type": "field_number",
+            "name": "ExecRotY",
+            "value": 0,
+            "min": 0
+        },
+        {
+            "type": "field_number",
+            "name": "ExecLoadingType",
+            "value": 0,
+            "min": 0
+        },
+        trueFalse("ExecIsSet"),
+        trueFalse("ExecIsCountUp")
+    ]),
+    execDefine("exec-51", "Set a timer for %1 seconds (Notice # %2, type %3) (timer type %4)", [
+        {
+            "type": "field_number",
+            "name": "SecTime",
+            "value": 0,
+            "min": 0
+        },
+        {
+            "type": "field_number",
+            "name": "NoticeNo",
+            "value": 0,
+            "min": 0
+        },
+        {
+            "type": "field_number",
+            "name": "NoticeType",
+            "value": 0,
+            "min": 0
+        },
+        {
+            "type": "field_number",
+            "name": "Type",
+            "value": 0,
+            "min": 0
+        },
+    ]),
+
+    execDefine("exec-61", "%1 GroupNo %2 to/from memory", [
+        trueFalse("bRead", "Read", "Discard"),
+        {
+            "type": "field_number",
+            "name": "GroupNo",
+            "value": 0,
+            "min": 0
+        }
+    ]),
 ]);
 
 // SCRIPTS
 
-function renderTaskList(taskListNo, saveExisting=false) {
+function renderTaskList(taskListNo, saveExisting=true) {
+    var workspace = Blockly.getMainWorkspace()
     if (saveExisting) {
-
+        var $dom = $(Blockly.Xml.workspaceToDom(Blockly.getMainWorkspace()))
+        if (!$dom.find('block[type="unknown-if"]').length && !$dom.find('block[type="unknown-exec"]').length) {
+            var oldTaskListNo = $('#taskList').find('.li-selected').attr("id").split("-")[1] 
+            var lineLists = []
+            function parseDomTree(elem) {
+                /*
+                typeEXEC 1 means that the execution continues inside the IF block, while any other typeEXEC means that only that one is in  
+                */
+                var commandList = []
+                var otherCommandLists = []
+                if ($(elem).attr('type').startsWith("if-")) {
+                    commandList.push({"name": "typeIF", "value": $(elem).attr('type').split("-")[1], "children": [], "attributes": {}});
+                } else {
+                    commandList.push({"name": "typeIF", "value": "0", "children": [], "attributes": {}}); // force no IF statement in EXEC
+                    commandList.push({"name": "typeEXEC", "value": $(elem).attr('type').split("-")[1], "children": [], "attributes": {}});
+                }
+                $(elem).children("field").each(function (index) {
+                    var fieldval = $(this).text()
+                    if (questShouldHex($(this).attr('name'))) {
+                        fieldval = parseInt(fieldval, 16)
+                    }
+                    commandList.push({"name": $(this).attr('name'), "value": fieldval.toString(), "children": [], "attributes": {}})
+                })
+                if ($(elem).children('statement[name="execarea"]').length && $(elem).attr('type').startsWith("if-")) {
+                    // always a "connector" statement
+                    if (!$(elem).children('statement[name="execarea"]').children("block").length) {
+                        // If no elements inside, use EXEC 0
+                        commandList.push({"name": "typeEXEC", "value": "0", "children": [], "attributes": {}});
+                    } else if ($(elem).children('statement[name="execarea"]').children("block").children("next").length || $(elem).children('statement[name="execarea"]').children("block").attr()) {
+                        // check to see if there is more than one statement in the block; if so, use EXEC 1 (connector)
+                        commandList.push({"name": "typeEXEC", "value": "1", "children": [], "attributes": {}});
+                        otherCommandLists.push(...parseDomTree($(elem).children('statement[name="execarea"]').children("block")))
+                    } else {
+                        // else, use the next EXEC
+                        commandList.push({"name": "typeEXEC", "value": $(elem).children('statement[name="execarea"]').children("block").attr('type').split("-")[1], "children": [], "attributes": {}});
+                        $(elem).children('statement[name="execarea"]').children("block").children("field").each(function (index) {
+                            var fieldval = $(this).text()
+                            if (questShouldHex($(this).attr('name'))) {
+                                fieldval = parseInt(fieldval, 16)
+                            }
+                            commandList.push({"name": $(this).attr('name'), "value": fieldval.toString(), "children": [], "attributes": {}})
+                        })
+                    }
+                }
+                if ($(elem).children("next").length) {
+                    // after exec or normal block
+                    otherCommandLists.push(...parseDomTree($(elem).children('next').children("block")))
+                }
+                return [{"name": "CommandList", "value": "", "attributes": {}, "children": commandList}, ...otherCommandLists]
+            }
+            // ---- parse task starts ----
+            $dom.find('block[type="task-start"]').each(function() {
+                var taskNo = $(this).children('field[name="taskno"]').text();
+                if ($(this).children("next").find("block").length) {
+                    lineLists[taskNo] = {"name": "LineList", "value": "", "children": parseDomTree($(this).children("next").find("block")[0]), "attributes": {}};
+                } else {
+                    // EMPTY TASK
+                    lineLists[taskNo] = {"name": "LineList", "value": "", "children": [
+                        {"name": "CommandList", "value": "", "attributes": {}, "children": [
+                            {"name": "typeIF", "value": "0", "attributes": {}, "children": []},
+                            {"name": "typeEXEC", "value": "0", "attributes": {}, "children": []}
+                        ]}
+                    ], "attributes": {}};
+                }
+            })
+            currentTaskList = loadedFile['files']['QuestData.bxm']['extracted']['children'][1]['children'][oldTaskListNo];
+            if (Object.keys(currentTaskList).length > 0) {
+                // overwrite existing task list
+                var index = findItem(currentTaskList['children'], "LineListTree", true)
+                loadedFile['files']['QuestData.bxm']['extracted']['children'][1]['children'][oldTaskListNo]['children'][index]['children'] = lineLists;
+            } else {
+                // create new task list
+                alert("Unimplemented task list creation")
+            }
+        } else {
+            console.log("Unknown EXEC or IF in this Task! Changes were not saved.")
+        }
+    }
+    if (taskListNo < 0) {
+        return;
     }
     // sorta inefficient and lazy method but its whatever
     const taskList = new questDataTaskList(loadedFile['files']['QuestData.bxm']['extracted']['children'][1]['children'][taskListNo])
@@ -670,7 +983,6 @@ function renderTaskList(taskListNo, saveExisting=false) {
         xml += "</block>"
     }
     xml += "</xml>"
-    let workspace = Blockly.getMainWorkspace()
     Blockly.Xml.clearWorkspaceAndLoadFromXml(Blockly.Xml.textToDom(xml), workspace);
     workspace.cleanUp()
     workspace.trashcan.emptyContents()

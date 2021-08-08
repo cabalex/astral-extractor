@@ -331,7 +331,39 @@ const questTable = {
     "q2c94": "R2-W",
     "q2cd4": "R3-W",
     "q2cd5": "????",
-    "q2cd9": "Deskwork...?"
+    "q2cd9": "Deskwork...?",
+    "qc000": "Movement Training",
+    "qc001": "Attacking Training",
+    "qc002": "Locking On Training",
+    "qc003": "Evasion Training",
+    "qc004": "Using Items Training",
+    "qc005": "Legion Control Training",
+    "qc007": "Legion Movement Training",
+    "qc008": "Legion Attacks Training",
+    "qc009": "Chain Bind Training",
+    "qc00a": "Chain Counter Training",
+    "qc00b": "IRIS On/Off Training",
+    "qc030": "Sync Attacks Training",
+    "qc031": "Slashing Training",
+    "qc033": "Chain Jump Training",
+    "qc034": "Chain Jump Attack Training",
+    "qc050": "Sparring Practice: Root",
+    "qc055": "Sparring Practice: Aberrations",
+    "qc060": "Sparring Practice: Chimeras: Speedy",
+    "qc061": "Sparring Practice: Chimeras: Humanoid",
+    "qc062": "Sparring Practice: Chimeras: Power",
+    "qc063": "Sparring Practice: Chimeras: Shell",
+    "qc064": "Sparring Practice: Chimeras: Beast",
+    "qc065": "Sparring Practice: Chiemras: Greatsword",
+    "qc066": "Sparring Practice: Chimeras: Wing",
+    "qc067": "Sparring Practice: Chimeras: Gel",
+    "qc068": "Sparring Practice: Chimeras: Elemental",
+    "qc069": "Sparring Practice: Chimeras: Arrow",
+    "qc06a": "Sparring Practice: Chimeras: Arm",
+    "qc06b": "Sparring Practice: Chimeras: Serpent",
+    "qc810": "Check Lappy Items",
+    "qcc01": "Cat Feeding",
+    "qcf00": "Hal's Drone leaving after arriving in Maison Forest"
 }
 
 const areaTable = {
@@ -1245,7 +1277,7 @@ const questToArea = {
     "q2635": "r300",
     "q2638": "r300",
     "q2650": "r300",
-    "q2665": "r300",
+    "q2665": "r310",
     "q2680": "r300",
     "q2690": "r300",
     "q26b0": "r300",
@@ -1449,7 +1481,9 @@ const questToArea = {
     "q2c94": "r900",
     "q2cd4": "r600",
     "q2cd5": "r600",
-    "q2cd9": "r100"
+    "q2cd9": "r100",
+    "qcc01": "rc00",
+    "qcf00": "r840"
 }
 
 function questAreaLookup(name) {

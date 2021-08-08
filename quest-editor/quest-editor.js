@@ -15,11 +15,13 @@ var selectedItem = {
     "emNo": 0,
     "em": {}
 }
+// To get correct scale: Multiply orthographic scale by 4
 const imageSizes = {
     "r100": 6000,
     "r200": 4000,
     "r240": 2000,
     "r300": 4000,
+    "r310": 1200,
     "r400": 4000,
     "r500": 4000,
     "r600": 10000,
@@ -28,6 +30,7 @@ const imageSizes = {
     "r900": 2000,
     "r910": 2000,
     "rb01": 2000,
+    "rc00": 80
 }
 
 var loadedFile = {};
@@ -146,6 +149,8 @@ function startQuestNew(event) {
 }
 
 async function questRepack() {
+    console.log("Saving current quest changes...")
+    renderTaskList(-1, true);
     var enc = new TextEncoder();
     var outputFiles = []
     var numFiles = loadedFile['fileOrder'].length;
@@ -343,7 +348,7 @@ function startQuestLoad(file) {
             var questData = loadedFile['files']['QuestData.bxm']['extracted']
 
             var taskListOutput = "<ul class='taskeditor' id='taskList' style='list-style: none; padding: 5px;'>"
-            taskListOutput += `<li class="listheader"><span title="Add an item" class="material-icons">add</span> Task List<br><span class="li-subtext">Task repacking coming soon! You can still view each task, but your changes won't be saved.</span></li>`
+            taskListOutput += `<li class="listheader"><span title="Add an item" class="material-icons">add</span> Task List</li>`
             const colors = ['#EF5184', '#C5C5C5', '#0000FF', '#808080', '#F7931E']
             for (var i = 0; i < questData['children'][1]['children'].length; i++) {
                 const taskList = new questDataTaskList(questData['children'][1]['children'][i])
@@ -387,7 +392,7 @@ function startQuestLoad(file) {
             $('#repack').slideDown(100)
             $("#sidebar-content").hide().append([emListOutput, taskListOutput, talkScriptOutput].join("</ul>") + "</ul>").slideDown(100)
             
-            renderTaskList(0);
+            renderTaskList(0, false);
             sidebarDisplay(editorSettings['activeTab'])
             resolve();
             }

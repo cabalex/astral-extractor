@@ -92,6 +92,14 @@ class questDataTaskList {
   }
 }
 // don't need a linelist tree since it has no args, essentially an array
+
+function questShouldHex(name) {
+  return name.includes("Hash") ||
+  name.includes("Id") ||
+  name.includes("EventNo") ||
+  name.includes("PhaseNo")
+}
+
 class questDataCommandList {
   constructor(child) {
     for (var i = 0; i < child['children'].length; i++) {
@@ -99,7 +107,7 @@ class questDataCommandList {
         this[child['children'][i]['name']] = child['children'][i]['value'];
       } else {
         this[child['children'][i]['name']] = parseInt(child['children'][i]['value']);
-        if (child['children'][i]['name'].includes("Hash") || child['children'][i]['name'].includes("Id") || child['children'][i]['name'].includes("EXECEventNo")) {
+        if (questShouldHex(child['children'][i]['name'])) {
           this[child['children'][i]['name']] = this[child['children'][i]['name']].toString(16).toUpperCase();
         } 
       }
