@@ -312,7 +312,7 @@ function startQuestLoad(file) {
             */
             var emSets = loadedFile['files']['EnemySet.bxm']['extracted']['children'][0]['children']
             
-            var emListOutput = "<ul id='emList' style='list-style: none; padding: 5px;'>"
+            var emListOutput = "<ul id='emList' style='list-style: none; padding: 5px;'><li class='listheader'><span onclick='copyEmList(this, \"csv\")' class='listBtn'><span class='material-icons'>content_copy</span> CSV</span><span onclick='copyEmList(this, \"json\")' class='listBtn'><span class='material-icons'>content_copy</span> JSON</span></li>"
             for (var i = 0; i < emSets.length; i++) {
                 var set = emSets[i]['children'];
                 var setNo = emSets[i]['attributes']['number']
@@ -370,6 +370,29 @@ function startQuestLoad(file) {
             taskListOutput += `<li class="listheader"><span style="filter: opacity(0.5)" class="material-icons">add</span> Save Flags<br><span class="li-subtext">Can't find a flag? It still exists, just has the default name (e.g. SaveFlag09)</span></li>`
             questData['children'][4]['children'].map(function (item, index) {if (item['attributes']['SaveFlagName'].startsWith("SaveFlag")) { return }; taskListOutput += `<li class="clickableLi" style="cursor: default">${index} <b translate="yes">${item['attributes']['SaveFlagName']}</b></li>`})
             /*
+            LOAD EM AREAS
+            */
+            var areaListOutput = "<ul id='areaList' style='list-style: none; padding: 5px;'>"
+            for (var i = 0; i < questData['children'][5]['children'].length; i++) {
+                const areaGroup = questData['children'][5]['children'][i];
+                var rightnav = ""
+                if (areaGroup['attributes']['GroupDebugDisp'] == "1") {
+                    rightnav += `<span class="material-icons" onclick="updateAreaGroupAttribute(this, ${i}, 'GroupDebugDisp', '0')">visibility</span>`
+                } else {
+                    rightnav += `<span class="material-icons" onclick="updateAreaGroupAttribute(this, ${i}, 'GroupDebugDisp', '1')">visibility_off</span>`
+                }
+                areaListOutput += `<li class="li-header" id="areagroup-${i}">${areaGroup['attributes']['GroupIndex']} <b translate="yes">${areaGroup['attributes']['GroupName']}</b><span class="li-rightnav" title="Toggle if debug display is enabled">${rightnav}</span></li>`;
+                for (var ii = 0; ii < areaGroup['children'].length; ii++) {
+                    rightnav = ""
+                    if (findItem(areaGroup['children'][ii]['children'], 'DebugDisp') == "1") {
+                        rightnav += `<span class="material-icons" onclick="updateAreaAttribute(this, ${i}, ${ii}, 'DebugDisp', '0')">visibility</span>`
+                    } else {
+                        rightnav += `<span class="material-icons" onclick="updateAreaAttribute(this, ${i}, ${ii}, 'DebugDisp', '1')">visibility_off</span>`
+                    }
+                    areaListOutput += `<li class="clickableLi" id="area-${i}">${findItem(areaGroup['children'][ii]['children'], 'AreaIndex')} <b>Area</b><span class="li-rightnav" title="Toggle if debug display is enabled">${rightnav}</span></li>`;
+                }
+            }
+            /*
             LOAD TALKSCRIPTS
             */
             var talkScripts = loadedFile['files']['TalkScript_' + questId + '.bxm']['extracted'];
@@ -390,7 +413,7 @@ function startQuestLoad(file) {
             $("#sidebar-header").prepend(`<h1 style='padding-left: 10px'>${lookup(file.name).replace(".dat", "")} <span style="font-size: 16px; font-weight: 700; vertical-align: baseline">${file.name}</span></h1>`).slideDown(100, complete=function() {$(this).css('display', 'flex')})
             $("#sidebar-contentHeader").css('display', 'grid').hide().slideDown(100);
             $('#repack').slideDown(100)
-            $("#sidebar-content").hide().append([emListOutput, taskListOutput, talkScriptOutput].join("</ul>") + "</ul>").slideDown(100)
+            $("#sidebar-content").hide().append([emListOutput, taskListOutput, areaListOutput, talkScriptOutput].join("</ul>") + "</ul>").slideDown(100)
             
             renderTaskList(0, false);
             sidebarDisplay(editorSettings['activeTab'])
@@ -400,6 +423,42 @@ function startQuestLoad(file) {
         reader.readAsArrayBuffer(file) // read whole file
     })
 }
+
+function copyEmList(elem, copyType) {
+    if (copyType == 'csv') {
+        var outcsv = `${loadedFile['fp'].name},${lookup(loadedFile['fp'].name)}`
+        const emSets = loadedFile['files']['EnemySet.bxm']['extracted']['children'][0]['children']
+        for (var i = 0; i < emSets.length; i++) {
+            var set = emSets[i]['children'];
+            var setNo = emSets[i]['attributes']['number']
+            var emList = []
+            for (var ii = 0; ii < set.length; ii++) {
+                emList.push(questLookup(parseInt(findItem(set[ii]['children'], 'Id')).toString(16)));
+            }
+            outcsv += `\n${setNo},${emSets[i]['attributes']['name']},${emList.join(",")},`
+        }
+        navigator.clipboard.writeText(outcsv)
+    } else {
+        var outjson = {"name": lookup(loadedFile['fp'].name), "enemySets": {}}
+        const emSets = loadedFile['files']['EnemySet.bxm']['extracted']['children'][0]['children']
+        for (var i = 0; i < emSets.length; i++) {
+            var set = emSets[i]['children'];
+            var setNo = emSets[i]['attributes']['number']
+            var emList = []
+            outjson['enemySets'][emSets[i]['attributes']['name']] = {"setNo": setNo, "em": []}
+            for (var ii = 0; ii < set.length; ii++) {
+                outjson['enemySets'][emSets[i]['attributes']['name']]['em'].push(questLookup(parseInt(findItem(set[ii]['children'], 'Id')).toString(16)));
+            }
+        }
+        navigator.clipboard.writeText(JSON.stringify(outjson))
+    }
+    $(elem).css('background-color', '#57F287')
+    setTimeout(function(){ $(elem).css('background-color', '') }, 200);
+    /*var text = $(elem).contents().get(0).nodeValue
+    $(elem).contents().get(0).nodeValue = "COPIED!"
+    setTimeout(function(){ $(elem).contents().get(0).nodeValue = text }, 1000);*/
+}
+
 function findItem(arr, name, returnIndex=false, multiple=false) {
     var returning = [];
     for (var i = 0; i < arr.length; i++) {
@@ -437,17 +496,42 @@ function updateTaskAttribute(elem, elemId, name, value) {
     var index = findItem(loadedFile['files']['QuestData.bxm']['extracted']['children'][1]['children'][elemId]['children'], name, true);
     loadedFile['files']['QuestData.bxm']['extracted']['children'][1]['children'][elemId]['children'][index]['value'] = value;
     var out = `<span class="material-icons" onclick='updateTaskAttribute(this, ${elemId}, "${name}", "${[1,0][parseInt(value)]}")'>`
-    if (name == "TaskEnable")
+    if (name == "TaskEnable") {
         if (value == "1") {
             out += "update"
         } else {
             out += "update_disabled"
         }
-    else if (name == "WorkInAdvanced") {
+    } else if (name == "WorkInAdvanced") {
         if (value == "1") {
             out += "check_circle"
         } else {
             out += "cancel"
+        }
+    }
+    $(elem).replaceWith(out + "</span>")
+}
+function updateAreaGroupAttribute(elem, elemId, name, value) {
+    loadedFile['files']['QuestData.bxm']['extracted']['children'][5]['children'][elemId]['attributes'][name] = value;
+    var out = `<span class="material-icons" onclick='updateAreaGroupAttribute(this, ${elemId}, "${name}", "${[1,0][parseInt(value)]}")'>`
+    if (name == "GroupDebugDisp") {
+        if (value == "1") {
+            out += "visibility"
+        } else {
+            out += "visibility_off"
+        }
+    }
+    $(elem).replaceWith(out + "</span>")
+}
+function updateAreaAttribute(elem, elemId, elemIdId, name, value) {
+    var index = findItem(loadedFile['files']['QuestData.bxm']['extracted']['children'][5]['children'][elemId]['children'][elemIdId]['children'], name, true);
+    loadedFile['files']['QuestData.bxm']['extracted']['children'][5]['children'][elemId]['children'][elemIdId]['children'][index]['value'] = value;
+    var out = `<span class="material-icons" onclick='updateAreaAttribute(this, ${elemId}, ${elemIdId}, "${name}", "${[1,0][parseInt(value)]}")'>`
+    if (name == "DebugDisp") {
+        if (value == "1") {
+            out += "visibility"
+        } else {
+            out += "visibility_off"
         }
     }
     $(elem).replaceWith(out + "</span>")
@@ -504,9 +588,10 @@ function showContextMenu(event, emSetNo, SetNo, update=false) {
 }
 
 const showhide = {
-    "tasks": ['inactive', 'none', 'active', 'block', 'inactive', 'none'],
-    "emsets": ['active', 'block', 'inactive', 'none', 'inactive', 'none'],
-    "talkscripts": ['inactive', 'none', 'inactive', 'none', 'active', 'block']
+    "emsets": ['active', 'block', 'inactive', 'none', 'inactive', 'none', 'inactive', 'none'],
+    "tasks": ['inactive', 'none', 'active', 'block', 'inactive', 'none', 'inactive', 'none'],
+    "talkscripts": ['inactive', 'none', 'inactive', 'none', 'inactive', 'none', 'active', 'block'],
+    "areas": ['inactive', 'none', 'inactive', 'none', 'active', 'block', 'inactive', 'none']
 }
 
 function sidebarDisplay(mode) {
@@ -523,11 +608,17 @@ function sidebarDisplay(mode) {
     } else if ($('.taskeditor').css('display') != "none") {
         $('.taskeditor').slideUp(100, function() {$('.taskeditor').css('display', tabDisplay[3])});
     }
-    $('#sidebar-contentHeader-talkScripts').attr('class', tabDisplay[4]);
+    $('#sidebar-contentHeader-areas').attr('class', tabDisplay[4]);
     if (tabDisplay[5] == "block") {
-        $('#talkScriptList').slideDown(100, function() {$('#talkScriptList').css('display', tabDisplay[5])});
+        $('#areaList').slideDown(100, function() {$('#areaList').css('display', tabDisplay[5])});
+    } else if ($('#areaList').css('display') != "none") {
+        $('#areaList').slideUp(100, function() {$('#areaList').css('display', tabDisplay[5])});
+    }
+    $('#sidebar-contentHeader-talkScripts').attr('class', tabDisplay[6]);
+    if (tabDisplay[7] == "block") {
+        $('#talkScriptList').slideDown(100, function() {$('#talkScriptList').css('display', tabDisplay[7])});
     } else if ($('#talkScriptList').css('display') != "none") {
-        $('#talkScriptList').slideUp(100, function() {$('#talkScriptList').css('display', tabDisplay[5])});
+        $('#talkScriptList').slideUp(100, function() {$('#talkScriptList').css('display', tabDisplay[7])});
     }
     editorSettings['activeTab'] = mode;
 }
@@ -612,6 +703,36 @@ for (var i = 0; i < selectableLookups.length; i++) {
         $('.emSearch').append(`<option value="${key}">${value}</option>`)
     }
 }
+// Task Editor hotkeys
+function keyEventHandler(e) {
+    if (Object.keys(loadedFile).length && editorSettings['activeTab'] == "tasks") {
+        e = e || window.event;
+        var taskListId = parseInt($('#taskList').find('.li-selected').attr('id').split("-")[1]);
+        if (e.keyCode == '38' || e.keyCode == '87') {
+            // up
+            taskListId -= 1;
+            if (!$('#taskList').find('#tl-' + taskListId).length) { return };
+            renderTaskList(taskListId);
+        }
+        else if (e.keyCode == '40' || e.keyCode == '83') {
+            // down
+            taskListId += 1;
+            if (!$('#taskList').find('#tl-' + taskListId).length) { return };
+            renderTaskList(taskListId);
+        }
+        $('#sidebar-content').scrollTo(`li#tl-${taskListId}`, 50, {"offset": {"top": -20}});
+        /*else if (e.keyCode == '37' || e.keyCode == '65') {
+            // left
+        }
+        else if (e.keyCode == '39' || e.keyCode == '68') {
+            // right
+        }*/
+    }
+}
+
+document.onkeydown = keyEventHandler;
+
+
 $(document).ready(function() {
     // generate EM id dialogue
     $('#map').mousedown(mapDrag).mousemove(updateMouseTracker);

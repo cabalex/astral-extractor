@@ -362,7 +362,16 @@ span.selection {
 }
 .li-rightnav {
     float: right;
+    cursor: pointer;
     user-select: none;
+}
+.listBtn {
+    background-color: var(--grey);
+    border-radius: 0.25em;
+    padding: 10px;
+    cursor: pointer;
+    transition: background-color 100ms;
+    margin: 0 10px 0 0;
 }
 #taskeditor {
     margin: 10px;

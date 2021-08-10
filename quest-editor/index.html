@@ -25,7 +25,7 @@
 				<a href="https://astralchain.nintendo.com/introduction/"><img src="https://www.nintendo.co.jp/switch/ab48a/assets/images/common/logo/software_flat.png" height="40px"></a>
 			</li>
 			<a href="https://github.com/cabalex/astral-extractor/" id="homepage"><li class="heading" style="padding: 1em">
-				<b id='name'>astral extractor // quest editor [beta]</b>
+				<b id='name'>astral extractor <span id="version"></span> // quest editor [beta]</b>
 			</li></a>
 			<a title="Help and About" id="help" onclick='$(".modal").css("display", "block")'><li><img src="../assets/help.png" height="50px"></li></a>
 			<a title="Report Issue" onclick="window.open('https://github.com/cabalex/astral-extractor/issues')" id="issue"><li><img src="../assets/issue.png" height="50px"></li></a>
@@ -65,6 +65,7 @@
 				<div id="sidebar-contentHeader">
 					<div onclick="sidebarDisplay('emsets')" class="active" id="sidebar-contentHeader-emSets"><span class="material-icons">people</span> EmSets</div>
 					<div onclick="sidebarDisplay('tasks')" class="inactive" id="sidebar-contentHeader-tasks"><span class="material-icons">history</span> Tasks</div>
+					<div onclick="sidebarDisplay('areas')" class="inactive" id="sidebar-contentHeader-areas"><span class="material-icons">beenhere</span> Areas</div>
 					<div onclick="sidebarDisplay('talkscripts')" class="inactive" id="sidebar-contentHeader-talkScripts"><span class="material-icons">question_answer</span> TalkScripts</div>
 				</div>
 				<div id="sidebar-content">
@@ -208,8 +209,8 @@
 		<p id="rightClickMenuHeader" style="font-family: 'Work Sans', Roboto, sans-serif; padding-bottom: 0px;">CONTEXT MENU</p>
 		<ul style="list-style: none">
 			<li style="height: 100%"><select onchange="updateEmAttribute('Id', this)" style="width: 100%" class="emSearch" name="state"></select></li>
-			<li onclick="mutateMap('copy')"><span class="material-icons">content_copy</span> Copy</li>
-			<li onclick="mutateMap('move')"><span class="material-icons">zoom_out_map</span> Move</li>
+			<li onclick="mutateMap('copy')"><span class="material-icons">content_copy</span> Copy [soon]</li>
+			<li onclick="mutateMap('move')"><span class="material-icons">zoom_out_map</span> Move [soon]</li>
 			<li onclick="mutateMap('delete')" class="warningBtn"><span class="material-icons">delete</span> Delete</li>
 		</ul>
 	</div>
@@ -250,9 +251,7 @@
 			$("#dropMessage").replaceWith("This extractor was <b>NOT</b> built with IE in mind. Please use a browser that was last updated after 2013.<br>Download the latest <a href='https://www.google.com/chrome/'>CHROME</a>, <a href='https://www.microsoft.com/en-us/edge'>EDGE</a>, or <a href='https://www.mozilla.org/en-US/firefox/new/'>FIREFOX</a> to get things extracted.")
 			$("#supportedFiles").text("Browser Nemesis - CX")
 		}
-
-		console.log("ASTRAL EXTRACTOR\n\nThanks for supporting my most niche project ever! Go boot up the game and pet your Beast Legion- you deserve it.\n\nHere you'll find debug and other misc. info for when things go wrong (which they do).")
-		console.log("---")
 	</script>
+	<script src="../version.js" type="text/javascript"></script>
 </body>
 </html>

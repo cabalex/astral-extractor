@@ -90,6 +90,27 @@ var theme = Blockly.Theme.defineTheme('modern', {
     'startHats': null,
 });
 
+// IDK WHY THEY CHANGE CAPITALIZATION, DID THEY GET LAZY OR SOMETHING ???
+/*const capitalizeTypes = {
+    "if-1": "IF",
+    "if-2": "IF",
+    "if-3": "IF",
+    "if-4": "IF",
+    "if-5": "IF",
+    "if-6": "IF",
+    "if-7": "IF",
+    "if-8": "IF",
+    "if-9": "IF",
+    "if-10": "IF",
+    "if-11": "IF",
+    "if-12": "IF",
+    "if-13": "IF",
+    "if-14": "IF",
+    "if-15": "IF",
+    "if-16": "If",
+    "if-17"
+    "if-38": "IF",
+}*/
 // MISC
 Blockly.defineBlocksWithJsonArray([
     {
@@ -303,20 +324,20 @@ Blockly.defineBlocksWithJsonArray([
     ifDefine("if-10", "If Event %1 %2 state %3 (type %4)", [
         {
             "type": "field_input",
-            "name": "EventNo",
+            "name": "IFEventNo",
             "value": 0,
             "min": 0
         },
-        ifCommand("Condition"),
+        ifCommand("IFCondition"),
         {
             "type": "field_number",
-            "name": "EventState",
+            "name": "IFEventState",
             "value": 0,
             "min": 0
         },
         {
             "type": "field_number",
-            "name": "EventType",
+            "name": "IFEventType",
             "value": 0,
             "min": 0
         },
@@ -372,6 +393,19 @@ Blockly.defineBlocksWithJsonArray([
         trueFalse("IfbCheck", "done", "not done")]
     ),
 
+    ifDefine("if-22", "If dialogue box %1", [
+        trueFalse("IFbCheck", "closed", "open")]
+    ),
+    
+    ifDefine("if-27", "If fade transition is %1 (type %2)", [
+        trueFalse("IFbCheck", "finished", "unfinished"),
+        {
+            "type": "field_number",
+            "name": "IFType",
+            "value": 0,
+            "min": 0
+        }]
+    ),
     ifDefine("if-28", "If SaveFlag %1 of quest %2 is %3", [
         {
             "type": "field_number",
@@ -462,22 +496,113 @@ Blockly.defineBlocksWithJsonArray([
             "min": 0
         }
     ]),
-    execDefine("exec-7", "Load event %1 from PhaseNo %2 (event type %3) (todo: add other params)", [
+    execDefine("exec-7", "Load event %1 from PhaseNo %2 (EventType %3, ExecType %4, PreRead %5) [CHAIN %6: EventNo %7, PhaseNo %8, type %9] [FADEIN %10: Color: %11, type %12] [FADEOUT %13: CanFadeIn %14, Color: %15, type %16] [START %17: (%18, %19, %20, %21deg), OFFSET %22: (%23, %24, %25, rotX %26deg, rotY %27deg)", [
         {
             "type": "field_input",
             "name": "EXECEventNo",
             "text": "0000"
         },
         {
-            "type": "field_number",
+            "type": "field_input",
             "name": "EXECEventPhaseNo",
             "text": "0000"
         },
         {
             "type": "field_number",
             "name": "EXECEventType",
-            "value": 0,
-            "min": 0
+            "value": 0
+        },
+        {
+            "type": "field_number",
+            "name": "EXECEventExecType",
+            "value": 0
+        },
+        trueFalse("EXECEventPreRead"),
+        trueFalse("EXECEventExecUseChainEvent", "enabled", "disabled"),
+        {
+            "type": "field_input",
+            "name": "EXECEventChainEventNo",
+            "text": "0000"
+        },
+        {
+            "type": "field_input",
+            "name": "EXECEventChainPhaseNo",
+            "text": "0000"
+        },
+        {
+            "type": "field_number",
+            "name": "EXECEventChainExecType",
+            "value": 0
+        },
+        trueFalse("EXECEventExecUseBeginFade", "enabled", "disabled"),
+        {
+            "type": "field_input",
+            "name": "EXECEventExecBeginFadeColor",
+            "text": "0000"
+        },
+        {
+            "type": "field_number",
+            "name": "EXECEventExecBeginFadeType",
+            "value": 0
+        },
+        trueFalse("EXECEventExecUseEndFade", "enabled", "disabled"),
+        trueFalse("EXECEventExecEndFadeCanFadeIn"),
+        {
+            "type": "field_input",
+            "name": "EXECEventExecEndFadeColor",
+            "text": "0000"
+        },
+        {
+            "type": "field_number",
+            "name": "EXECEventExecEndFadeType",
+            "value": 0
+        },
+        trueFalse("EXECEventExecbSetStartPos", "enabled", "disabled"),
+        {
+            "type": "field_number",
+            "name": "EXECEventExecStartPosX",
+            "value": 0
+        },
+        {
+            "type": "field_number",
+            "name": "EXECEventExecStartPosY",
+            "value": 0
+        },
+        {
+            "type": "field_number",
+            "name": "EXECEventExecStartPosZ",
+            "value": 0
+        },
+        {
+            "type": "field_number",
+            "name": "EXECEventExecStartRotY",
+            "value": 0
+        },
+        trueFalse("EXECEventExecbSetOffsetPos", "enabled", "disabled"),
+        {
+            "type": "field_number",
+            "name": "EXECEventExecOffsetPosX",
+            "value": 0
+        },
+        {
+            "type": "field_number",
+            "name": "EXECEventExecOffsetPosY",
+            "value": 0
+        },
+        {
+            "type": "field_number",
+            "name": "EXECEventExecOffsetPosZ",
+            "value": 0
+        },
+        {
+            "type": "field_number",
+            "name": "EXECEventExecOffsetRotX",
+            "value": 0
+        },
+        {
+            "type": "field_number",
+            "name": "EXECEventExecOffsetRotY",
+            "value": 0
         }
     ]),
     execDefine("exec-8", "Set Hash %1 to %2", [
@@ -552,9 +677,9 @@ Blockly.defineBlocksWithJsonArray([
         },
         trueFalse("ExecUseFade"),
         {
-            "type": "field_number",
+            "type": "field_input",
             "name": "ExecFadeColor",
-            "value": 0
+            "text": "0000"
         },
     ]),
     execDefine("exec-16", "Load New Area Data from Quest %1, PhaseNo %2, SubPhaseIndex %3 (POS %4, %5, %6, %7deg), LoadingType %8 (IsSet %9, IsCountUp %10)", [
@@ -748,6 +873,21 @@ Blockly.defineBlocksWithJsonArray([
 
     execDefine("exec-45", "Add Pin to Map", []),
     execDefine("exec-46", "Remove Pin from Map", []),
+    execDefine("exec-47", "Start Fade (Type %1, stop inputs %2, color %3)", [
+        {
+            "type": "field_number",
+            "name": "Type",
+            "value": 0,
+            "min": 0
+        },
+        trueFalse("bKeyStop"),
+        {
+            "type": "field_input",
+            "name": "Color",
+            "text": "0000"
+        },
+    ]),
+    execDefine("exec-48", "End Fade", []),
     execDefine("exec-49", "Set SaveFlag %1 to %2", [
         {
             "type": "field_number",
@@ -757,7 +897,7 @@ Blockly.defineBlocksWithJsonArray([
         },
         trueFalse("ExecbCheck")
     ]),
-    execDefine("exec-50", "Load File Results Screen | Quest %1, PhaseNo %2, SubPhaseIndex %3 (POS %4, %5, %6, %7deg), LoadingType %8 (IsSet %9, IsCountUp %10)", [
+    execDefine("exec-50", "Load File Results Screen | Quest %1, PhaseNo %2, SubPhaseIndex %3 (POS %4, %5, %6, %7deg), LoadingType %8 (IsSet %9, IsCountUp %10, IsPhaseJump %11)", [
         {
             "type": "field_input",
             "name": "ExecQuestId",
@@ -806,7 +946,8 @@ Blockly.defineBlocksWithJsonArray([
             "min": 0
         },
         trueFalse("ExecIsSet"),
-        trueFalse("ExecIsCountUp")
+        trueFalse("ExecIsCountUp"),
+        trueFalse("IsPhaseJump")
     ]),
     execDefine("exec-51", "Set a timer for %1 seconds (Notice # %2, type %3) (timer type %4)", [
         {
@@ -879,8 +1020,9 @@ function renderTaskList(taskListNo, saveExisting=true) {
                     if (!$(elem).children('statement[name="execarea"]').children("block").length) {
                         // If no elements inside, use EXEC 0
                         commandList.push({"name": "typeEXEC", "value": "0", "children": [], "attributes": {}});
-                    } else if ($(elem).children('statement[name="execarea"]').children("block").children("next").length || $(elem).children('statement[name="execarea"]').children("block").attr()) {
+                    } else if ($(elem).children('statement[name="execarea"]').children("block").children("next").length || $(elem).children('statement[name="execarea"]').children("block").attr("type").toLowerCase().startsWith('if')) {
                         // check to see if there is more than one statement in the block; if so, use EXEC 1 (connector)
+                        // also happens if there's layered IF statements
                         commandList.push({"name": "typeEXEC", "value": "1", "children": [], "attributes": {}});
                         otherCommandLists.push(...parseDomTree($(elem).children('statement[name="execarea"]').children("block")))
                     } else {
@@ -952,8 +1094,12 @@ function renderTaskList(taskListNo, saveExisting=true) {
             if (Object.keys(blockIds).includes("if-" + taskList.LineListTree[x][y].typeIF)) {
                 xml += `<block type="if-${taskList.LineListTree[x][y].typeIF}">`
                 for (const [key, value] of Object.entries(taskList.LineListTree[x][y])) {
-                    if (['typeIF', 'typeEXEC'].includes(key) || key.toLowerCase().startsWith('exec')) { continue };
-                    xml += `<field name="${key}">${value}</field>`;
+                    if (['typeIF', 'typeEXEC'].includes(key) || key.substr(0,4).toLowerCase() == 'exec') { continue };
+                    if (parseInt(taskList.LineListTree[x][y].typeEXEC) < 2 && !key.toLowerCase().startsWith('if')) {
+                        xml += `<field name="IF${key}">${value}</field>`;
+                    } else {
+                        xml += `<field name="${key}">${value}</field>`;
+                    }
                 }
                 xml += '<statement name="execarea">'
                 nested.push('block', 'statement')

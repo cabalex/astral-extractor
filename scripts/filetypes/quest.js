@@ -97,7 +97,8 @@ function questShouldHex(name) {
   return name.includes("Hash") ||
   name.includes("Id") ||
   name.includes("EventNo") ||
-  name.includes("PhaseNo")
+  name.includes("PhaseNo") ||
+  name.includes("Color")
 }
 
 class questDataCommandList {
