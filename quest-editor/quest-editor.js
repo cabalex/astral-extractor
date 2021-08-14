@@ -324,21 +324,21 @@ function startQuestLoad(file) {
                     const rot = findItem(set[ii]['children'], 'Rotation')
                     var name = questLookup(id)
                     if (id.startsWith("2") || id.startsWith("1")) {
-                        $('#map').append(`<div class="marker" id="set-${i}-${ii}" oncontextmenu="showContextMenu(event, ${i}, ${ii}); return false" onclick="showContextMenu(event, ${i}, ${ii})" style="filter: hue-rotate(${i*45}deg); transform: translateX(calc(${pos[2] * -4 + "px"} * var(--mapZoom))) translateY(calc(${pos[0] * 4 + "px"} * var(--mapZoom))) rotate(${rot}rad)"><img src="../assets/marker-3.png" height="30px"></div>`)
+                        $('#map').append(`<div class="marker" id="set-${i}-${ii}" oncontextmenu="showContextMenu(event, 'em', [${i}, ${ii}]); return false" onclick="showContextMenu(event, 'em', [${i}, ${ii}])" style="filter: hue-rotate(${i*45}deg); transform: translateX(calc(${pos[2] * -4 + "px"} * var(--mapZoom))) translateY(calc(${pos[0] * 4 + "px"} * var(--mapZoom))) rotate(${rot}rad)"><img src="../assets/marker-3.png" height="30px"></div>`)
                         if (pos[0] != pos2[0] || pos[1] != pos2[1] && pos[2] != pos2[2]) {
-                            $('#map').append(`<div class="marker" id="set-${i}-${ii}" oncontextmenu="showContextMenu(event, ${i}, ${ii}); return false" onclick="showContextMenu(event, ${i}, ${ii})" style="filter: hue-rotate(${i*45}deg); transform: translateX(calc(${pos2[2] * -4 + "px"} * var(--mapZoom))) translateY(calc(${pos2[0] * 4 + "px"} * var(--mapZoom)))"><img src="../assets/marker-2b.png" height="30px"></div>`)
+                            $('#map').append(`<div class="marker" id="set-${i}-${ii}" oncontextmenu="showContextMenu(event, 'em', [${i}, ${ii}]); return false" onclick="showContextMenu(event, 'em', [${i}, ${ii}])" style="filter: hue-rotate(${i*45}deg); transform: translateX(calc(${pos2[2] * -4 + "px"} * var(--mapZoom))) translateY(calc(${pos2[0] * 4 + "px"} * var(--mapZoom)))"><img src="../assets/marker-2b.png" height="30px"></div>`)
                         }
-                        emListOutput += `<li id="set-${i}-${ii}" class="clickableLi" oncontextmenu="showContextMenu(event, ${i}, ${ii}); return false" onclick="showContextMenu(event, ${i}, ${ii})" style="filter: hue-rotate(${i*45}deg); color: #F25086">${setNo} <b>${name}</b></li>`
+                        emListOutput += `<li id="set-${i}-${ii}" class="clickableLi" oncontextmenu="showContextMenu(event, 'em', [${i}, ${ii}]); return false" onclick="showContextMenu(event, 'em', [${i}, ${ii}])" style="filter: hue-rotate(${i*45}deg); color: #F25086">${setNo} <b>${name}</b></li>`
                     } else if (true||id.startsWith("ba")) {
-                        $('#map').append(`<div class="marker" id="set-${i}-${ii}" oncontextmenu="showContextMenu(event, ${i}, ${ii}); return false" onclick="showContextMenu(event, ${i}, ${ii})" style="filter: hue-rotate(${i*45}deg); transform: translateX(calc(${pos[2] * -4 + "px"} * var(--mapZoom))) translateY(calc(${pos[0] * 4 + "px"} * var(--mapZoom))) rotate(${rot}rad)"><img src="../assets/marker-1b.png" height="30px"></div>`)
-                        if (parseInt(id, 16) > 827391 && parseInt(id, 16) < 827396) {
+                        $('#map').append(`<div class="marker" id="set-${i}-${ii}" oncontextmenu="showContextMenu(event, 'em', [${i}, ${ii}]); return false" onclick="showContextMenu(event, 'em', [${i}, ${ii}])" style="filter: hue-rotate(${i*45}deg); transform: translateX(calc(${pos[2] * -4 + "px"} * var(--mapZoom))) translateY(calc(${pos[0] * 4 + "px"} * var(--mapZoom))) rotate(${rot}rad)"><img src="../assets/marker-1b.png" height="30px"></div>`)
+                        if ((parseInt(id, 16) > 827391 && parseInt(id, 16) < 827396) || (parseInt(id, 16) > 827439 && parseInt(id, 16) < 827445)) {
                             const typ = findItem(set[ii]['children'], 'Type')
                             $(`div#set-${i}-${ii}`).css('--markerHeight', typ*4 + 'px')
                         }
                         if (pos[0] != pos2[0] || pos[1] != pos2[1] && pos[2] != pos2[2]) {
-                            $('#map').append(`<div class="marker" id="set-${i}-${ii}" oncontextmenu="showContextMenu(event, ${i}, ${ii}); return false" onclick="showContextMenu(event, ${i}, ${ii})" style="filter: hue-rotate(${i*45}deg); transform: translateX(calc(${pos2[2] * -4 + "px"} * var(--mapZoom))) translateY(calc(${pos2[0] * 4 + "px"} * var(--mapZoom)))"><img src="../assets/marker-2b.png" height="30px"></div>`)
+                            $('#map').append(`<div class="marker" id="set-${i}-${ii}" oncontextmenu="showContextMenu(event, 'em', [${i}, ${ii}]); return false" onclick="showContextMenu(event, ${i}, ${ii})" style="filter: hue-rotate(${i*45}deg); transform: translateX(calc(${pos2[2] * -4 + "px"} * var(--mapZoom))) translateY(calc(${pos2[0] * 4 + "px"} * var(--mapZoom)))"><img src="../assets/marker-2b.png" height="30px"></div>`)
                         }
-                        emListOutput += `<li id="set-${i}-${ii}" class="clickableLi" oncontextmenu="showContextMenu(event, ${i}, ${ii}); return false" onclick="showContextMenu(event, ${i}, ${ii})" style="filter: hue-rotate(${i*45}deg); color: #F25086">${setNo} <b>${name}</b></li>`
+                        emListOutput += `<li id="set-${i}-${ii}" class="clickableLi" oncontextmenu="showContextMenu(event, 'em', [${i}, ${ii}]); return false" onclick="showContextMenu(event, ${i}, ${ii})" style="filter: hue-rotate(${i*45}deg); color: #F25086">${setNo} <b>${name}</b></li>`
                     }
                 }
             }
@@ -348,7 +348,7 @@ function startQuestLoad(file) {
             var questData = loadedFile['files']['QuestData.bxm']['extracted']
 
             var taskListOutput = "<ul class='taskeditor' id='taskList' style='list-style: none; padding: 5px;'>"
-            taskListOutput += `<li class="listheader"><span title="Add an item" class="material-icons">add</span> Task List</li>`
+            taskListOutput += `<li class="listheader"><span title="Add an item" class="material-icons">add</span> Task List<br><span class='li-subtext'>See nothing on the right? Try refreshing.</span></li>`
             const colors = ['#EF5184', '#C5C5C5', '#0000FF', '#808080', '#F7931E']
             for (var i = 0; i < questData['children'][1]['children'].length; i++) {
                 const taskList = new questDataTaskList(questData['children'][1]['children'][i])
@@ -407,7 +407,7 @@ function startQuestLoad(file) {
             talkScriptOutput += `<li class="listheader"><span title="Add an item" class="material-icons">add</span> Spoken TalkScripts</li>`
             if (Object.keys(talkScriptSpeeches).length) {
                 for (var i = 0; i < talkScriptSpeeches['children'].length; i++) {
-                    talkScriptOutput += `<li class="clickableLi" onclick="showContextMenu(${i})" id="ts-${i}">${i} <b>${findItem(talkScriptSpeeches['children'][i]['children'], 'ObjId')}</b> ${findItem(talkScriptSpeeches['children'][i]['children'], 'QuestId')}</li>`;
+                    talkScriptOutput += `<li class="clickableLi" onclick="showContextMenu(event, [${i}])" id="ts-${i}">${i} <b>${findItem(talkScriptSpeeches['children'][i]['children'], 'ObjId')}</b> ${findItem(talkScriptSpeeches['children'][i]['children'], 'QuestId')}</li>`;
                 }
             }
             $("#sidebar-header").prepend(`<h1 style='padding-left: 10px'>${lookup(file.name).replace(".dat", "")} <span style="font-size: 16px; font-weight: 700; vertical-align: baseline">${file.name}</span></h1>`).slideDown(100, complete=function() {$(this).css('display', 'flex')})
@@ -476,10 +476,13 @@ function findItem(arr, name, returnIndex=false, multiple=false) {
         return returning[0];
     }
 }
+
 function updateEmAttribute(name, elem) {
+    // find indexes of name (there might be more than one, e.g. Id)
     var indexes = findItem(loadedFile['files']['EnemySet.bxm']['extracted']['children'][0]['children'][selectedItem['emSetNo']]['children'][selectedItem['SetNo']]['children'], name, true, true);
     var val = $(elem).val()
     if (name == "Id" && editorSettings['useBasicEditor']) {
+        // "em00a0" => "200a0"
         val = questUnlookup(val)
     }
     for (var i = 0; i < indexes.length; i++) {
@@ -487,10 +490,13 @@ function updateEmAttribute(name, elem) {
     }
     var selected = loadedFile['files']['EnemySet.bxm']['extracted']['children'][0]['children'][selectedItem['emSetNo']]['children'][selectedItem['SetNo']]['children']
     $(`li#set-${selectedItem['emSetNo']}-${selectedItem['SetNo']}`).find('b').html(questLookup(findItem(selected, 'Id')));
-    var pos = findItem(selected, 'Trans').split(" ")
-    var rot = findItem(selected, 'Rotation')
-    $(`div#set-${selectedItem['emSetNo']}-${selectedItem['SetNo']}`).css('transform', `translateX(calc(${pos[2] * -4 + "px"} * var(--mapZoom))) translateY(calc(${pos[0] * 4 + "px"} * var(--mapZoom))) rotate(${rot}rad)`)
-    showContextMenu(elem, selectedItem['emSetNo'], selectedItem['SetNo'], true)
+    // reset position and rotation of marker
+    if (['Trans', 'Rotation'].includes(name)) {
+        var pos = findItem(selected, 'Trans').split(" ")
+        var rot = findItem(selected, 'Rotation')
+        $(`div#set-${selectedItem['emSetNo']}-${selectedItem['SetNo']}`).css('transform', `translateX(calc(${pos[2] * -4 + "px"} * var(--mapZoom))) translateY(calc(${pos[0] * 4 + "px"} * var(--mapZoom))) rotate(${rot}rad)`)
+    }
+    showContextMenu(elem, [selectedItem['emSetNo'], selectedItem['SetNo']], true)
 }
 function updateTaskAttribute(elem, elemId, name, value) {
     var index = findItem(loadedFile['files']['QuestData.bxm']['extracted']['children'][1]['children'][elemId]['children'], name, true);
@@ -536,53 +542,56 @@ function updateAreaAttribute(elem, elemId, elemIdId, name, value) {
     }
     $(elem).replaceWith(out + "</span>")
 }
-function showContextMenu(event, emSetNo, SetNo, update=false) {
-    var em = loadedFile['files']['EnemySet.bxm']['extracted']['children'][0]['children'][emSetNo]['children'][SetNo]
-    var emid = parseInt(findItem(em['children'], 'Id')).toString(16)
-    if (event.pageX > 300) {
-        // Don't scroll the sidebar if selecting from it
-        $('#sidebar-content').scrollTo(`li#set-${emSetNo}-${SetNo}`, 100, {"offset": {"top": -50}});
-    }
-    if (!update) {
-        event.preventDefault();
-    }
-    selectedItem = {"emSetNo": emSetNo, "SetNo": SetNo, "em": em}
-    $('.marker-selected').attr('class', 'marker');
-    $('#emList').find('.li-selected').attr('class', 'clickableLi');
-    $(`div#set-${selectedItem['emSetNo']}-${selectedItem['SetNo']}`).attr('class', 'marker-selected');
-    $(`li#set-${selectedItem['emSetNo']}-${selectedItem['SetNo']}`).attr('class', 'li-selected');
-    $('.emSearch').val(questLookup(emid, returnId=true)).select2()
-
-    $('#rightClickMenuHeader').text(questLookup(emid)); // Updated with select2
-    if (event.which === 3) {
-        $('#rightClickMenu').css({"top": event.pageY, "left": Math.max(event.pageX, 310)}).show(100);
-    } else {
-        // Advanced
-        var cmattrs = "<table id='contextMenuAttrs'>"
-        for (var i = 0; i < em['children'].length; i++) {
-            cmattrs += `<tr><th class='tablekey'>${em['children'][i]['name']}</th><th class='tablevalue'><input onchange="updateEmAttribute('${em['children'][i]['name']}', this)" type="text" size="32" value="${em['children'][i]['value']}"></th></tr>`
+function showContextMenu(event, menuType, args, update=false) {
+    if (menuType == "em") {
+        var [emSetNo, SetNo] = args;
+        var em = loadedFile['files']['EnemySet.bxm']['extracted']['children'][0]['children'][emSetNo]['children'][SetNo]
+        var emid = parseInt(findItem(em['children'], 'Id')).toString(16)
+        if (event.pageX > 300) {
+            // Don't scroll the sidebar if selecting from it
+            $('#sidebar-content').scrollTo(`li#set-${emSetNo}-${SetNo}`, 100, {"offset": {"top": -50}});
         }
-        // Basic
-        //
-        if (emid.startsWith("2")) {
-            $('#contextMenu').find('#contextMenuImg').attr('src', 'https://www.nintendo.co.jp/switch/ab48a/assets/images/legion/detail/item/01/chara.png').css('top', event.pageY-40)
-            $('#contextMenu').find('#contextMenuThumb').css('background-color', 'var(--secondary-color)')
-        } else {
-            $('#contextMenu').find('#contextMenuImg').attr('src', 'https://www.nintendo.co.jp/switch/ab48a/assets/images/legion/detail/item/05/chara.png').css('top', event.pageY-40)
-            $('#contextMenu').find('#contextMenuThumb').css('background-color', 'var(--primary-color)')
-        }
-        $('#contextMenu').find('#contextMenuAttrs').replaceWith(cmattrs + "</table>")
-        if (editorSettings['useBasicEditor']) {
-            $('#contextMenuAttrs').hide()
-            $('#contextMenuBasicAttrs').show()
-        } else {
-            $('#contextMenuAttrs').show()
-            $('#contextMenuBasicAttrs').hide()
-        }
-        $('#contextMenu').find('#contextMenuBody').css('max-height', window.innerHeight - (event.pageY + 120))
-        $('#contextMenu').find('#emName').replaceWith(`<h1 id="emName">${questLookup(emid)} <span id='emSubtext'>${emid}</span></h1>`);
         if (!update) {
-            $('#contextMenu').css({"top": event.pageY, "left": Math.max(event.pageX, 310)}).show(100)
+            event.preventDefault();
+        }
+        selectedItem = {"emSetNo": emSetNo, "SetNo": SetNo, "em": em}
+        $('.marker-selected').attr('class', 'marker');
+        $('#emList').find('.li-selected').attr('class', 'clickableLi');
+        $(`div#set-${selectedItem['emSetNo']}-${selectedItem['SetNo']}`).attr('class', 'marker-selected');
+        $(`li#set-${selectedItem['emSetNo']}-${selectedItem['SetNo']}`).attr('class', 'li-selected');
+        $('.emSearch').val(questLookup(emid, returnId=true)).select2()
+
+        $('#rightClickMenuHeader').text(questLookup(emid)); // Updated with select2
+        if (event.which === 3) {
+            $('#rightClickMenu').css({"top": event.pageY, "left": Math.max(event.pageX, 310)}).show(100);
+        } else {
+            // Advanced
+            var cmattrs = "<table id='contextMenuAttrs'>"
+            for (var i = 0; i < em['children'].length; i++) {
+                cmattrs += `<tr><th class='tablekey'>${em['children'][i]['name']}</th><th class='tablevalue'><input onchange="updateEmAttribute('${em['children'][i]['name']}', this)" type="text" size="32" value="${em['children'][i]['value']}"></th></tr>`
+            }
+            // Basic
+            //
+            if (emid.startsWith("2")) {
+                $('#contextMenu').find('#contextMenuImg').attr('src', 'https://www.nintendo.co.jp/switch/ab48a/assets/images/legion/detail/item/01/chara.png').css('top', event.pageY-40)
+                $('#contextMenu').find('#contextMenuThumb').css('background-color', 'var(--secondary-color)')
+            } else {
+                $('#contextMenu').find('#contextMenuImg').attr('src', 'https://www.nintendo.co.jp/switch/ab48a/assets/images/legion/detail/item/05/chara.png').css('top', event.pageY-40)
+                $('#contextMenu').find('#contextMenuThumb').css('background-color', 'var(--primary-color)')
+            }
+            $('#contextMenu').find('#contextMenuAttrs').replaceWith(cmattrs + "</table>")
+            if (editorSettings['useBasicEditor']) {
+                $('#contextMenuAttrs').hide()
+                $('#contextMenuBasicAttrs').show()
+            } else {
+                $('#contextMenuAttrs').show()
+                $('#contextMenuBasicAttrs').hide()
+            }
+            $('#contextMenu').find('#contextMenuBody').css('max-height', window.innerHeight - (event.pageY + 120))
+            $('#contextMenu').find('#emName').replaceWith(`<h1 id="emName">${questLookup(emid)} <span id='emSubtext'>${emid}</span></h1>`);
+            if (!update) {
+                $('#contextMenu').css({"top": event.pageY, "left": Math.max(event.pageX, 310)}).show(100)
+            }
         }
     }
 }

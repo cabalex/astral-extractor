@@ -361,6 +361,23 @@ Blockly.defineBlocksWithJsonArray([
         },
         ]
     ),
+
+    ifDefine("if-14", "If Player has %1 %2x of item %3", [
+        ifCommand("IFHasItemCondition"),
+        {
+            "type": "field_number",
+            "name": "IFHasItemValue",
+            "text": "000000",
+            "value": 0,
+            "min": 0
+        },
+        {
+            "type": "field_input",
+            "name": "IFHasItemId",
+            "text": "000000"
+        },
+        ]
+    ),
     
     ifDefine("if-16", "If SetNo %1 of GroupNo %2 %3 %4 (isGroup %5)", [
         {
@@ -419,6 +436,10 @@ Blockly.defineBlocksWithJsonArray([
             "value": 0,
             "min": 0
         },
+        trueFalse("IFbCheck")]
+    ),
+    
+    ifDefine("if-30", "If %1", [
         trueFalse("IFbCheck")]
     ),
 
@@ -721,10 +742,14 @@ Blockly.defineBlocksWithJsonArray([
             "value": 0,
         },
         {
-            "type": "field_number",
+            "type": "field_dropdown",
             "name": "ExecLoadingType",
-            "value": 0,
-            "min": 0
+            "options": [
+                ["Default", "0"],
+                ["Astral Plane [debug]", "1"],
+                ["Astral Plane [player]", "2"],
+                ["Astral Plane [no player]", "3"]
+            ]
         },
         trueFalse("ExecIsSet"),
         trueFalse("ExecIsCountUp")
@@ -835,6 +860,18 @@ Blockly.defineBlocksWithJsonArray([
         trueFalse("ExistSpeaker", "Speaker exists", "Speaker does not exist")
     ]),
 
+    execDefine("exec-35", "UNKNOWN [Index %1, bOn %2]", [
+        {
+            "type": "field_number",
+            "name": "Index",
+            "value": 0
+        },
+        {
+            "type": "field_number",
+            "name": "bOn",
+            "value": 0
+        }
+    ]),
     execDefine("exec-36", "Set SetNo %1 of GroupNo %2's position to (%3, %4, %5, %6deg)", [
         {
             "type": "field_number",
@@ -871,8 +908,78 @@ Blockly.defineBlocksWithJsonArray([
     ]),
     (() => {var def = execDefine("exec-37", "Return", []); def['nextStatement'] = undefined; return def })(),
 
+    execDefine("exec-39", "Load Astral Plane arena of Quest %1 | To pos (%2, %3, %4, %5deg), type %6, layout pattern %7, ObjGroupNo %8, %9, %10 [NOTICE: Hash %11, NoticeNo %12, type %13] [IN: NoticeNo %14, type %15]", [
+        {
+            "type": "field_input",
+            "name": "QuestId",
+            "text": "0"
+        },
+        {
+            "type": "field_number",
+            "name": "x",
+            "value": 0
+        },
+        {
+            "type": "field_number",
+            "name": "y",
+            "value": 0
+        },
+        {
+            "type": "field_number",
+            "name": "z",
+            "value": 0
+        },
+        {
+            "type": "field_number",
+            "name": "rot",
+            "value": 0
+        },
+        {
+            "type": "field_number",
+            "name": "Type",
+            "value": 0
+        },
+        {
+            "type": "field_number",
+            "name": "LayoutPattern",
+            "value": 0
+        },
+        {
+            "type": "field_number",
+            "name": "ObjGroupNo",
+            "value": 0
+        },
+        trueFalse("bSetReturnPoint", "Set return point", "Don't set return point"),
+        trueFalse("bSetEm", "Set em", "Don't set em"),
+        {
+            "type": "field_input",
+            "name": "NoticeHash",
+            "text": "0000"
+        },
+        {
+            "type": "field_number",
+            "name": "NoticeNo",
+            "value": 0
+        },
+        {
+            "type": "field_number",
+            "name": "NoticeType",
+            "value": 0
+        },
+        {
+            "type": "field_number",
+            "name": "InNoticeNo",
+            "value": 0
+        },
+        {
+            "type": "field_number",
+            "name": "InNoticeType",
+            "value": 0
+        }
+    ]),
+
     execDefine("exec-45", "Add Pin to Map", []),
-    execDefine("exec-46", "Remove Pin from Map", []),
+    execDefine("exec-46", "Remove Pin from Map / Show case result screen", []),
     execDefine("exec-47", "Start Fade (Type %1, stop inputs %2, color %3)", [
         {
             "type": "field_number",
@@ -975,7 +1082,49 @@ Blockly.defineBlocksWithJsonArray([
             "min": 0
         },
     ]),
+    execDefine("exec-52", "UNKNOWN [Mode %1]", [
+        {
+            "type": "field_number",
+            "name": "Mode",
+            "value": 0
+        }
+    ]),
+    execDefine("exec-53", "%1 countdown [Type %2]", [
+        trueFalse("bSet", "Show", "Hide"),
+        {
+            "type": "field_number",
+            "name": "Type",
+            "value": 0
+        }
+    ]),
+    execDefine("exec-54", "UNKNOWN - Set block to %1 [Type %2]", [
+        {
+            "type": "field_number",
+            "name": "block",
+            "value": 0
+        },
+        {
+            "type": "field_number",
+            "name": "Type",
+            "value": 0
+        }
+    ]),
+    execDefine("exec-55", "UNKNOWN", []),
 
+    execDefine("exec-60", "Force costume change to %1", [
+        {
+            "type": "field_dropdown",
+            "name": "Type",
+            "options": [
+                ["Default", "0"],
+                ["Lappy Costume", "1"],
+                ["Raven Armor", "2"],
+                ["Drab Civvies", "3"],
+                ["ARI Medical Gear", "4"],
+                ["Reset", "5"]
+            ]
+        }
+    ]),
     execDefine("exec-61", "%1 GroupNo %2 to/from memory", [
         trueFalse("bRead", "Read", "Discard"),
         {

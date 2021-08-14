@@ -352,7 +352,7 @@ var fileInfo = {
   "ccd": "Binary XML files. CCD files hold more environmental parameters (?).",
   "rld": "Binary XML files. RLD files hold lighting effects in environments (?).",
   "bnk": "Audio bank.",
-  "lay": "Layout files. Stores the objects the game will place in an area.",
+  "lay": "Layout files. Stores the objects the game will place in an area.<br><b>STILL IN BETA!</b> Some items may be interpreted incorrectly.",
   "pkz": "Compressed ZSTD archives containing most of the game's files.<br><b>NOTE: For most use cases, you do not need to repack these.</b> Usually, you can just place your files in the directory, and the game will load them fine.<br><b>You DO need to repack files in:</b> event/, core/, Text/",
   "dat": "DAT archive. Holds most of the game's files.",
   "dtt": "DAT archive. Almost identical to .DAT, but separated for performance.",

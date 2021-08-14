@@ -34,7 +34,7 @@ const questTable = {
     "q1907": "Zone 10 Police HQ File 07 Data",
     "q1908": "Zone 10 Police HQ File 08 Data",
     "q1909": "Zone 10 Police HQ File 09 Data",
-    "q1912": "Highway Junction File 09 Data",
+    "q1912": "Zone 10 Police HQ File 12 Data",
     "q1a03": "Zone 30 Maison Forest File 03 Data",
     "q1b05": "Zone 33 Harmony Square Station File 05 Data",
     "q1c09": "Police HQ File 09 [post-Jena] Data",
@@ -1481,7 +1481,7 @@ const questToArea = {
     "q2c94": "r900",
     "q2cd4": "r600",
     "q2cd5": "r600",
-    "q2cd9": "r100",
+    "q2cd9": "r200",
     "qcc01": "rc00",
     "qcf00": "r840"
 }
