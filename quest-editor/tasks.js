@@ -14,10 +14,10 @@ var theme = Blockly.Theme.defineTheme('modern', {
         'colourSecondary': '#c7bddb',
         'colourTertiary': '#5d4984',
       },
-      'logic_blocks': {
-        'colourPrimary': '#5b80a5',
-        'colourSecondary': '#bdccdb',
-        'colourTertiary': '#496684',
+      'logic_blocks': { // IF
+        'colourPrimary': '#FFAB19',
+        'colourSecondary': '#CF8B17',
+        'colourTertiary': '#CF8B17',
       },
       'loop_blocks': {
         'colourPrimary': '#5ba55b',
@@ -29,10 +29,10 @@ var theme = Blockly.Theme.defineTheme('modern', {
         'colourSecondary': '#bdc2db',
         'colourTertiary': '#495284',
       },
-      'procedure_blocks': {
-        'colourPrimary': '#995ba5',
-        'colourSecondary': '#d6bddb',
-        'colourTertiary': '#7a4984',
+      'procedure_blocks': { // EXEC
+        'colourPrimary': '#4C97FF',
+        'colourSecondary': '#4C97FF',
+        'colourTertiary': '#3373CC',
       },
       'text_blocks': {
         'colourPrimary': '#5ba58c',
@@ -49,10 +49,10 @@ var theme = Blockly.Theme.defineTheme('modern', {
         'colourSecondary': '#dbbdd6',
         'colourTertiary': '#84497a',
       },
-      'hat_blocks': {
-        'colourPrimary': '#A6905B',
-        'colourSecondary': '#d6dbbd',
-        'colourTertiary': '#7a8449',
+      'hat_blocks': { // top
+        'colourPrimary': '#FF6680',
+        'colourSecondary': '#FF6680',
+        'colourTertiary': '#FF3355',
         'hat': 'cap',
       },
     },
@@ -64,7 +64,7 @@ var theme = Blockly.Theme.defineTheme('modern', {
         'colour': '#745ba5',
       },
       'logic_category': {
-        'colour': '#5b80a5',
+        'colour': '#5b80a5', // IF
       },
       'loop_category': {
         'colour': '#5ba55b',
@@ -73,7 +73,7 @@ var theme = Blockly.Theme.defineTheme('modern', {
         'colour': '#5b67a5',
       },
       'procedure_category': {
-        'colour': '#995ba5',
+        'colour': '#995ba5', // EXEC
       },
       'text_category': {
         'colour': '#5ba58c',
@@ -165,13 +165,23 @@ function ifCommand(alt="IFCommand") {
         ]
     }
 }
-function trueFalse(name, statement1="true", statement2="false") {
+function trueFalse(name, statement1="true", statement2="false", def=true) {
+    if (def) {
+        return {
+            "type": "field_dropdown",
+            "name": name,
+            "options": [
+                [statement1, "1"],
+                [statement2, "0"]
+            ]
+        }
+    }
     return {
         "type": "field_dropdown",
         "name": name,
         "options": [
-            [statement1, "1"],
-            [statement2, "0"]
+            [statement2, "0"],
+            [statement1, "1"]
         ]
     }
 }
@@ -352,12 +362,12 @@ Blockly.defineBlocksWithJsonArray([
         {
             "type": "field_input",
             "name": "IFValueHash",
-            "text": "000000"
+            "text": "7B7AD42F"
         },
         {
             "type": "field_input",
             "name": "IFValue2Hash",
-            "text": "000000"
+            "text": "7B7AD42F"
         },
         ]
     ),
@@ -526,7 +536,7 @@ Blockly.defineBlocksWithJsonArray([
         {
             "type": "field_input",
             "name": "EXECEventPhaseNo",
-            "text": "0000"
+            "text": "-1"
         },
         {
             "type": "field_number",
@@ -538,8 +548,8 @@ Blockly.defineBlocksWithJsonArray([
             "name": "EXECEventExecType",
             "value": 0
         },
-        trueFalse("EXECEventPreRead"),
-        trueFalse("EXECEventExecUseChainEvent", "enabled", "disabled"),
+        trueFalse("EXECEventPreRead", def=false),
+        trueFalse("EXECEventExecUseChainEvent", "enabled", "disabled", false),
         {
             "type": "field_input",
             "name": "EXECEventChainEventNo",
@@ -548,37 +558,37 @@ Blockly.defineBlocksWithJsonArray([
         {
             "type": "field_input",
             "name": "EXECEventChainPhaseNo",
-            "text": "0000"
+            "text": "-1"
         },
         {
             "type": "field_number",
             "name": "EXECEventChainExecType",
             "value": 0
         },
-        trueFalse("EXECEventExecUseBeginFade", "enabled", "disabled"),
+        trueFalse("EXECEventExecUseBeginFade", "enabled", "disabled", false),
         {
             "type": "field_input",
             "name": "EXECEventExecBeginFadeColor",
-            "text": "0000"
+            "text": "FF000000"
         },
         {
             "type": "field_number",
             "name": "EXECEventExecBeginFadeType",
-            "value": 0
+            "value": 1
         },
-        trueFalse("EXECEventExecUseEndFade", "enabled", "disabled"),
-        trueFalse("EXECEventExecEndFadeCanFadeIn"),
+        trueFalse("EXECEventExecUseEndFade", "enabled", "disabled", false),
+        trueFalse("EXECEventExecEndFadeCanFadeIn"), // usually true first
         {
             "type": "field_input",
             "name": "EXECEventExecEndFadeColor",
-            "text": "0000"
+            "text": "FF000000"
         },
         {
             "type": "field_number",
             "name": "EXECEventExecEndFadeType",
             "value": 0
         },
-        trueFalse("EXECEventExecbSetStartPos", "enabled", "disabled"),
+        trueFalse("EXECEventExecbSetStartPos", "enabled", "disabled", false),
         {
             "type": "field_number",
             "name": "EXECEventExecStartPosX",
@@ -599,7 +609,7 @@ Blockly.defineBlocksWithJsonArray([
             "name": "EXECEventExecStartRotY",
             "value": 0
         },
-        trueFalse("EXECEventExecbSetOffsetPos", "enabled", "disabled"),
+        trueFalse("EXECEventExecbSetOffsetPos", "enabled", "disabled", false),
         {
             "type": "field_number",
             "name": "EXECEventExecOffsetPosX",
@@ -786,7 +796,7 @@ Blockly.defineBlocksWithJsonArray([
         {
             "type": "field_number",
             "name": "ExecCounterType",
-            "value": 0,
+            "value": 1,
             "min": 0
         }
     ]),
@@ -1054,7 +1064,7 @@ Blockly.defineBlocksWithJsonArray([
         },
         trueFalse("ExecIsSet"),
         trueFalse("ExecIsCountUp"),
-        trueFalse("IsPhaseJump")
+        trueFalse("IsPhaseJump", "true", "false", false)
     ]),
     execDefine("exec-51", "Set a timer for %1 seconds (Notice # %2, type %3) (timer type %4)", [
         {
@@ -1097,12 +1107,8 @@ Blockly.defineBlocksWithJsonArray([
             "value": 0
         }
     ]),
-    execDefine("exec-54", "UNKNOWN - Set block to %1 [Type %2]", [
-        {
-            "type": "field_number",
-            "name": "block",
-            "value": 0
-        },
+    execDefine("exec-54", "UNKNOWN - %1 the player's ability to %2", [
+        trueFalse('bLock', 'lock', 'unlock'),
         {
             "type": "field_number",
             "name": "Type",
@@ -1111,6 +1117,7 @@ Blockly.defineBlocksWithJsonArray([
     ]),
     execDefine("exec-55", "UNKNOWN", []),
 
+    execDefine("exec-59", "Stop all subtitles", []),
     execDefine("exec-60", "Force costume change to %1", [
         {
             "type": "field_dropdown",
@@ -1137,10 +1144,10 @@ Blockly.defineBlocksWithJsonArray([
 ]);
 
 // SCRIPTS
-
+var workspaceCache = ""
 function renderTaskList(taskListNo, saveExisting=true) {
     var workspace = Blockly.getMainWorkspace()
-    if (saveExisting) {
+    if (saveExisting && Blockly.Xml.workspaceToDom(Blockly.getMainWorkspace()).outerHTML != workspaceCache) {
         var $dom = $(Blockly.Xml.workspaceToDom(Blockly.getMainWorkspace()))
         if (!$dom.find('block[type="unknown-if"]').length && !$dom.find('block[type="unknown-exec"]').length) {
             var oldTaskListNo = $('#taskList').find('.li-selected').attr("id").split("-")[1] 
@@ -1216,6 +1223,7 @@ function renderTaskList(taskListNo, saveExisting=true) {
                 // create new task list
                 alert("Unimplemented task list creation")
             }
+            console.log("Changes saved successfully!")
         } else {
             console.log("Unknown EXEC or IF in this Task! Changes were not saved.")
         }
@@ -1281,6 +1289,7 @@ function renderTaskList(taskListNo, saveExisting=true) {
     Blockly.Xml.clearWorkspaceAndLoadFromXml(Blockly.Xml.textToDom(xml), workspace);
     workspace.cleanUp()
     workspace.trashcan.emptyContents()
+    workspaceCache = Blockly.Xml.workspaceToDom(Blockly.getMainWorkspace()).outerHTML;
     $('#taskList').find('.li-selected').attr('class', 'clickableLi');
     $('#taskList').find("li#tl-" + taskListNo).attr('class', 'li-selected');
 }
@@ -1322,5 +1331,7 @@ var onresize = function(e) {
 window.addEventListener('resize', onresize, false);
 onresize();
 Blockly.svgResize(workspace);
-// Blockly doesn't like it when display: none is set at page load, so i make it transparent until necessary
-$('#taskeditor').css({'filter': 'inherit', 'display': 'none'})
+window.addEventListener("load", function(){
+    // Blockly doesn't like it when display: none is set at page load, so i make it transparent until necessary
+    $('#taskeditor').css({'filter': 'inherit', 'display': 'none'})
+})

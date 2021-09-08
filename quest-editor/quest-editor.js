@@ -1,5 +1,10 @@
 // Quest Creator scripts.
 
+const defaultEm = "{\"name\":\"SetInfo\",\"value\":\"\",\"attributes\":{},\"children\":[{\"name\":\"SetNo\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"Id\",\"value\":\"131120\",\"attributes\":{},\"children\":[]},{\"name\":\"Id\",\"value\":\"131120\",\"attributes\":{},\"children\":[]},{\"name\":\"BaseRot\",\"value\":\"0.000000 -0.000000 0.000000 1.000000\",\"attributes\":{},\"children\":[]},{\"name\":\"BaseRotL\",\"value\":\"0.000000 0.000000 0.000000 0.000000\",\"attributes\":{},\"children\":[]},{\"name\":\"Trans\",\"value\":\"0.000000 0.000000 0.000000 0.000000\",\"attributes\":{},\"children\":[]},{\"name\":\"TransL\",\"value\":\"0.000000 0.000000 0.000000 0.000000\",\"attributes\":{},\"children\":[]},{\"name\":\"Rotation\",\"value\":\"0.000000\",\"attributes\":{},\"children\":[]},{\"name\":\"SetType\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"Type\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"SetRtn\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"SetFlag\",\"value\":\"1073741824\",\"attributes\":{},\"children\":[]},{\"name\":\"PathNo\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"EscapeNo\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"TmpPos\",\"value\":\"0.000000 0.000000 0.000000 0.000000\",\"attributes\":{},\"children\":[]},{\"name\":\"ExSetTypeA\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"ExSetTypeB\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"ExSetTypeC\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"ExSetTypeD\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"ExSetAttr\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"ExSetRtn\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"ExSetFlag\",\"value\":\"1073741824\",\"attributes\":{},\"children\":[]},{\"name\":\"NoticeNo\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"SetWait\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"LvMin\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"LvMax\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"ParentId\",\"value\":\"4294967295\",\"attributes\":{},\"children\":[]},{\"name\":\"PartsNo\",\"value\":\"-1\",\"attributes\":{},\"children\":[]},{\"name\":\"HashNo\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"ItemId\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"SetTimer\",\"value\":\"0.000000\",\"attributes\":{},\"children\":[]},{\"name\":\"SetCounter\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"SetRadius\",\"value\":\"0.000000\",\"attributes\":{},\"children\":[]},{\"name\":\"GroupPos\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"GridDisp\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"EventSuspend\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"SimpleSubspaceSuspend\",\"value\":\"0\",\"attributes\":{},\"children\":[]}]}"
+
+// clipboard used for copying within the editor - don't really wanna use user clipboard
+var localClipboard = defaultEm;
+
 var editorSettings = {
     "useBasicEditor": true,
     "activeTab": "emsets"
@@ -12,8 +17,9 @@ var mapPos = {
 }
 var selectedItem = {
     "emSetNo": 0,
-    "emNo": 0,
-    "em": {}
+    "setNo": 0,
+    "em": {},
+    "elem": this
 }
 // To get correct scale: Multiply orthographic scale by 4
 const imageSizes = {
@@ -77,7 +83,7 @@ async function loadFiles(files) {
         $('#pkzSelectorArea').replaceWith('<ul id="pkzSelectorArea"></ul>')
         loadedPKZ = await loadInitialPKZ("pkz", files[0], false, true);
         for (var i = 0; i < loadedPKZ['fileOrder'].length; i++) {
-            $('#pkzSelectorArea').append(`<li class='clickableLi' title='${loadedPKZ['fileOrder'][i]}' onclick='exportToQuestDAT(this, "${loadedPKZ['fileOrder'][i]}")'>${loadedPKZ['fileOrder'][i].replace("quest", "").replace(".dat", "")} <b>${lookup(loadedPKZ['fileOrder'][i])}</b></li>`)
+            $('#pkzSelectorArea').append(`<li class='clickableLi' title='${loadedPKZ['fileOrder'][i]}' oncontextmenu="showContextMenu(event, 'dat', [\'${loadedPKZ['fileOrder'][i]}\'])" onclick='exportToQuestDAT(this, "${loadedPKZ['fileOrder'][i]}")'>${loadedPKZ['fileOrder'][i].replace("quest", "").replace(".dat", "")} <b>${lookup(loadedPKZ['fileOrder'][i])}</b></li>`)
         }
         $("#initial-content").slideDown(100);
     } else {
@@ -85,7 +91,7 @@ async function loadFiles(files) {
     }
 }
 
-function exportToQuestDAT(elem, subFile) {
+function exportToQuestDAT(elem, subFile, download=false) {
     $('#initial-content').find('.li-selected').attr('class', 'clickableLi');
     $(elem).attr('class', 'li-selected');
     return new Promise(async (resolve, reject) => {
@@ -98,8 +104,14 @@ function exportToQuestDAT(elem, subFile) {
                 const decompressedArray = decoder.decode(new Uint8Array(e.target.result), Number(loadedPKZ['files'][subFile]['size']))
                 var blob = new Blob([decompressedArray], {type: 'application/octet-stream'});
                 blob.name = subFile;
-                $("#initial").slideUp(100, complete=function() {$("#initial").css("display", "none")});
-                await startQuestLoad(blob);
+                if (download) {
+                    // DL the file
+                    saveAs(blob, subFile);
+                } else {
+                    // load it
+                    $("#initial").slideUp(100, complete=function() {$("#initial").css("display", "none")});
+                    await startQuestLoad(blob);
+                }
                 resolve();
             }
         }
@@ -307,6 +319,7 @@ function startQuestLoad(file) {
             if (area) {
                 changeMap(`li#${area}`, area)
             }
+            $('#rightClickMenu').hide() // hide it if it was shown in pkz
             /*
             LOAD EM DATA
             */
@@ -316,7 +329,7 @@ function startQuestLoad(file) {
             for (var i = 0; i < emSets.length; i++) {
                 var set = emSets[i]['children'];
                 var setNo = emSets[i]['attributes']['number']
-                emListOutput += `<li class="listheader" translate="yes"><span title="Add an item" translate="no" class="material-icons">add</span> ${emSets[i]['attributes']['name']}</li>`
+                emListOutput += `<li class="listheader" id="emSet-${i}" translate="yes"><span onclick='addEmSet(this, ${i})' title="Add an item" translate="no" class="material-icons btn">add</span> ${emSets[i]['attributes']['name']}</li>`
                 for (var ii = 0; ii < set.length; ii++) {
                     var id = parseInt(findItem(set[ii]['children'], 'Id')).toString(16);
                     const pos = findItem(set[ii]['children'], 'Trans').split(" ").map(item => parseFloat(item));
@@ -324,21 +337,21 @@ function startQuestLoad(file) {
                     const rot = findItem(set[ii]['children'], 'Rotation')
                     var name = questLookup(id)
                     if (id.startsWith("2") || id.startsWith("1")) {
-                        $('#map').append(`<div class="marker" id="set-${i}-${ii}" oncontextmenu="showContextMenu(event, 'em', [${i}, ${ii}]); return false" onclick="showContextMenu(event, 'em', [${i}, ${ii}])" style="filter: hue-rotate(${i*45}deg); transform: translateX(calc(${pos[2] * -4 + "px"} * var(--mapZoom))) translateY(calc(${pos[0] * 4 + "px"} * var(--mapZoom))) rotate(${rot}rad)"><img src="../assets/marker-3.png" height="30px"></div>`)
+                        $('#map').append(`<div class="marker" id="set-${i}-${ii}" oncontextmenu="showContextMenu(event, 'em', [this]); return false" onclick="showContextMenu(event, 'em', [this])" style="filter: hue-rotate(${i*45}deg); transform: translateX(calc(${pos[2] * -4 + "px"} * var(--mapZoom))) translateY(calc(${pos[0] * 4 + "px"} * var(--mapZoom))) rotate(${rot}rad)"><img src="../assets/marker-3.png" height="30px"></div>`)
                         if (pos[0] != pos2[0] || pos[1] != pos2[1] && pos[2] != pos2[2]) {
-                            $('#map').append(`<div class="marker" id="set-${i}-${ii}" oncontextmenu="showContextMenu(event, 'em', [${i}, ${ii}]); return false" onclick="showContextMenu(event, 'em', [${i}, ${ii}])" style="filter: hue-rotate(${i*45}deg); transform: translateX(calc(${pos2[2] * -4 + "px"} * var(--mapZoom))) translateY(calc(${pos2[0] * 4 + "px"} * var(--mapZoom)))"><img src="../assets/marker-2b.png" height="30px"></div>`)
+                            $('#map').append(`<div class="marker" id="set-${i}-${ii}" oncontextmenu="showContextMenu(event, 'em', [this]); return false" onclick="showContextMenu(event, 'em', [this])" style="filter: hue-rotate(${i*45}deg); transform: translateX(calc(${pos2[2] * -4 + "px"} * var(--mapZoom))) translateY(calc(${pos2[0] * 4 + "px"} * var(--mapZoom)))"><img src="../assets/marker-2b.png" height="30px"></div>`)
                         }
-                        emListOutput += `<li id="set-${i}-${ii}" class="clickableLi" oncontextmenu="showContextMenu(event, 'em', [${i}, ${ii}]); return false" onclick="showContextMenu(event, 'em', [${i}, ${ii}])" style="filter: hue-rotate(${i*45}deg); color: #F25086">${setNo} <b>${name}</b></li>`
+                        emListOutput += `<li id="set-${i}-${ii}" class="clickableLi" oncontextmenu="showContextMenu(event, 'em', [this]); return false" onclick="showContextMenu(event, 'em', [this])" style="filter: hue-rotate(${i*45}deg); color: #F25086">${setNo} <b>${name}</b></li>`
                     } else if (true||id.startsWith("ba")) {
-                        $('#map').append(`<div class="marker" id="set-${i}-${ii}" oncontextmenu="showContextMenu(event, 'em', [${i}, ${ii}]); return false" onclick="showContextMenu(event, 'em', [${i}, ${ii}])" style="filter: hue-rotate(${i*45}deg); transform: translateX(calc(${pos[2] * -4 + "px"} * var(--mapZoom))) translateY(calc(${pos[0] * 4 + "px"} * var(--mapZoom))) rotate(${rot}rad)"><img src="../assets/marker-1b.png" height="30px"></div>`)
+                        $('#map').append(`<div class="marker" id="set-${i}-${ii}" oncontextmenu="showContextMenu(event, 'em', [this]); return false" onclick="showContextMenu(event, 'em', [this])" style="filter: hue-rotate(${i*45}deg); transform: translateX(calc(${pos[2] * -4 + "px"} * var(--mapZoom))) translateY(calc(${pos[0] * 4 + "px"} * var(--mapZoom))) rotate(${rot}rad)"><img src="../assets/marker-1b.png" height="30px"></div>`)
                         if ((parseInt(id, 16) > 827391 && parseInt(id, 16) < 827396) || (parseInt(id, 16) > 827439 && parseInt(id, 16) < 827445)) {
                             const typ = findItem(set[ii]['children'], 'Type')
                             $(`div#set-${i}-${ii}`).css('--markerHeight', typ*4 + 'px')
                         }
                         if (pos[0] != pos2[0] || pos[1] != pos2[1] && pos[2] != pos2[2]) {
-                            $('#map').append(`<div class="marker" id="set-${i}-${ii}" oncontextmenu="showContextMenu(event, 'em', [${i}, ${ii}]); return false" onclick="showContextMenu(event, ${i}, ${ii})" style="filter: hue-rotate(${i*45}deg); transform: translateX(calc(${pos2[2] * -4 + "px"} * var(--mapZoom))) translateY(calc(${pos2[0] * 4 + "px"} * var(--mapZoom)))"><img src="../assets/marker-2b.png" height="30px"></div>`)
+                            $('#map').append(`<div class="marker" id="set-${i}-${ii}" oncontextmenu="showContextMenu(event, 'em', [this]); return false" onclick="showContextMenu(event, 'em', [this])" style="filter: hue-rotate(${i*45}deg); transform: translateX(calc(${pos2[2] * -4 + "px"} * var(--mapZoom))) translateY(calc(${pos2[0] * 4 + "px"} * var(--mapZoom)))"><img src="../assets/marker-2b.png" height="30px"></div>`)
                         }
-                        emListOutput += `<li id="set-${i}-${ii}" class="clickableLi" oncontextmenu="showContextMenu(event, 'em', [${i}, ${ii}]); return false" onclick="showContextMenu(event, ${i}, ${ii})" style="filter: hue-rotate(${i*45}deg); color: #F25086">${setNo} <b>${name}</b></li>`
+                        emListOutput += `<li id="set-${i}-${ii}" class="clickableLi" oncontextmenu="showContextMenu(event, 'em', [this]); return false" onclick="showContextMenu(event, 'em', [this])" style="filter: hue-rotate(${i*45}deg); color: #F25086">${setNo} <b>${name}</b></li>`
                     }
                 }
             }
@@ -389,7 +402,7 @@ function startQuestLoad(file) {
                     } else {
                         rightnav += `<span class="material-icons" onclick="updateAreaAttribute(this, ${i}, ${ii}, 'DebugDisp', '1')">visibility_off</span>`
                     }
-                    areaListOutput += `<li class="clickableLi" id="area-${i}">${findItem(areaGroup['children'][ii]['children'], 'AreaIndex')} <b>Area</b><span class="li-rightnav" title="Toggle if debug display is enabled">${rightnav}</span></li>`;
+                    areaListOutput += `<li class="clickableLi" onclick="showContextMenu(event, 'area', [${i}, ${ii}])" id="area-${i}-${ii}">${findItem(areaGroup['children'][ii]['children'], 'AreaIndex')} <b>Area</b><span class="li-rightnav" title="Toggle if debug display is enabled">${rightnav}</span></li>`;
                 }
             }
             /*
@@ -457,6 +470,29 @@ function copyEmList(elem, copyType) {
     /*var text = $(elem).contents().get(0).nodeValue
     $(elem).contents().get(0).nodeValue = "COPIED!"
     setTimeout(function(){ $(elem).contents().get(0).nodeValue = text }, 1000);*/
+}
+
+function addEmSet(elem, emSetNo, emToCopy=-1) {
+    // HUM-C-F5DB3-00 from EmSetNo 2 in q2103 (File 01 Fighting Back)
+    if (emToCopy == -1) {
+        var emToAdd = JSON.parse(defaultEm);
+    } else if (typeof emToCopy == "number") {
+        // deepcopy
+        var emToAdd = JSON.parse(JSON.stringify(loadedFile['files']['EnemySet.bxm']['extracted']['children'][0]['children'][emSetNo]['children'][emToCopy]));
+    } else {
+        // object
+        var emToAdd = JSON.parse(emToCopy);
+    }
+    lastItem = loadedFile['files']['EnemySet.bxm']['extracted']['children'][0]['children'][emSetNo]['children'].length - 1
+    loadedFile['files']['EnemySet.bxm']['extracted']['children'][0]['children'][emSetNo]['children'].push(emToAdd)
+    $(`li#set-${emSetNo}-${lastItem}`).after(`<li id="set-${emSetNo}-${lastItem+1}" class="clickableLi" oncontextmenu="showContextMenu(event, 'em', [this]); return false" onclick="showContextMenu(event, 'em', [this])" style="filter: hue-rotate(${emSetNo*45}deg); color: #F25086">${emSetNo} <b>${questLookup(parseInt(findItem(emToAdd['children'], 'Id')).toString(16))}</b></li>`)
+    const pos = findItem(emToAdd['children'], 'Trans').split(" ").map(item => parseFloat(item));
+    const pos2 = findItem(emToAdd['children'], 'TransL').split(" ").map(item => parseFloat(item));
+    const rot = findItem(emToAdd['children'], 'Rotation')
+    $('#map').append(`<div class="marker" id="set-${emSetNo}-${lastItem+1}" oncontextmenu="showContextMenu(event, 'em', [this]); return false" onclick="showContextMenu(event, 'em', [this])" style="filter: hue-rotate(${emSetNo*45}deg); transform: translateX(calc(${pos[2] * -4 + "px"} * var(--mapZoom))) translateY(calc(${pos[0] * 4 + "px"} * var(--mapZoom))) rotate(${rot}rad)"><img src="../assets/marker-3.png" height="30px"></div>`)
+    if (pos[0] != pos2[0] || pos[1] != pos2[1] && pos[2] != pos2[2]) {
+        $('#map').append(`<div class="marker" id="set-${emSetNo}-${lastItem+1}" oncontextmenu="showContextMenu(event, 'em', [this]); return false" onclick="showContextMenu(event, 'em', [this])" style="filter: hue-rotate(${emSetNo*45}deg); transform: translateX(calc(${pos2[2] * -4 + "px"} * var(--mapZoom))) translateY(calc(${pos2[0] * 4 + "px"} * var(--mapZoom)))"><img src="../assets/marker-2b.png" height="30px"></div>`)
+    }
 }
 
 function findItem(arr, name, returnIndex=false, multiple=false) {
@@ -543,25 +579,90 @@ function updateAreaAttribute(elem, elemId, elemIdId, name, value) {
     $(elem).replaceWith(out + "</span>")
 }
 function showContextMenu(event, menuType, args, update=false) {
+    if (!update) {
+        event.preventDefault();
+    }
+    $('#rightClickMenuHeader').text("CONTEXT MENU");
     if (menuType == "em") {
-        var [emSetNo, SetNo] = args;
-        var em = loadedFile['files']['EnemySet.bxm']['extracted']['children'][0]['children'][emSetNo]['children'][SetNo]
+        var [emSetNo, SetNo] = args[0].id.split("-").slice(1);
+        var em = loadedFile['files']['EnemySet.bxm']['extracted']['children'][0]['children'][parseInt(emSetNo)]['children'][parseInt(SetNo)]
         var emid = parseInt(findItem(em['children'], 'Id')).toString(16)
         if (event.pageX > 300) {
             // Don't scroll the sidebar if selecting from it
             $('#sidebar-content').scrollTo(`li#set-${emSetNo}-${SetNo}`, 100, {"offset": {"top": -50}});
         }
-        if (!update) {
-            event.preventDefault();
-        }
-        selectedItem = {"emSetNo": emSetNo, "SetNo": SetNo, "em": em}
+        selectedItem = {"emSetNo": parseInt(emSetNo), "SetNo": parseInt(SetNo), "em": em, "elem": this}
         $('.marker-selected').attr('class', 'marker');
         $('#emList').find('.li-selected').attr('class', 'clickableLi');
         $(`div#set-${selectedItem['emSetNo']}-${selectedItem['SetNo']}`).attr('class', 'marker-selected');
         $(`li#set-${selectedItem['emSetNo']}-${selectedItem['SetNo']}`).attr('class', 'li-selected');
-        $('.emSearch').val(questLookup(emid, returnId=true)).select2()
-
+        // Probably not the best idea to load the right click menu EVERY time, but didn't want to duplicate code
+        //
+        $('#rightClickMenu').find("ul").replaceWith(`<ul><li style="height: 100%"><select onchange="updateEmAttribute('Id', this)" style="width: 100%" class="emSearch" name="state"></select></li>
+        <li onclick="mutateMap('copy')"><span class="material-icons">control_point_duplicate</span> Duplicate</li>
+        <li onclick="mutateMap('move')"><span class="material-icons">zoom_out_map</span> Move [soon]</li>
+        <p id="rightClickMenuHeader" style="font-family: 'Work Sans', Roboto, sans-serif; padding-bottom: 0px;">EM CLIPBOARD</p>
+        <li onclick="mutateMap('clipboard-copy')"><span class="material-icons">content_copy</span> Copy</li>
+        <li onclick="mutateMap('clipboard-cut')"><span class="material-icons">content_cut</span> Cut</li>
+        <li onclick="mutateMap('clipboard-paste')"><span class="material-icons">content_paste</span> Paste</li>
+        <p style="height: 0"></p>
+        <li onclick="mutateMap('delete')" class="warningBtn"><span class="material-icons">delete</span> Delete</li></ul>`)
         $('#rightClickMenuHeader').text(questLookup(emid)); // Updated with select2
+        $('.emSearch').append(selectCompiled);
+        $('.emSearch').val(questLookup(emid, returnId=true)).select2()
+        if (event.which === 3) {
+            $('#rightClickMenu').css({"top": Math.min(event.pageY, window.innerHeight-350), "left": Math.max(event.pageX, 310)}).show(100);
+        } else {
+            // Advanced
+            var cmattrs = "<table id='contextMenuAttrs'>"
+            for (var i = 0; i < em['children'].length; i++) {
+                cmattrs += `<tr><th class='tablekey'>${em['children'][i]['name']}</th><th class='tablevalue'><input onchange="updateEmAttribute('${em['children'][i]['name']}', this)" type="text" size="32" value="${em['children'][i]['value']}"></th></tr>`
+            }
+            // Basic
+            //
+            if (emid.startsWith("2")) {
+                $('#contextMenu').find('#contextMenuImg').attr('src', 'https://www.nintendo.co.jp/switch/ab48a/assets/images/legion/detail/item/01/chara.png').css('top', event.pageY-40)
+                $('#contextMenu').find('#contextMenuThumb').css('background-color', 'var(--secondary-color)')
+            } else {
+                $('#contextMenu').find('#contextMenuImg').attr('src', 'https://www.nintendo.co.jp/switch/ab48a/assets/images/legion/detail/item/05/chara.png').css('top', event.pageY-40)
+                $('#contextMenu').find('#contextMenuThumb').css('background-color', 'var(--primary-color)')
+            }
+            $('#contextMenu').find('#contextMenuAttrs').replaceWith(cmattrs + "</table>")
+            if (editorSettings['useBasicEditor']) {
+                $('#contextMenuAttrs').hide()
+                $('#contextMenuBasicAttrs').show()
+            } else {
+                $('#contextMenuAttrs').show()
+                $('#contextMenuBasicAttrs').hide()
+            }
+            $('#contextMenu').find('#contextMenuBody').css('max-height', window.innerHeight - (event.pageY + 120))
+            $('#contextMenu').find('#emName').replaceWith(`<h1 id="emName">${questLookup(emid)} <span id='emSubtext'>${emid}</span></h1>`);
+            if (!update) {
+                $('#contextMenu').css({"top": event.pageY, "left": Math.max(event.pageX, 310)}).show(100)
+            }
+        }
+    } else if (menuType == "area") {
+        var [areaSetNo, SetNo] = args;
+        var area = loadedFile['files']['EnemySet.bxm']['extracted']['children'][5]['children'][areaSetNo]['children'][SetNo]
+        var emid = parseInt(findItem(area['children'], 'Id')).toString(16)
+        if (event.pageX > 300) {
+            // Don't scroll the sidebar if selecting from it
+            $('#sidebar-content').scrollTo(`li#set-${areaSetNo}-${SetNo}`, 100, {"offset": {"top": -50}});
+        }
+        selectedItem = {"areaSetNo": areaSetNo, "SetNo": SetNo, "em": area, "elem": this};
+        $('.area-selected').attr('class', 'area');
+        $('#emList').find('.li-selected').attr('class', 'clickableLi');
+        $(`div#set-${selectedItem['emSetNo']}-${selectedItem['SetNo']}`).attr('class', 'area-selected');
+        $(`li#set-${selectedItem['emSetNo']}-${selectedItem['SetNo']}`).attr('class', 'li-selected');
+        // Probably not the best idea to load the right click menu EVERY time, but didn't want to duplicate code
+        //
+        $('#rightClickMenu').find("ul").replaceWith(`<ul><li style="height: 100%"><select onchange="updateEmAttribute('Id', this)" style="width: 100%" class="emSearch" name="state"></select></li>
+        <li onclick="mutateMap('copy')"><span class="material-icons">content_copy</span> Copy [soon]</li>
+        <li onclick="mutateMap('move')"><span class="material-icons">zoom_out_map</span> Move [soon]</li>
+        <li onclick="mutateMap('delete')" class="warningBtn"><span class="material-icons">delete</span> Delete</li></ul>`)
+        $('#rightClickMenuHeader').text("AREA"); // Updated with select2
+        $('.emSearch').append(selectCompiled);
+        $('.emSearch').val(questLookup(emid, returnId=true)).select2()
         if (event.which === 3) {
             $('#rightClickMenu').css({"top": event.pageY, "left": Math.max(event.pageX, 310)}).show(100);
         } else {
@@ -593,6 +694,13 @@ function showContextMenu(event, menuType, args, update=false) {
                 $('#contextMenu').css({"top": event.pageY, "left": Math.max(event.pageX, 310)}).show(100)
             }
         }
+    } else if (menuType == "dat") {
+        // always right click
+        $('#rightClickMenuHeader').text(args[0]);
+        $('#rightClickMenu').find("ul").replaceWith(`<ul>
+        <li onclick="exportToQuestDAT(this, '${args[0]}', true)"><span class="material-icons">download</span> Download</li>
+        </ul>`)
+        $('#rightClickMenu').css({"top": event.pageY, "left": Math.max(event.pageX, 310)}).show(100);
     }
 }
 
@@ -650,12 +758,23 @@ function contextMenuDisplay(difficulty) {
 
 function mutateMap(operation, args="") {
     if (operation == "delete") {
+        totalChildren = loadedFile['files']['EnemySet.bxm']['extracted']['children'][0]['children'][selectedItem['emSetNo']]['children'].length;
         loadedFile['files']['EnemySet.bxm']['extracted']['children'][0]['children'][selectedItem['emSetNo']]['children'].splice(selectedItem['SetNo'], 1);
         $(`div#set-${selectedItem['emSetNo']}-${selectedItem['SetNo']}`).remove()
         $(`li#set-${selectedItem['emSetNo']}-${selectedItem['SetNo']}`).remove()
+        // move all the other elements forward
+        for (var i = selectedItem['SetNo']; i < totalChildren; i++) {
+            $(`div#set-${selectedItem['emSetNo']}-${i}`).attr('id', `set-${selectedItem['emSetNo']}-${i-1}`);
+            $(`li#set-${selectedItem['emSetNo']}-${i}`).attr('id', `set-${selectedItem['emSetNo']}-${i-1}`);
+        }
+    } else if (operation == "copy") {
+        addEmSet(selectedItem['elem'], selectedItem['emSetNo'], parseInt(selectedItem['SetNo']));
+    } else if (operation == "clipboard-copy" || operation == "clipboard-cut") {
+        localClipboard = JSON.stringify(selectedItem['em'])
+        if (operation == "clipboard-cut") mutateMap("delete", "");
+    } else if (operation == "clipboard-paste") {
+        addEmSet(selectedItem['elem'], selectedItem['emSetNo'], localClipboard);
     }
-    loadedFile['files']['EnemySet.bxm']['extracted']['children'][0]['children'][selectedItem['emSetNo']]['children'][selectedItem['SetNo']]
-
     $("#rightClickMenu").hide(100);
 }
 
@@ -706,10 +825,11 @@ function updateMouseTracker(e) {
     $('#posx').text(Math.round((e.pageY - parseInt(offset['top'])) / (4 / zoom)))
 }
 var selectableLookups = [em, pl, ba, bg];
+var selectCompiled = ""
 for (var i = 0; i < selectableLookups.length; i++) {
     for (const [key, value] of Object.entries(selectableLookups[i])) {
         if (key.endsWith("ff") || value.startsWith("<")) { continue };
-        $('.emSearch').append(`<option value="${key}">${value}</option>`)
+        selectCompiled += `<option value="${key}">${value}</option>`
     }
 }
 // Task Editor hotkeys
