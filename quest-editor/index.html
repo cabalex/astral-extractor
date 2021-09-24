@@ -198,6 +198,7 @@
 		<div id="contextMenuSelector">
 			<div onclick="contextMenuDisplay('basic')" class="active" id="contextMenuBasic">Basic</div>
 			<div onclick="contextMenuDisplay('advanced')" class="inactive" id="contextMenuAdvanced">Advanced</div>
+			<div onclick="contextMenuDisplay('references')" class="inactive" id="contextMenuReferences"><span class="material-icons">history</span></div>
 		</div>
 		<div id="contextMenuBody">
 			<!-- BASIC -->
@@ -207,6 +208,8 @@
 			</table>
 			<!-- ADVANCED -->
 			<table id="contextMenuAttrs"></table>
+			<!-- REFERENCES -->
+			<table id="contextMenuReferenceList"></table>
 		</div>
 	</div>
 	<div id="rightClickMenu">
@@ -229,6 +232,7 @@
 	</div>
 	<!-- preload images -->
 	<img style="display: none" src="https://www.nintendo.co.jp/switch/ab48a/assets/images/legion/detail/item/01/chara.png">
+	<img style="display: none" src="https://www.nintendo.co.jp/switch/ab48a/assets/images/legion/detail/item/03/chara.png">
 	<img style="display: none" src="https://www.nintendo.co.jp/switch/ab48a/assets/images/legion/detail/item/05/chara.png">
 	<!-- external libraries -->
 	<script src="../scripts/zstd.js" type="text/javascript"></script>
@@ -243,6 +247,8 @@
 	<script src="../scripts/filetypes/quest.js" type="text/javascript"></script>
 	<script src="../scripts/filetypes/dat.js" type="text/javascript"></script>
 	<script src="../scripts/loader.js" type="text/javascript"></script>
+	<script src="objs/em.js" type="text/javascript"></script>
+	<script src="objs/area.js" type="text/javascript"></script>
 	<script src="quest-editor.js" type="text/javascript"></script>
 	<script src="tasks.js" type="text/javascript"></script>
 	<!-- init -->

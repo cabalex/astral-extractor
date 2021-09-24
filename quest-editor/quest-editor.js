@@ -1,12 +1,13 @@
 // Quest Creator scripts.
 
 const defaultEm = "{\"name\":\"SetInfo\",\"value\":\"\",\"attributes\":{},\"children\":[{\"name\":\"SetNo\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"Id\",\"value\":\"131120\",\"attributes\":{},\"children\":[]},{\"name\":\"Id\",\"value\":\"131120\",\"attributes\":{},\"children\":[]},{\"name\":\"BaseRot\",\"value\":\"0.000000 -0.000000 0.000000 1.000000\",\"attributes\":{},\"children\":[]},{\"name\":\"BaseRotL\",\"value\":\"0.000000 0.000000 0.000000 0.000000\",\"attributes\":{},\"children\":[]},{\"name\":\"Trans\",\"value\":\"0.000000 0.000000 0.000000 0.000000\",\"attributes\":{},\"children\":[]},{\"name\":\"TransL\",\"value\":\"0.000000 0.000000 0.000000 0.000000\",\"attributes\":{},\"children\":[]},{\"name\":\"Rotation\",\"value\":\"0.000000\",\"attributes\":{},\"children\":[]},{\"name\":\"SetType\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"Type\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"SetRtn\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"SetFlag\",\"value\":\"1073741824\",\"attributes\":{},\"children\":[]},{\"name\":\"PathNo\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"EscapeNo\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"TmpPos\",\"value\":\"0.000000 0.000000 0.000000 0.000000\",\"attributes\":{},\"children\":[]},{\"name\":\"ExSetTypeA\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"ExSetTypeB\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"ExSetTypeC\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"ExSetTypeD\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"ExSetAttr\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"ExSetRtn\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"ExSetFlag\",\"value\":\"1073741824\",\"attributes\":{},\"children\":[]},{\"name\":\"NoticeNo\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"SetWait\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"LvMin\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"LvMax\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"ParentId\",\"value\":\"4294967295\",\"attributes\":{},\"children\":[]},{\"name\":\"PartsNo\",\"value\":\"-1\",\"attributes\":{},\"children\":[]},{\"name\":\"HashNo\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"ItemId\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"SetTimer\",\"value\":\"0.000000\",\"attributes\":{},\"children\":[]},{\"name\":\"SetCounter\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"SetRadius\",\"value\":\"0.000000\",\"attributes\":{},\"children\":[]},{\"name\":\"GroupPos\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"GridDisp\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"EventSuspend\",\"value\":\"0\",\"attributes\":{},\"children\":[]},{\"name\":\"SimpleSubspaceSuspend\",\"value\":\"0\",\"attributes\":{},\"children\":[]}]}"
+const defaultArea = '{"name":"WorkList","value":"","children":[{"name":"AreaIndex","value":0,"children":[],"attributes":{}},{"name":"AreaType","value":"1","children":[],"attributes":{}},{"name":"Center","value":"0.000000 0.000000 0.000000 1000.000000","children":[],"attributes":{}},{"name":"Pos1","value":"-10.000000 0.000000 10.000000 1000.000000","children":[],"attributes":{}},{"name":"Pos2","value":"-10.000000 0.000000 -10.000000 1000.000000","children":[],"attributes":{}},{"name":"Pos3","value":"10.000000 0.000000 -10.000000 1000.000000","children":[],"attributes":{}},{"name":"Pos4","value":"10.000000 0.000000 10.000000 1000.000000","children":[],"attributes":{}},{"name":"Height","value":"11.000000","children":[],"attributes":{}},{"name":"DebugDisp","value":"0","children":[],"attributes":{}}],"attributes":{}}'
 
 // clipboard used for copying within the editor - don't really wanna use user clipboard
 var localClipboard = defaultEm;
 
 var editorSettings = {
-    "useBasicEditor": true,
+    "contextMenuDisplayMode": "basic",
     "activeTab": "emsets"
 }
 
@@ -15,10 +16,8 @@ var mapPos = {
     "pos": [],
     "offset0": {}
 }
-var selectedItem = {
-    "emSetNo": 0,
-    "setNo": 0,
-    "em": {},
+var currentSelection = {
+    "obj": null,
     "elem": this
 }
 // To get correct scale: Multiply orthographic scale by 4
@@ -38,6 +37,9 @@ const imageSizes = {
     "rb01": 2000,
     "rc00": 80
 }
+
+var emSets = [];
+var areaGroups = [];
 
 var loadedFile = {};
 var loadedPKZ = {};
@@ -139,6 +141,8 @@ function mapZoom(changeSize) {
     mapPos['offset0'] = $('#map-main').offset();
     $('#map-main').attr('height', imageSizes[currentMap] * zoom)
     $('#zoomindicator').text(zoom + "x");
+    // have to redraw all the svg areas :/
+    areaGroups.forEach((item) => {item.display()});
 }
 
 function deleteFile() {
@@ -146,11 +150,15 @@ function deleteFile() {
     $('#sidebar-content').slideUp(100, complete=function() {$(this).replaceWith('<div id="sidebar-content"></div>')});
     $('#sidebar-header').slideUp(100, complete=function() {$(this).css('display', 'none').children('h1').remove()});
     $('#sidebar-contentHeader').slideUp(100);
+    $("#contextMenu").hide(100);
+    $("#rightClickMenu").hide(100);
     $('#repack').slideUp(100);
     $('#taskeditor').slideUp(100);
     $('#initial').slideDown(100, complete=function() {$(this).css('display', '')});
     var name = loadedFile['fp'].name
     loadedFile = {};
+    emSets = [];
+    areaGroups = [];
     if (Object.keys(loadedPKZ).length > 0) {
         $('#initial-content').scrollTo(`li[title="${name}"]`, 0, {"offset": {"top": -20}});
     }
@@ -171,6 +179,22 @@ async function questRepack() {
             // File is zero bytes
             outputFiles.push(new ArrayBuffer())
         } else if (loadedFile['fileOrder'][i].endsWith(".bxm")) {
+            
+            switch(loadedFile['fileOrder'][i]) {
+                // Allow for expansion
+                case "EnemySet.bxm":
+                    loadedFile['files'][loadedFile['fileOrder'][i]]['extracted']['children'][0]['children'] = [];
+                    for (var ii = 0; ii < emSets.length; ii++) {
+                        loadedFile['files'][loadedFile['fileOrder'][i]]['extracted']['children'][0]['children'].push(emSets[ii].export());
+                    }
+                    break;
+                case "QuestData.bxm":
+                    loadedFile['files'][loadedFile['fileOrder'][i]]['extracted']['children'][5]['children'] = [];
+                    for (var ii = 0; ii < areaGroups.length; ii++) {
+                        loadedFile['files'][loadedFile['fileOrder'][i]]['extracted']['children'][5]['children'].push(areaGroups[ii].export());
+                    }
+                    break;
+            }
             outputFiles.push(questBXMWriter(loadedFile['files'][loadedFile['fileOrder'][i]]['extracted']))
         } else if (loadedFile['fileOrder'][i].endsWith(".csv")) {
             outputFiles.push(questCSVWriter(loadedFile['files'][loadedFile['fileOrder'][i]]['extracted']))
@@ -313,6 +337,7 @@ function startQuestLoad(file) {
                 }
             }
             const questId = file.name.substr(5, 4);
+            emSets = [];
             loadedFile = {'fp': file, 'files': localFiles, 'fileOrder': names.slice(0, Object.keys(localFiles).length), 'hashMap': e.target.result.slice(header[6], firstOffset), 'id': questId}
             
             var area = questAreaLookup("q" + questId)
@@ -323,41 +348,20 @@ function startQuestLoad(file) {
             /*
             LOAD EM DATA
             */
-            var emSets = loadedFile['files']['EnemySet.bxm']['extracted']['children'][0]['children']
+            var rawEmSets = loadedFile['files']['EnemySet.bxm']['extracted']['children'][0]['children']
             
             var emListOutput = "<ul id='emList' style='list-style: none; padding: 5px;'><li class='listheader'><span onclick='copyEmList(this, \"csv\")' class='listBtn'><span class='material-icons'>content_copy</span> CSV</span><span onclick='copyEmList(this, \"json\")' class='listBtn'><span class='material-icons'>content_copy</span> JSON</span></li>"
-            for (var i = 0; i < emSets.length; i++) {
-                var set = emSets[i]['children'];
-                var setNo = emSets[i]['attributes']['number']
-                emListOutput += `<li class="listheader" id="emSet-${i}" translate="yes"><span onclick='addEmSet(this, ${i})' title="Add an item" translate="no" class="material-icons btn">add</span> ${emSets[i]['attributes']['name']}</li>`
-                for (var ii = 0; ii < set.length; ii++) {
-                    var id = parseInt(findItem(set[ii]['children'], 'Id')).toString(16);
-                    const pos = findItem(set[ii]['children'], 'Trans').split(" ").map(item => parseFloat(item));
-                    const pos2 = findItem(set[ii]['children'], 'TransL').split(" ").map(item => parseFloat(item));
-                    const rot = findItem(set[ii]['children'], 'Rotation')
-                    var name = questLookup(id)
-                    if (id.startsWith("2") || id.startsWith("1")) {
-                        $('#map').append(`<div class="marker" id="set-${i}-${ii}" oncontextmenu="showContextMenu(event, 'em', [this]); return false" onclick="showContextMenu(event, 'em', [this])" style="filter: hue-rotate(${i*45}deg); transform: translateX(calc(${pos[2] * -4 + "px"} * var(--mapZoom))) translateY(calc(${pos[0] * 4 + "px"} * var(--mapZoom))) rotate(${rot}rad)"><img src="../assets/marker-3.png" height="30px"></div>`)
-                        if (pos[0] != pos2[0] || pos[1] != pos2[1] && pos[2] != pos2[2]) {
-                            $('#map').append(`<div class="marker" id="set-${i}-${ii}" oncontextmenu="showContextMenu(event, 'em', [this]); return false" onclick="showContextMenu(event, 'em', [this])" style="filter: hue-rotate(${i*45}deg); transform: translateX(calc(${pos2[2] * -4 + "px"} * var(--mapZoom))) translateY(calc(${pos2[0] * 4 + "px"} * var(--mapZoom)))"><img src="../assets/marker-2b.png" height="30px"></div>`)
-                        }
-                        emListOutput += `<li id="set-${i}-${ii}" class="clickableLi" oncontextmenu="showContextMenu(event, 'em', [this]); return false" onclick="showContextMenu(event, 'em', [this])" style="filter: hue-rotate(${i*45}deg); color: #F25086">${setNo} <b>${name}</b></li>`
-                    } else if (true||id.startsWith("ba")) {
-                        $('#map').append(`<div class="marker" id="set-${i}-${ii}" oncontextmenu="showContextMenu(event, 'em', [this]); return false" onclick="showContextMenu(event, 'em', [this])" style="filter: hue-rotate(${i*45}deg); transform: translateX(calc(${pos[2] * -4 + "px"} * var(--mapZoom))) translateY(calc(${pos[0] * 4 + "px"} * var(--mapZoom))) rotate(${rot}rad)"><img src="../assets/marker-1b.png" height="30px"></div>`)
-                        if ((parseInt(id, 16) > 827391 && parseInt(id, 16) < 827396) || (parseInt(id, 16) > 827439 && parseInt(id, 16) < 827445)) {
-                            const typ = findItem(set[ii]['children'], 'Type')
-                            $(`div#set-${i}-${ii}`).css('--markerHeight', typ*4 + 'px')
-                        }
-                        if (pos[0] != pos2[0] || pos[1] != pos2[1] && pos[2] != pos2[2]) {
-                            $('#map').append(`<div class="marker" id="set-${i}-${ii}" oncontextmenu="showContextMenu(event, 'em', [this]); return false" onclick="showContextMenu(event, 'em', [this])" style="filter: hue-rotate(${i*45}deg); transform: translateX(calc(${pos2[2] * -4 + "px"} * var(--mapZoom))) translateY(calc(${pos2[0] * 4 + "px"} * var(--mapZoom)))"><img src="../assets/marker-2b.png" height="30px"></div>`)
-                        }
-                        emListOutput += `<li id="set-${i}-${ii}" class="clickableLi" oncontextmenu="showContextMenu(event, 'em', [this]); return false" onclick="showContextMenu(event, 'em', [this])" style="filter: hue-rotate(${i*45}deg); color: #F25086">${setNo} <b>${name}</b></li>`
-                    }
-                }
+            
+            for (var i = 0; i < rawEmSets.length; i++) {
+                const emSetObj = new EmSet(rawEmSets[i], i);
+                emListOutput += emSetObj.display();
+                emSets.push(emSetObj);
             }
+
             /*
             LOAD TASKS
             */
+           // WAAAY too lazy to convert to a better format at the moment; will do that soon.
             var questData = loadedFile['files']['QuestData.bxm']['extracted']
 
             var taskListOutput = "<ul class='taskeditor' id='taskList' style='list-style: none; padding: 5px;'>"
@@ -387,24 +391,11 @@ function startQuestLoad(file) {
             */
             var areaListOutput = "<ul id='areaList' style='list-style: none; padding: 5px;'>"
             for (var i = 0; i < questData['children'][5]['children'].length; i++) {
-                const areaGroup = questData['children'][5]['children'][i];
-                var rightnav = ""
-                if (areaGroup['attributes']['GroupDebugDisp'] == "1") {
-                    rightnav += `<span class="material-icons" onclick="updateAreaGroupAttribute(this, ${i}, 'GroupDebugDisp', '0')">visibility</span>`
-                } else {
-                    rightnav += `<span class="material-icons" onclick="updateAreaGroupAttribute(this, ${i}, 'GroupDebugDisp', '1')">visibility_off</span>`
-                }
-                areaListOutput += `<li class="li-header" id="areagroup-${i}">${areaGroup['attributes']['GroupIndex']} <b translate="yes">${areaGroup['attributes']['GroupName']}</b><span class="li-rightnav" title="Toggle if debug display is enabled">${rightnav}</span></li>`;
-                for (var ii = 0; ii < areaGroup['children'].length; ii++) {
-                    rightnav = ""
-                    if (findItem(areaGroup['children'][ii]['children'], 'DebugDisp') == "1") {
-                        rightnav += `<span class="material-icons" onclick="updateAreaAttribute(this, ${i}, ${ii}, 'DebugDisp', '0')">visibility</span>`
-                    } else {
-                        rightnav += `<span class="material-icons" onclick="updateAreaAttribute(this, ${i}, ${ii}, 'DebugDisp', '1')">visibility_off</span>`
-                    }
-                    areaListOutput += `<li class="clickableLi" onclick="showContextMenu(event, 'area', [${i}, ${ii}])" id="area-${i}-${ii}">${findItem(areaGroup['children'][ii]['children'], 'AreaIndex')} <b>Area</b><span class="li-rightnav" title="Toggle if debug display is enabled">${rightnav}</span></li>`;
-                }
+                const areaGroupObj = new AreaGroup(questData['children'][5]['children'][i], i);
+                areaListOutput += areaGroupObj.display();
+                areaGroups.push(areaGroupObj);
             }
+            loadReferences();
             /*
             LOAD TALKSCRIPTS
             */
@@ -439,29 +430,15 @@ function startQuestLoad(file) {
 
 function copyEmList(elem, copyType) {
     if (copyType == 'csv') {
-        var outcsv = `${loadedFile['fp'].name},${lookup(loadedFile['fp'].name)}`
-        const emSets = loadedFile['files']['EnemySet.bxm']['extracted']['children'][0]['children']
+        var emSetCSV = [`${loadedFile['fp'].name},${lookup(loadedFile['fp'].name)}`];
         for (var i = 0; i < emSets.length; i++) {
-            var set = emSets[i]['children'];
-            var setNo = emSets[i]['attributes']['number']
-            var emList = []
-            for (var ii = 0; ii < set.length; ii++) {
-                emList.push(questLookup(parseInt(findItem(set[ii]['children'], 'Id')).toString(16)));
-            }
-            outcsv += `\n${setNo},${emSets[i]['attributes']['name']},${emList.join(",")},`
+            emSetCSV.push(emSets[i].clipboardCopy('csv'))
         }
-        navigator.clipboard.writeText(outcsv)
+        navigator.clipboard.writeText(emSetCSV.join("\n"));
     } else {
-        var outjson = {"name": lookup(loadedFile['fp'].name), "enemySets": {}}
-        const emSets = loadedFile['files']['EnemySet.bxm']['extracted']['children'][0]['children']
+        var emSetJSON = {"name": lookup(loadedFile['fp'].name), "emSets": []}
         for (var i = 0; i < emSets.length; i++) {
-            var set = emSets[i]['children'];
-            var setNo = emSets[i]['attributes']['number']
-            var emList = []
-            outjson['enemySets'][emSets[i]['attributes']['name']] = {"setNo": setNo, "em": []}
-            for (var ii = 0; ii < set.length; ii++) {
-                outjson['enemySets'][emSets[i]['attributes']['name']]['em'].push(questLookup(parseInt(findItem(set[ii]['children'], 'Id')).toString(16)));
-            }
+            emSetJSON.emSets.push(emSets[i].clipboardCopy('json'))
         }
         navigator.clipboard.writeText(JSON.stringify(outjson))
     }
@@ -472,27 +449,48 @@ function copyEmList(elem, copyType) {
     setTimeout(function(){ $(elem).contents().get(0).nodeValue = text }, 1000);*/
 }
 
-function addEmSet(elem, emSetNo, emToCopy=-1) {
+function addEmObj(elem, emSetNo, emToCopy=-1) {
     // HUM-C-F5DB3-00 from EmSetNo 2 in q2103 (File 01 Fighting Back)
     if (emToCopy == -1) {
-        var emToAdd = JSON.parse(defaultEm);
-    } else if (typeof emToCopy == "number") {
-        // deepcopy
-        var emToAdd = JSON.parse(JSON.stringify(loadedFile['files']['EnemySet.bxm']['extracted']['children'][0]['children'][emSetNo]['children'][emToCopy]));
+        var emToAdd = new Em(JSON.parse(defaultEm), emSetNo);
     } else {
-        // object
-        var emToAdd = JSON.parse(emToCopy);
+        // object is em as JSON
+        var emToAdd = new Em(emToCopy, emSetNo);
     }
-    lastItem = loadedFile['files']['EnemySet.bxm']['extracted']['children'][0]['children'][emSetNo]['children'].length - 1
-    loadedFile['files']['EnemySet.bxm']['extracted']['children'][0]['children'][emSetNo]['children'].push(emToAdd)
-    $(`li#set-${emSetNo}-${lastItem}`).after(`<li id="set-${emSetNo}-${lastItem+1}" class="clickableLi" oncontextmenu="showContextMenu(event, 'em', [this]); return false" onclick="showContextMenu(event, 'em', [this])" style="filter: hue-rotate(${emSetNo*45}deg); color: #F25086">${emSetNo} <b>${questLookup(parseInt(findItem(emToAdd['children'], 'Id')).toString(16))}</b></li>`)
-    const pos = findItem(emToAdd['children'], 'Trans').split(" ").map(item => parseFloat(item));
-    const pos2 = findItem(emToAdd['children'], 'TransL').split(" ").map(item => parseFloat(item));
-    const rot = findItem(emToAdd['children'], 'Rotation')
-    $('#map').append(`<div class="marker" id="set-${emSetNo}-${lastItem+1}" oncontextmenu="showContextMenu(event, 'em', [this]); return false" onclick="showContextMenu(event, 'em', [this])" style="filter: hue-rotate(${emSetNo*45}deg); transform: translateX(calc(${pos[2] * -4 + "px"} * var(--mapZoom))) translateY(calc(${pos[0] * 4 + "px"} * var(--mapZoom))) rotate(${rot}rad)"><img src="../assets/marker-3.png" height="30px"></div>`)
-    if (pos[0] != pos2[0] || pos[1] != pos2[1] && pos[2] != pos2[2]) {
-        $('#map').append(`<div class="marker" id="set-${emSetNo}-${lastItem+1}" oncontextmenu="showContextMenu(event, 'em', [this]); return false" onclick="showContextMenu(event, 'em', [this])" style="filter: hue-rotate(${emSetNo*45}deg); transform: translateX(calc(${pos2[2] * -4 + "px"} * var(--mapZoom))) translateY(calc(${pos2[0] * 4 + "px"} * var(--mapZoom)))"><img src="../assets/marker-2b.png" height="30px"></div>`)
+    emSets[getIndexByEmSetNo(emSetNo)].addEm(emToAdd);
+}
+
+function addAreaObj(areaGroupNo, areaToCopy=-1) {
+    // HUM-C-F5DB3-00 from EmSetNo 2 in q2103 (File 01 Fighting Back)
+    if (typeof areaToCopy == "number") {
+        var areaToAdd = new Area(JSON.parse(defaultArea), areaGroupNo);
+    } else {
+        // object is em as JSON
+        var areaToAdd = new Area(areaToCopy, areaGroupNo);
     }
+    areaGroups[getIndexByAreaGroupNo(areaGroupNo)].addArea(areaToAdd);
+}
+
+function getIndexByEmSetNo(EmSetNo) {
+    EmSetNo = parseInt(EmSetNo);
+    for (var i = 0; i < emSets.length; i++) {
+        if (parseInt(emSets[i].EmSetNo) == EmSetNo) {
+            return i;
+        }
+    }
+    console.warn("Could not find EmSet when searching... EmSet " + EmSetNo);
+    return 0;
+}
+
+function getIndexByAreaGroupNo(AreaGroupNo) {
+    AreaGroupNo = parseInt(AreaGroupNo);
+    for (var i = 0; i < areaGroups.length; i++) {
+        if (parseInt(areaGroups[i].GroupIndex) == AreaGroupNo) {
+            return i;
+        }
+    }
+    console.warn("Could not find area when searching... Area group " + AreaGroupNo);
+    return 0;
 }
 
 function findItem(arr, name, returnIndex=false, multiple=false) {
@@ -514,25 +512,15 @@ function findItem(arr, name, returnIndex=false, multiple=false) {
 }
 
 function updateEmAttribute(name, elem) {
-    // find indexes of name (there might be more than one, e.g. Id)
-    var indexes = findItem(loadedFile['files']['EnemySet.bxm']['extracted']['children'][0]['children'][selectedItem['emSetNo']]['children'][selectedItem['SetNo']]['children'], name, true, true);
     var val = $(elem).val()
-    if (name == "Id" && editorSettings['useBasicEditor']) {
+    if (name == "Id") {
         // "em00a0" => "200a0"
         val = questUnlookup(val)
     }
-    for (var i = 0; i < indexes.length; i++) {
-        loadedFile['files']['EnemySet.bxm']['extracted']['children'][0]['children'][selectedItem['emSetNo']]['children'][selectedItem['SetNo']]['children'][indexes[i]]['value'] = val;
-    }
-    var selected = loadedFile['files']['EnemySet.bxm']['extracted']['children'][0]['children'][selectedItem['emSetNo']]['children'][selectedItem['SetNo']]['children']
-    $(`li#set-${selectedItem['emSetNo']}-${selectedItem['SetNo']}`).find('b').html(questLookup(findItem(selected, 'Id')));
-    // reset position and rotation of marker
-    if (['Trans', 'Rotation'].includes(name)) {
-        var pos = findItem(selected, 'Trans').split(" ")
-        var rot = findItem(selected, 'Rotation')
-        $(`div#set-${selectedItem['emSetNo']}-${selectedItem['SetNo']}`).css('transform', `translateX(calc(${pos[2] * -4 + "px"} * var(--mapZoom))) translateY(calc(${pos[0] * 4 + "px"} * var(--mapZoom))) rotate(${rot}rad)`)
-    }
-    showContextMenu(elem, [selectedItem['emSetNo'], selectedItem['SetNo']], true)
+    const em = currentSelection['obj'];
+    em['attributes'][name] = val;
+    $(`li#set-${em['position']}-${em.SetNo}`).replaceWith(em.display(em.SetNo));
+    showContextMenu(elem, "em", [em], true)
 }
 function updateTaskAttribute(elem, elemId, name, value) {
     var index = findItem(loadedFile['files']['QuestData.bxm']['extracted']['children'][1]['children'][elemId]['children'], name, true);
@@ -565,37 +553,40 @@ function updateAreaGroupAttribute(elem, elemId, name, value) {
     }
     $(elem).replaceWith(out + "</span>")
 }
-function updateAreaAttribute(elem, elemId, elemIdId, name, value) {
-    var index = findItem(loadedFile['files']['QuestData.bxm']['extracted']['children'][5]['children'][elemId]['children'][elemIdId]['children'], name, true);
-    loadedFile['files']['QuestData.bxm']['extracted']['children'][5]['children'][elemId]['children'][elemIdId]['children'][index]['value'] = value;
-    var out = `<span class="material-icons" onclick='updateAreaAttribute(this, ${elemId}, ${elemIdId}, "${name}", "${[1,0][parseInt(value)]}")'>`
-    if (name == "DebugDisp") {
-        if (value == "1") {
-            out += "visibility"
-        } else {
-            out += "visibility_off"
-        }
-    }
-    $(elem).replaceWith(out + "</span>")
+function updateAreaAttribute(name, elem, value=null) {
+    if (!value)
+        value = $(elem).val()
+    const area = currentSelection['obj'];
+    area['attributes'][name] = value;
+    $(`li#area-${area['position']}-${area.SetNo}`).replaceWith(area.display(area.SetNo));
+    showContextMenu(elem, "area", [area], true)
 }
-function showContextMenu(event, menuType, args, update=false) {
+async function showContextMenu(event, menuType, args, update=false) {
     if (!update) {
         event.preventDefault();
     }
     $('#rightClickMenuHeader').text("CONTEXT MENU");
+    $('#contextMenuBasic').show();
     if (menuType == "em") {
-        var [emSetNo, SetNo] = args[0].id.split("-").slice(1);
-        var em = loadedFile['files']['EnemySet.bxm']['extracted']['children'][0]['children'][parseInt(emSetNo)]['children'][parseInt(SetNo)]
-        var emid = parseInt(findItem(em['children'], 'Id')).toString(16)
+        if (editorSettings['activeTab'] != 'emsets') await sidebarDisplay('emsets');
+        if (args[0] instanceof Em) {
+            var em = args[0];
+            var position = em.position;
+            var SetNo = em.SetNo;
+        } else {
+            var [position, SetNo] = args[0].id.split("-").slice(1);
+            var em = emSets[position].ems[SetNo];
+        }
+        var emid = parseInt(em.attributes.Id).toString(16)
         if (event.pageX > 300) {
             // Don't scroll the sidebar if selecting from it
-            $('#sidebar-content').scrollTo(`li#set-${emSetNo}-${SetNo}`, 100, {"offset": {"top": -50}});
+            $('#sidebar-content').scrollTo(`li#set-${position}-${SetNo}`, 100, {"offset": {"top": -50}});
         }
-        selectedItem = {"emSetNo": parseInt(emSetNo), "SetNo": parseInt(SetNo), "em": em, "elem": this}
+        currentSelection = {"obj": em, "elem": this}
         $('.marker-selected').attr('class', 'marker');
-        $('#emList').find('.li-selected').attr('class', 'clickableLi');
-        $(`div#set-${selectedItem['emSetNo']}-${selectedItem['SetNo']}`).attr('class', 'marker-selected');
-        $(`li#set-${selectedItem['emSetNo']}-${selectedItem['SetNo']}`).attr('class', 'li-selected');
+        $('#sidebar-content').find('.li-selected').attr('class', 'clickableLi');
+        $(`div#set-${position}-${SetNo}`).attr('class', 'marker-selected');
+        $(`li#set-${position}-${SetNo}`).attr('class', 'li-selected');
         // Probably not the best idea to load the right click menu EVERY time, but didn't want to duplicate code
         //
         $('#rightClickMenu').find("ul").replaceWith(`<ul><li style="height: 100%"><select onchange="updateEmAttribute('Id', this)" style="width: 100%" class="emSearch" name="state"></select></li>
@@ -610,88 +601,127 @@ function showContextMenu(event, menuType, args, update=false) {
         $('#rightClickMenuHeader').text(questLookup(emid)); // Updated with select2
         $('.emSearch').append(selectCompiled);
         $('.emSearch').val(questLookup(emid, returnId=true)).select2()
+        const targetMenuPos = [Math.min(event.pageY, window.innerHeight-350), Math.max(event.pageX, 310)]
         if (event.which === 3) {
-            $('#rightClickMenu').css({"top": Math.min(event.pageY, window.innerHeight-350), "left": Math.max(event.pageX, 310)}).show(100);
+            $('#rightClickMenu').css({"top": targetMenuPos[0], "left": targetMenuPos[1]}).show(100);
         } else {
             // Advanced
             var cmattrs = "<table id='contextMenuAttrs'>"
-            for (var i = 0; i < em['children'].length; i++) {
-                cmattrs += `<tr><th class='tablekey'>${em['children'][i]['name']}</th><th class='tablevalue'><input onchange="updateEmAttribute('${em['children'][i]['name']}', this)" type="text" size="32" value="${em['children'][i]['value']}"></th></tr>`
+            for (const [key, value] of Object.entries(em.attributes)) {
+                cmattrs += `<tr><th class='tablekey'>${key}</th><th class='tablevalue'><input onchange="updateEmAttribute('${key}', this)" type="text" size="30" value="${value}"></th></tr>`
+            }
+            // References
+            var reflist = "<table id='contextMenuReferenceList'>"
+            for (const [key, value] of Object.entries(em.references)) {
+                let text = $(`li#tl-${key}`).find('b').text();
+                reflist += `<tr style="background-color: var(--dark-grey) !important" class="clickableLi" onclick="jumpToTask(${key})"><th class='tablekey'>${key} <b translate="yes">${text}</b></th></tr>`
+                for (var i = 0; i < value.length; i++) {
+                    reflist += `<tr><th>${value[i]}</th></tr>`
+                }
+            }
+            if (Object.keys(em.references).length == 0) {
+                reflist += `<tr style="line-height: 30px"><th>This Em isn't referenced in any Task.</th></tr>`
             }
             // Basic
-            //
             if (emid.startsWith("2")) {
-                $('#contextMenu').find('#contextMenuImg').attr('src', 'https://www.nintendo.co.jp/switch/ab48a/assets/images/legion/detail/item/01/chara.png').css('top', event.pageY-40)
+                $('#contextMenu').find('#contextMenuImg').attr('src', 'https://www.nintendo.co.jp/switch/ab48a/assets/images/legion/detail/item/01/chara.png')
+                    .css('top', targetMenuPos[0]-40)
                 $('#contextMenu').find('#contextMenuThumb').css('background-color', 'var(--secondary-color)')
             } else {
-                $('#contextMenu').find('#contextMenuImg').attr('src', 'https://www.nintendo.co.jp/switch/ab48a/assets/images/legion/detail/item/05/chara.png').css('top', event.pageY-40)
+                $('#contextMenu').find('#contextMenuImg').attr('src', 'https://www.nintendo.co.jp/switch/ab48a/assets/images/legion/detail/item/05/chara.png')
+                    .css('top', targetMenuPos[0]-40)
                 $('#contextMenu').find('#contextMenuThumb').css('background-color', 'var(--primary-color)')
             }
             $('#contextMenu').find('#contextMenuAttrs').replaceWith(cmattrs + "</table>")
-            if (editorSettings['useBasicEditor']) {
-                $('#contextMenuAttrs').hide()
+            $('#contextMenu').find('#contextMenuReferenceList').replaceWith(reflist + "</table>")
+            $('#contextMenuBasicAttrs').hide()
+            $('#contextMenuAttrs').hide()
+            $('#contextMenuReferenceList').hide()
+            if (editorSettings['contextMenuDisplayMode'] == "basic") {
                 $('#contextMenuBasicAttrs').show()
-            } else {
+                $("#contextMenuAdvanced").attr('class', 'inactive');
+            } else if (editorSettings['contextMenuDisplayMode'] == "advanced") {
                 $('#contextMenuAttrs').show()
-                $('#contextMenuBasicAttrs').hide()
+            } else {
+                $('#contextMenuReferenceList').show()
             }
-            $('#contextMenu').find('#contextMenuBody').css('max-height', window.innerHeight - (event.pageY + 120))
+            $('#contextMenu').find('#contextMenuBody').css('max-height', window.innerHeight - (targetMenuPos[0] + 120))
             $('#contextMenu').find('#emName').replaceWith(`<h1 id="emName">${questLookup(emid)} <span id='emSubtext'>${emid}</span></h1>`);
             if (!update) {
-                $('#contextMenu').css({"top": event.pageY, "left": Math.max(event.pageX, 310)}).show(100)
+                $('#contextMenu').css({"top": targetMenuPos[0], "left": targetMenuPos[1]}).show(100)
             }
         }
     } else if (menuType == "area") {
-        var [areaSetNo, SetNo] = args;
-        var area = loadedFile['files']['EnemySet.bxm']['extracted']['children'][5]['children'][areaSetNo]['children'][SetNo]
-        var emid = parseInt(findItem(area['children'], 'Id')).toString(16)
+        if (editorSettings['activeTab'] != 'areas') await sidebarDisplay('areas');
+        if (args[0] instanceof Area) {
+            var area = args[0];
+            var position = area.position;
+            var SetNo = area.SetNo;
+        } else {
+            var [position, SetNo] = args[0].id.split("-").slice(1);
+            var area = areaGroups[position].areas[SetNo];
+        }
         if (event.pageX > 300) {
             // Don't scroll the sidebar if selecting from it
-            $('#sidebar-content').scrollTo(`li#set-${areaSetNo}-${SetNo}`, 100, {"offset": {"top": -50}});
+            $('#sidebar-content').scrollTo(`li#area-${position}-${SetNo}`, 100, {"offset": {"top": -50}});
         }
-        selectedItem = {"areaSetNo": areaSetNo, "SetNo": SetNo, "em": area, "elem": this};
-        $('.area-selected').attr('class', 'area');
-        $('#emList').find('.li-selected').attr('class', 'clickableLi');
-        $(`div#set-${selectedItem['emSetNo']}-${selectedItem['SetNo']}`).attr('class', 'area-selected');
-        $(`li#set-${selectedItem['emSetNo']}-${selectedItem['SetNo']}`).attr('class', 'li-selected');
+        currentSelection = {"obj": area, "elem": this}
+        $('.marker-selected').attr('class', 'marker');
+        $('#sidebar-content').find('.li-selected').attr('class', 'clickableLi');
+        $(`svg#area-${position}-${SetNo}`).attr('class', 'marker-selected');
+        $(`li#area-${position}-${SetNo}`).attr('class', 'li-selected');
         // Probably not the best idea to load the right click menu EVERY time, but didn't want to duplicate code
         //
-        $('#rightClickMenu').find("ul").replaceWith(`<ul><li style="height: 100%"><select onchange="updateEmAttribute('Id', this)" style="width: 100%" class="emSearch" name="state"></select></li>
-        <li onclick="mutateMap('copy')"><span class="material-icons">content_copy</span> Copy [soon]</li>
-        <li onclick="mutateMap('move')"><span class="material-icons">zoom_out_map</span> Move [soon]</li>
+        $('#rightClickMenu').find("ul").replaceWith(`<ul>
+        <li onclick="mutateMap('copy')"><span class="material-icons">control_point_duplicate</span> Duplicate</li>
+        <p id="rightClickMenuHeader" style="font-family: 'Work Sans', Roboto, sans-serif; padding-bottom: 0px;">AREA CLIPBOARD</p>
+        <li onclick="mutateMap('clipboard-copy')"><span class="material-icons">content_copy</span> Copy</li>
+        <li onclick="mutateMap('clipboard-cut')"><span class="material-icons">content_cut</span> Cut</li>
+        <li onclick="mutateMap('clipboard-paste')"><span class="material-icons">content_paste</span> Paste</li>
+        <p style="height: 0"></p>
         <li onclick="mutateMap('delete')" class="warningBtn"><span class="material-icons">delete</span> Delete</li></ul>`)
-        $('#rightClickMenuHeader').text("AREA"); // Updated with select2
-        $('.emSearch').append(selectCompiled);
-        $('.emSearch').val(questLookup(emid, returnId=true)).select2()
+        $('#rightClickMenuHeader').text(`Area ${area.AreaGroupNo} Index ${area.attributes.AreaIndex}`); // Updated with select2
+        
+        const targetMenuPos = [Math.min(event.pageY, window.innerHeight-350), Math.max(event.pageX, 310)]
         if (event.which === 3) {
-            $('#rightClickMenu').css({"top": event.pageY, "left": Math.max(event.pageX, 310)}).show(100);
+            $('#rightClickMenu').css({"top": targetMenuPos[0], "left": targetMenuPos[1]}).show(100);
         } else {
             // Advanced
             var cmattrs = "<table id='contextMenuAttrs'>"
-            for (var i = 0; i < em['children'].length; i++) {
-                cmattrs += `<tr><th class='tablekey'>${em['children'][i]['name']}</th><th class='tablevalue'><input onchange="updateEmAttribute('${em['children'][i]['name']}', this)" type="text" size="32" value="${em['children'][i]['value']}"></th></tr>`
+            for (const [key, value] of Object.entries(area.attributes)) {
+                cmattrs += `<tr><th class='tablekey'>${key}</th><th class='tablevalue'><input onchange="updateAreaAttribute('${key}', this)" type="text" size="30" value="${value}"></th></tr>`
+            }
+            var reflist = "<table id='contextMenuReferenceList'>"
+            for (const [key, value] of Object.entries(area.references)) {
+                let text = $(`li#tl-${key}`).find('b').text();
+                reflist += `<tr style="background-color: var(--dark-grey) !important" class="clickableLi" onclick="jumpToTask(${key})"><th class='tablekey'>${key} <b translate="no">${text}</b></th></tr>`
+                for (var i = 0; i < value.length; i++) {
+                    reflist += `<tr><th>${value[i]}</th></tr>`
+                }
+            }
+            if (Object.keys(area.references).length == 0) {
+                reflist += `<tr style="line-height: 30px"><th>This Area isn't referenced in any Task.</th></tr>`
             }
             // Basic
-            //
-            if (emid.startsWith("2")) {
-                $('#contextMenu').find('#contextMenuImg').attr('src', 'https://www.nintendo.co.jp/switch/ab48a/assets/images/legion/detail/item/01/chara.png').css('top', event.pageY-40)
-                $('#contextMenu').find('#contextMenuThumb').css('background-color', 'var(--secondary-color)')
-            } else {
-                $('#contextMenu').find('#contextMenuImg').attr('src', 'https://www.nintendo.co.jp/switch/ab48a/assets/images/legion/detail/item/05/chara.png').css('top', event.pageY-40)
-                $('#contextMenu').find('#contextMenuThumb').css('background-color', 'var(--primary-color)')
-            }
+            $('#contextMenu').find('#contextMenuImg').attr('src', 'https://www.nintendo.co.jp/switch/ab48a/assets/images/legion/detail/item/03/chara.png')
+                .css('top', targetMenuPos[0]-80)
+            $('#contextMenu').find('#contextMenuThumb').css('background-color', 'var(--secondary-color)')
             $('#contextMenu').find('#contextMenuAttrs').replaceWith(cmattrs + "</table>")
-            if (editorSettings['useBasicEditor']) {
-                $('#contextMenuAttrs').hide()
-                $('#contextMenuBasicAttrs').show()
-            } else {
+            $('#contextMenu').find('#contextMenuReferenceList').replaceWith(reflist + "</table>")
+            $('#contextMenuBasicAttrs').hide()
+            $('#contextMenuBasic').hide();
+            $('#contextMenuAttrs').hide()
+            $('#contextMenuReferenceList').hide()
+            if (editorSettings['contextMenuDisplayMode'] == "advanced" || editorSettings['contextMenuDisplayMode'] == "basic") {
                 $('#contextMenuAttrs').show()
-                $('#contextMenuBasicAttrs').hide()
+                $("#contextMenuAdvanced").attr('class', 'active');
+            } else {
+                $('#contextMenuReferenceList').show()
             }
-            $('#contextMenu').find('#contextMenuBody').css('max-height', window.innerHeight - (event.pageY + 120))
-            $('#contextMenu').find('#emName').replaceWith(`<h1 id="emName">${questLookup(emid)} <span id='emSubtext'>${emid}</span></h1>`);
+            $('#contextMenu').find('#contextMenuBody').css('max-height', window.innerHeight - (targetMenuPos[0] + 120))
+            $('#contextMenu').find('#emName').replaceWith(`<h1 id="emName">${(parseInt(area.attributes.AreaType) == 1) ? "Zone-defined" : "Point-defined"} Area <span id='emSubtext'>TYPE ${area.attributes.AreaType}</span></h1>`);
             if (!update) {
-                $('#contextMenu').css({"top": event.pageY, "left": Math.max(event.pageX, 310)}).show(100)
+                $('#contextMenu').css({"top": targetMenuPos[0], "left": targetMenuPos[1]}).show(100)
             }
         }
     } else if (menuType == "dat") {
@@ -711,84 +741,118 @@ const showhide = {
     "areas": ['inactive', 'none', 'inactive', 'none', 'active', 'block', 'inactive', 'none']
 }
 
-function sidebarDisplay(mode) {
-    let tabDisplay = showhide[mode];
-    $('#sidebar-contentHeader-emSets').attr('class', tabDisplay[0]);
-    if (tabDisplay[1] == "block") {
-        $('#emList').slideDown(100, function() {$('#emList').css('display', tabDisplay[1])});
-    } else if ($('#emList').css('display') != "none") {
-        $('#emList').slideUp(100, function() {$('#emList').css('display', tabDisplay[1])});
-    }
-    $('#sidebar-contentHeader-tasks').attr('class', tabDisplay[2]);
-    if (tabDisplay[3] == "block") {
-        $('.taskeditor').slideDown(100, function() {$('.taskeditor').css('display', tabDisplay[3])});
-    } else if ($('.taskeditor').css('display') != "none") {
-        $('.taskeditor').slideUp(100, function() {$('.taskeditor').css('display', tabDisplay[3])});
-    }
-    $('#sidebar-contentHeader-areas').attr('class', tabDisplay[4]);
-    if (tabDisplay[5] == "block") {
-        $('#areaList').slideDown(100, function() {$('#areaList').css('display', tabDisplay[5])});
-    } else if ($('#areaList').css('display') != "none") {
-        $('#areaList').slideUp(100, function() {$('#areaList').css('display', tabDisplay[5])});
-    }
-    $('#sidebar-contentHeader-talkScripts').attr('class', tabDisplay[6]);
-    if (tabDisplay[7] == "block") {
-        $('#talkScriptList').slideDown(100, function() {$('#talkScriptList').css('display', tabDisplay[7])});
-    } else if ($('#talkScriptList').css('display') != "none") {
-        $('#talkScriptList').slideUp(100, function() {$('#talkScriptList').css('display', tabDisplay[7])});
-    }
-    editorSettings['activeTab'] = mode;
+async function jumpToTask(taskNo) {
+    await sidebarDisplay('tasks');
+    renderTaskList(taskNo);
 }
 
-function contextMenuDisplay(difficulty) {
-    if (difficulty == "basic") {
+function sidebarDisplay(mode) {
+    return new Promise((resolve, reject) => {
+        let tabDisplay = showhide[mode];
+        $('#sidebar-contentHeader-emSets').attr('class', tabDisplay[0]);
+        if (tabDisplay[1] == "block") {
+            $('#emList').slideDown(100, function() {$('#emList').css('display', tabDisplay[1]); resolve()});
+        } else if ($('#emList').css('display') != "none") {
+            $('#emList').slideUp(100, function() {$('#emList').css('display', tabDisplay[1]); resolve()});
+        }
+        $('#sidebar-contentHeader-tasks').attr('class', tabDisplay[2]);
+        if (tabDisplay[3] == "block") {
+            $('.taskeditor').slideDown(100, function() {$('.taskeditor').css('display', tabDisplay[3]); resolve()});
+        } else if ($('.taskeditor').css('display') != "none") {
+            $('.taskeditor').slideUp(100, function() {$('.taskeditor').css('display', tabDisplay[3]); resolve()});
+        }
+        $('#sidebar-contentHeader-areas').attr('class', tabDisplay[4]);
+        if (tabDisplay[5] == "block") {
+            $('#areaList').slideDown(100, function() {$('#areaList').css('display', tabDisplay[5]); resolve()});
+        } else if ($('#areaList').css('display') != "none") {
+            $('#areaList').slideUp(100, function() {$('#areaList').css('display', tabDisplay[5]); resolve()});
+        }
+        $('#sidebar-contentHeader-talkScripts').attr('class', tabDisplay[6]);
+        if (tabDisplay[7] == "block") {
+            $('#talkScriptList').slideDown(100, function() {$('#talkScriptList').css('display', tabDisplay[7]); resolve()});
+        } else if ($('#talkScriptList').css('display') != "none") {
+            $('#talkScriptList').slideUp(100, function() {$('#talkScriptList').css('display', tabDisplay[7]); resolve()});
+        }
+        editorSettings['activeTab'] = mode;
+    })
+}
+
+// Changes the display mode of the contextMenu (ems only). Not very clean, but it does the job.
+function contextMenuDisplay(displayMode) {
+    if (displayMode == "basic") {
         $('#contextMenuBasicAttrs').show(100, function() {$('#contextMenuBasicAttrs').css('display', 'block')});
-        $('#contextMenuAttrs').hide(100, function() {$('#contextMenuAttrs').css('display', 'none')});
         $('#contextMenuBasic').attr('class', 'active');
+        $('#contextMenuAttrs').hide(100, function() {$('#contextMenuAttrs').css('display', 'none')});
         $('#contextMenuAdvanced').attr('class', 'inactive');
-        editorSettings['useBasicEditor'] = true;
-    } else {
-        $('#contextMenuBasicAttrs').hide(100, function() {$('#contextMenuBasicAttrs').css('display', 'none')});
+        $('#contextMenuReferenceList').hide(100, function() {$('#contextMenuReferenceList').css('display', 'none')});
+        $('#contextMenuReferences').attr('class', 'inactive');
+        editorSettings['contextMenuDisplayMode'] = "basic";
+        return;
+    }
+    $('#contextMenuBasicAttrs').hide(100, function() {$('#contextMenuBasicAttrs').css('display', 'none')});
+    $('#contextMenuBasic').attr('class', 'inactive')
+
+    if (displayMode == "advanced") {
         $('#contextMenuAttrs').show(100, function() {$('#contextMenuAttrs').css('display', 'block')});
-        $('#contextMenuBasic').attr('class', 'inactive')
-        $('#contextMenuAdvanced').attr('class', 'active')
-        editorSettings['useBasicEditor'] = false;
+        $('#contextMenuAdvanced').attr('class', 'active');
+        $('#contextMenuReferenceList').hide(100, function() {$('#contextMenuReferenceList').css('display', 'none')});
+        $('#contextMenuReferences').attr('class', 'inactive');
+        editorSettings['contextMenuDisplayMode'] = "advanced";
+        return;
+    }
+    $('#contextMenuAttrs').hide(100, function() {$('#contextMenuAttrs').css('display', 'none')});
+    $('#contextMenuAdvanced').attr('class', 'inactive');
+
+    if (displayMode == "references") {
+        $('#contextMenuReferenceList').show(100, function() {$('#contextMenuReferences').css('display', 'block')});
+        $('#contextMenuReferences').attr('class', 'active')
+        editorSettings['contextMenuDisplayMode'] = "references";
+        return;
     }
 }
 
 function mutateMap(operation, args="") {
-    if (operation == "delete") {
-        totalChildren = loadedFile['files']['EnemySet.bxm']['extracted']['children'][0]['children'][selectedItem['emSetNo']]['children'].length;
-        loadedFile['files']['EnemySet.bxm']['extracted']['children'][0]['children'][selectedItem['emSetNo']]['children'].splice(selectedItem['SetNo'], 1);
-        $(`div#set-${selectedItem['emSetNo']}-${selectedItem['SetNo']}`).remove()
-        $(`li#set-${selectedItem['emSetNo']}-${selectedItem['SetNo']}`).remove()
-        // move all the other elements forward
-        for (var i = selectedItem['SetNo']; i < totalChildren; i++) {
-            $(`div#set-${selectedItem['emSetNo']}-${i}`).attr('id', `set-${selectedItem['emSetNo']}-${i-1}`);
-            $(`li#set-${selectedItem['emSetNo']}-${i}`).attr('id', `set-${selectedItem['emSetNo']}-${i-1}`);
+    if (currentSelection['obj'] instanceof Em) {
+        if (operation == "delete") {
+            emSets[currentSelection['obj'].position].removeEm(currentSelection['obj'].SetNo)
+        } else if (operation == "copy") {
+            addEmObj(currentSelection['elem'], currentSelection['obj'].EmSetNo, currentSelection['obj'].export());
+        } else if (operation == "clipboard-copy" || operation == "clipboard-cut") {
+            localClipboard = currentSelection['obj'].export();
+            if (operation == "clipboard-cut") mutateMap("delete", "");
+        } else if (operation == "clipboard-paste") {
+            addEmObj(currentSelection['elem'], currentSelection['obj'].EmSetNo, localClipboard);
         }
-    } else if (operation == "copy") {
-        addEmSet(selectedItem['elem'], selectedItem['emSetNo'], parseInt(selectedItem['SetNo']));
-    } else if (operation == "clipboard-copy" || operation == "clipboard-cut") {
-        localClipboard = JSON.stringify(selectedItem['em'])
-        if (operation == "clipboard-cut") mutateMap("delete", "");
-    } else if (operation == "clipboard-paste") {
-        addEmSet(selectedItem['elem'], selectedItem['emSetNo'], localClipboard);
+    } else {
+        if (operation == "delete") {
+            areaGroups[currentSelection['obj'].position].removeArea(currentSelection['obj'].SetNo)
+        } else if (operation == "copy") {
+            addAreaObj(currentSelection['obj'].AreaGroupNo, currentSelection['obj'].export());
+        } else if (operation == "clipboard-copy" || operation == "clipboard-cut") {
+            localClipboard = currentSelection['obj'].export();
+            if (operation == "clipboard-cut") mutateMap("delete", "");
+        } else if (operation == "clipboard-paste") {
+            addAreaObj(currentSelection['obj'].AreaGroupNo, localClipboard);
+        }
     }
+    
     $("#rightClickMenu").hide(100);
 }
 
 $(document).bind("mousedown", function (e) {
     // If clicked outside the active menu, hide it
-    if (!$(e.target).parents("#contextMenu").length > 0) {
-        $("#contextMenu").hide(100);
-    }
-    if (!$(e.target).parents("#rightClickMenu").length > 0) {
-        $("#rightClickMenu").hide(100);
-    }
-    if (!$(e.target).parents("#contextMenu").length > 0 && !$(e.target).parents("#rightClickMenu").length > 0) {
-        $('.marker-selected').attr('class', 'marker');
-        $('#emList').find('.li-selected').attr('class', 'clickableLi');
+    if (editorSettings['activeTab'] != "tasks") {
+        if (!$(e.target).parents("#contextMenu").length > 0) {
+            $("#contextMenu").hide(100);
+        }
+        if (!$(e.target).parents("#rightClickMenu").length > 0) {
+            $("#rightClickMenu").hide(100);
+        }
+        if (!$(e.target).parents("#contextMenu").length > 0 && !$(e.target).parents("#rightClickMenu").length > 0) {
+            $('.marker-selected').attr('class', 'marker');
+            // make sure there the task list selection isn't hidden
+            $('.li-selected').not('[id^="tl-"]').attr('class', 'clickableLi');
+        }
     }
 });
 
@@ -821,8 +885,8 @@ function updateMouseTracker(e) {
     var zoom = parseFloat(getComputedStyle(document.body).getPropertyValue('--mapZoom'))
     var offset = $(mapPos.elem).offset()
     if (!offset) { return }
-    $('#posz').text(Math.round((e.pageX - parseInt(offset['left'])) / (-4 / zoom)))
-    $('#posx').text(Math.round((e.pageY - parseInt(offset['top'])) / (4 / zoom)))
+    $('#posz').text(Math.round((e.pageX - parseInt(offset['left'])) / (-4 * zoom)))
+    $('#posx').text(Math.round((e.pageY - parseInt(offset['top'])) / (4 * zoom)))
 }
 var selectableLookups = [em, pl, ba, bg];
 var selectCompiled = ""

@@ -165,14 +165,14 @@ function ifCommand(alt="IFCommand") {
         ]
     }
 }
-function trueFalse(name, statement1="true", statement2="false", def=true) {
+function trueFalse(name, trueStatement="true", falseStatement="false", def=true) {
     if (def) {
         return {
             "type": "field_dropdown",
             "name": name,
             "options": [
-                [statement1, "1"],
-                [statement2, "0"]
+                [trueStatement, "1"],
+                [falseStatement, "0"]
             ]
         }
     }
@@ -180,8 +180,8 @@ function trueFalse(name, statement1="true", statement2="false", def=true) {
         "type": "field_dropdown",
         "name": name,
         "options": [
-            [statement2, "0"],
-            [statement1, "1"]
+            [falseStatement, "0"],
+            [trueStatement, "1"]
         ]
     }
 }
@@ -377,7 +377,6 @@ Blockly.defineBlocksWithJsonArray([
         {
             "type": "field_number",
             "name": "IFHasItemValue",
-            "text": "000000",
             "value": 0,
             "min": 0
         },
@@ -388,7 +387,35 @@ Blockly.defineBlocksWithJsonArray([
         },
         ]
     ),
-    
+    ifDefine("if-15", "If Em %1 of EmSet %2 %3 in AreaGroup %4 Index %5 (isGroup %6)", [
+        {
+            "type": "field_number",
+            "name": "IfEmSetNo",
+            "value": 0,
+            "min": 0
+        },
+        {
+            "type": "field_number",
+            "name": "IfEmGroupNo",
+            "value": 0,
+            "min": 0
+        },
+        trueFalse("IfCheck", "is", "is not"),
+        {
+            "type": "field_number",
+            "name": "IfAreaGroup",
+            "value": 0,
+            "min": 0
+        },
+        {
+            "type": "field_number",
+            "name": "IfAreaIndex",
+            "value": 0,
+            "min": 0
+        },
+        trueFalse("IfIsGroup")
+        ]
+    ),
     ifDefine("if-16", "If SetNo %1 of GroupNo %2 %3 %4 (isGroup %5)", [
         {
             "type": "field_number",
@@ -423,7 +450,10 @@ Blockly.defineBlocksWithJsonArray([
     ifDefine("if-22", "If dialogue box %1", [
         trueFalse("IFbCheck", "closed", "open")]
     ),
-    
+
+    ifDefine("if-26", "If Player is %1 an Astral Plane arena", [
+        trueFalse("IFIsCombatBarrier", "inside", "outside")]
+    ),
     ifDefine("if-27", "If fade transition is %1 (type %2)", [
         trueFalse("IFbCheck", "finished", "unfinished"),
         {
@@ -449,12 +479,24 @@ Blockly.defineBlocksWithJsonArray([
         trueFalse("IFbCheck")]
     ),
     
-    ifDefine("if-30", "If %1", [
-        trueFalse("IFbCheck")]
+    ifDefine("if-30", "If playing event is %1", [
+        trueFalse("IFbCheck", "over", "not over")]
+    ),
+    ifDefine("if-31", "If Player %1 red word %2", [
+        trueFalse("IFbCheck", "has", "does not have"),
+        {
+            "type": "field_input",
+            "name": "IFId",
+            "text": "000"
+        },
+    ]
     ),
 
     ifDefine("if-33", "If %1", [
         trueFalse("IFbCheck")]
+    ),
+    ifDefine("if-35", "If Player is %1", [
+        trueFalse("IFbCheck", "stopped", "moving")]
     ),
     ifDefine("if-36", "If %1", [
         trueFalse("IFbCheck")]
@@ -486,7 +528,7 @@ Blockly.defineBlocksWithJsonArray([
 // EXEC
 Blockly.defineBlocksWithJsonArray([
     //execDefine("exec-1", "Execute next task fasfa", []),
-    execDefine("exec-2", "%2 %1", [
+    (() => {var def = execDefine("exec-2", "%2 %1", [
         {
             "type": "field_number",
             "name": "EXECLine",
@@ -494,7 +536,7 @@ Blockly.defineBlocksWithJsonArray([
             "min": 0
         },
         trueFalse("EXECIsNextLine", "Execute next LineList in sequence", "Execute LineList #")
-    ]),
+    ]); def['nextStatement'] = undefined; return def })(),
     execDefine("exec-3", "%2 %1", [
         {
             "type": "field_number",
@@ -870,17 +912,25 @@ Blockly.defineBlocksWithJsonArray([
         trueFalse("ExistSpeaker", "Speaker exists", "Speaker does not exist")
     ]),
 
-    execDefine("exec-35", "UNKNOWN [Index %1, bOn %2]", [
+    execDefine("exec-35", "%1 Player from Index %2", [
+        trueFalse("bOn", "Disallow", "Allow"),
         {
             "type": "field_number",
             "name": "Index",
             "value": 0
-        },
-        {
-            "type": "field_number",
-            "name": "bOn",
-            "value": 0
         }
+        /*{
+            "type": "field_dropdown",
+            "name": "Index",
+            "options": [
+                ["Movement", "0"],
+                ["Legion", "10"],
+                ["Items", "12"],
+                ["Drab Civvies", "3"],
+                ["ARI Medical Gear", "4"],
+                ["Reset", "5"]
+            ]
+        }*/
     ]),
     execDefine("exec-36", "Set SetNo %1 of GroupNo %2's position to (%3, %4, %5, %6deg)", [
         {
@@ -918,7 +968,7 @@ Blockly.defineBlocksWithJsonArray([
     ]),
     (() => {var def = execDefine("exec-37", "Return", []); def['nextStatement'] = undefined; return def })(),
 
-    execDefine("exec-39", "Load Astral Plane arena of Quest %1 | To pos (%2, %3, %4, %5deg), type %6, layout pattern %7, ObjGroupNo %8, %9, %10 [NOTICE: Hash %11, NoticeNo %12, type %13] [IN: NoticeNo %14, type %15]", [
+    execDefine("exec-39", "Load Astral Plane arena of Quest %1 at (%2, %3, %4, %5deg) | type %6, layout pattern %7, Astral Plane Gate EmSet %8, %9, %10 [NOTICE: Hash %11, NoticeNo %12, type %13] [IN: NoticeNo %14, type %15]", [
         {
             "type": "field_input",
             "name": "QuestId",
@@ -1107,12 +1157,17 @@ Blockly.defineBlocksWithJsonArray([
             "value": 0
         }
     ]),
-    execDefine("exec-54", "UNKNOWN - %1 the player's ability to %2", [
-        trueFalse('bLock', 'lock', 'unlock'),
+    execDefine("exec-54", "%1 player's weapon to %2", [
+        trueFalse('bLock', 'Lock', 'Unlock'),
         {
-            "type": "field_number",
+            "type": "field_dropdown",
             "name": "Type",
-            "value": 0
+            "options": [
+                ["Default", "0"],
+                ["Baton Mode", "1"],
+                ["Gladius Mode", "2"],
+                ["Blaster Mode", "3"]
+            ]
         }
     ]),
     execDefine("exec-55", "UNKNOWN", []),
@@ -1127,8 +1182,7 @@ Blockly.defineBlocksWithJsonArray([
                 ["Lappy Costume", "1"],
                 ["Raven Armor", "2"],
                 ["Drab Civvies", "3"],
-                ["ARI Medical Gear", "4"],
-                ["Reset", "5"]
+                ["ARI Medical Gear", "4"]
             ]
         }
     ]),
@@ -1236,10 +1290,11 @@ function renderTaskList(taskListNo, saveExisting=true) {
     var xml = '<xml>'
     
     for (var x = 0; x < taskList.LineListTree.length; x++) {
-        //taskListOutput += `<tr><th>${x}</th><th>-------------</th></tr>`
+        // TaskList
         xml += `<block type="task-start" inline="false" y="${x*200}"><field name="taskno">${x}</field>`
         var nested = []
         for (var y = 0; y < taskList.LineListTree[x].length; y++) {
+            // Individual Command
             if (!xml.endsWith('<statement name="execarea">')) {
                 xml += "<next>"
                 nested.push('next')
@@ -1249,6 +1304,7 @@ function renderTaskList(taskListNo, saveExisting=true) {
             A NON-ZERO IF MUST ALSO HAVE AN ACCOMPANYING EXEC 1.
             */
             if (Object.keys(blockIds).includes("if-" + taskList.LineListTree[x][y].typeIF)) {
+                // Known IF
                 xml += `<block type="if-${taskList.LineListTree[x][y].typeIF}">`
                 for (const [key, value] of Object.entries(taskList.LineListTree[x][y])) {
                     if (['typeIF', 'typeEXEC'].includes(key) || key.substr(0,4).toLowerCase() == 'exec') { continue };
@@ -1261,10 +1317,12 @@ function renderTaskList(taskListNo, saveExisting=true) {
                 xml += '<statement name="execarea">'
                 nested.push('block', 'statement')
             } else if (parseInt(taskList.LineListTree[x][y].typeIF)) {
+                // Unknown IF
                 console.log(taskList.LineListTree[x][y])
                 xml += `<block type="unknown-if"><field name="typeIF">${taskList.LineListTree[x][y].typeIF}</field><statement name="execarea">`
                 nested.push('block', 'statement')
             }
+
             if (Object.keys(blockIds).includes("exec-" + taskList.LineListTree[x][y].typeEXEC)) {
                 xml += `<block type="exec-${taskList.LineListTree[x][y].typeEXEC}">`
                 for (const [key, value] of Object.entries(taskList.LineListTree[x][y])) {
@@ -1291,7 +1349,73 @@ function renderTaskList(taskListNo, saveExisting=true) {
     workspace.trashcan.emptyContents()
     workspaceCache = Blockly.Xml.workspaceToDom(Blockly.getMainWorkspace()).outerHTML;
     $('#taskList').find('.li-selected').attr('class', 'clickableLi');
-    $('#taskList').find("li#tl-" + taskListNo).attr('class', 'li-selected');
+    $("li#tl-" + taskListNo).attr('class', 'li-selected');
+    $('#sidebar-content').scrollTo('li#tl-' + taskListNo, 50, {"offset": {"top": -20}});
+}
+
+function loadReferences() {
+    // remove all references
+    emSets.forEach(function(objset) {objset.ems.forEach(function(em) {
+        em.references = {};
+    })})
+    areaGroups.forEach(function(objset) {objset.areas.forEach(function(area) {
+        area.references = {};
+    })})
+    function addToReferences(type, name, taskNo, groupNo, setNo=-1) {
+        try {
+            if (type == "em") {
+                // EM
+                if (setNo == -1) {
+                    emSets[getIndexByEmSetNo(groupNo)]['ems'].forEach((elem) => {
+                        elem.references[taskNo] ? elem.references[taskNo].push(name) : elem.references[taskNo] = [name]
+                    });
+                } else {
+                    emSets[getIndexByEmSetNo(groupNo)]['ems'][parseInt(setNo)]['references'][i] ? emSets[getIndexByEmSetNo(groupNo)]['ems'][parseInt(setNo)]['references'][i].push(name) : emSets[getIndexByEmSetNo(groupNo)]['ems'][parseInt(setNo)]['references'][i] = [name];
+                }
+            } else {
+                // AREA
+                if (setNo == -1) {
+                    areaGroups[getIndexByAreaGroupNo(groupNo)]['areas'].forEach((elem) => {
+                        elem.references[taskNo] ? elem.references[taskNo].push(name) : elem.references[taskNo] = [name]
+                    });
+                } else {
+                    areaGroups[getIndexByAreaGroupNo(groupNo)]['areas'][parseInt(setNo)]['references'][i] ? areaGroups[getIndexByAreaGroupNo(groupNo)]['areas'][parseInt(setNo)]['references'][i].push(name) : areaGroups[getIndexByAreaGroupNo(groupNo)]['areas'][parseInt(setNo)]['references'][i] = [name];
+                }
+            }
+        } catch (error) {
+            console.error(error)
+        }
+    }
+    for (var i = 0; i < loadedFile['files']['QuestData.bxm']['extracted']['children'][1]['children'].length; i++) {
+        const taskList = new questDataTaskList(loadedFile['files']['QuestData.bxm']['extracted']['children'][1]['children'][i]);
+        for (var x = 0; x < taskList.LineListTree.length; x++) {
+            for (var y = 0; y < taskList.LineListTree[x].length; y++) {
+                const command = taskList.LineListTree[x][y];
+                switch(command.typeIF) {
+                    case 1:
+                        addToReferences("area", x + " Checked if player inside", i, command.IFGroupNo, command.IFIndexNo);
+                        break;
+                    case 2:
+                        // ternary statement not that reliable; need to check IFCommand too
+                        addToReferences("em", (parseInt(command.IFValue) == 0) ? x + " Checked if EmSet defeated" : x + " Checked # of Ems in EmSet", i, command.IFGroupNo);
+                        break;
+                }
+                switch(command.typeEXEC) {
+                    case 5:
+                    case 22:
+                        addToReferences("em", x + " EmSet loaded", i, command.EXECGroupNo);
+                        break;
+                    case 6:
+                        addToReferences("em", x + " EmSet unloaded", i, command.EXECGroupNo);
+                        break;
+                    case 39:
+                        // load astral plane area has a emSet part
+                        addToReferences("em", x + " EmSet loaded on entering Astral Plane arena", i, command.ObjGroupNo);
+                        break;
+                }
+            }
+        }
+    }
 }
 
 

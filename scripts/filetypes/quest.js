@@ -511,6 +511,7 @@ function questLookup(id, returnId=false) {
       }
       return lookup("em" + id.substr(1, 4));
     case "c":
+    case "e":
       if (returnId) {
         return "bg" + id.substr(1, 4);
       }

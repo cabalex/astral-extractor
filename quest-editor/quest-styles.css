@@ -65,7 +65,7 @@
 .marker, .marker-selected {
     position: absolute;
     user-select: none;
-    z-index: 1;
+    z-index: 2;
     margin-left: -15px;
     margin-top: -15px;
     left: 0;
@@ -73,6 +73,12 @@
     text-align: center;
     filter: opacity(0.5);
     cursor: pointer;
+}
+svg.marker, svg.marker-selected {
+    z-index: 1;
+    pointer-events: none;
+    cursor: default;
+    margin: 0;
 }
 .marker::after, .marker-selected::after {
     content: "";
@@ -87,6 +93,17 @@
     background-color: red;
     border-radius: 0.25em;
     z-index: 3;
+}
+svg.marker-selected {
+    background-color: transparent;
+    z-index: 3;
+    stroke-width: 10px;
+    cursor: default;
+    stroke: blue;
+}
+.marker polygon, .marker-selected polygon {
+    cursor: pointer;
+    pointer-events: painted;
 }
 input[type=text] {
     border-radius: 0.25em;
@@ -167,6 +184,9 @@ h1 {
     position: relative;
     display: grid;
     justify-content: space-around;
+}
+#contextMenuSelector {
+    display: flex;
 }
 #sidebar-contentHeader {
     background-color: var(--dark-grey);

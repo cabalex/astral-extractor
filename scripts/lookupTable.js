@@ -400,9 +400,9 @@ const em = {
     "em0031": "HUM-C-F5DB3-00",
     "em0032": "HUM-C-F5DB3-00",
     "em0033": "HUM-C-F5DB3-00",
-    "em0040": "HUM-C-5D0C8-00 (Astraeus-Capaneus)",
-    "em0041": "HUM-C-5D0C8-00 (Astraeus-Capaneus)",
-    "em0042": "HUM-C-5D0C8-00 (Astraeus-Capaneus)",
+    "em0040": "HUM-C-6F3CD-00 (Astraeus)",
+    "em0041": "HUM-C-5D0C8-00 (unused)",
+    "em0042": "HUM-C-B8FE7-00 (Capaneus)",
     "em0043": "HUM-C-5D0C8-00 (Astraeus-Capaneus)",
     "em0050": "HUM-C-C460F-00 (Eris)",
     "em0051": "HUM-C-C460F-00 (Eris)",
@@ -1143,12 +1143,24 @@ const items = {
 
 const ba = {
     "ba002f": "Red Matter",
-    "bab040": "Supply Crate"
+    "ba0029": "Astral Plane Gate",
+    "baa003": "Shooting Target",
+    "bab040": "Supply Crate",
+    "bac020": "Robot (SA-036)",
+    "baa113": "Sector V Power Switch",
+    "ba4005": "Garage Door (Arm)"
 }
 
 const bg = {
+    "bga000": "No-Entry Wall",
+    "bga001": "No-Entry Wall",
     "bga002": "No-Entry Wall",
-    "bga065": "Unreachable Item"
+    "bga019": "Beast Dig Spot",
+    "bga022": "NPC Path Node",
+    "bga023": "Astral Plane Gate",
+    "bga065": "Unreachable Item",
+    "bga106": "UI Popup",
+    "bga113": "Camera Gaze Object"
 }
 
 const questToArea = {
@@ -1463,11 +1475,11 @@ const questToArea = {
     "q2cb0": "r500",
     "q2cd2": "r910",
     "q2cb1": "r400",
-    "q2cb2": "r100",
+    "q2cb2": "r200",
     "q2cb3": "r300",
     "q2cb4": "r100",
     "q2cb5": "r900",
-    "q2cb6": "r100",
+    "q2cb6": "r200",
     "q2cb7": "r400",
     "q2cd3": "rb01",
     "q2c30": "rb01",
