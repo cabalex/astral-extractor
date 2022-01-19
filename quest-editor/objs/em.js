@@ -14,10 +14,28 @@ class EmSet {
     this.hard
     this.very_hard
     */
-    constructor(bxm, rawESN) {
+    constructor(bxm="New EmSet", rawESN=0) {
+        this.ems = [];
+        this.position = rawESN;
+        if (typeof bxm == "string") {
+            bxm = {
+                name: 'GroupList',
+                value: '',
+                children: [],
+                attributes: {
+                    CanSet: "1",
+                    number: rawESN.toString(),
+                    easy: "",
+                    normal: "",
+                    hard: "",
+                    very_hard: "",
+                    name: bxm,
+                    GroupNameHash: (Math.random() * 100000000).toString(),
+                }};
+        }
+
         this._original = JSON.stringify(bxm);
         // EmSetNo is the canonical position in the EmSet list; rawESN is the raw position
-        this.position = rawESN;
         if (bxm['name'] != 'GroupList') console.warn("Loaded object may not be a valid EmSet...");
         
         Object.assign(this, bxm['attributes']);
@@ -25,7 +43,7 @@ class EmSet {
         // Reference
         this.EmSetNo = this.number;
 
-        this.ems = [];
+        
         for (var i = 0; i < bxm['children'].length; i++) {
             this.ems.push(new Em(bxm['children'][i], this.number, this.position))
         }

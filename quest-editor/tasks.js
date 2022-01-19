@@ -400,7 +400,7 @@ Blockly.defineBlocksWithJsonArray([
             "value": 0,
             "min": 0
         },
-        trueFalse("IfCheck", "is", "is not"),
+        trueFalse("IfCheck", "is not", "is"),
         {
             "type": "field_number",
             "name": "IfAreaGroup",
@@ -872,6 +872,31 @@ Blockly.defineBlocksWithJsonArray([
         }
     ]),
 
+    execDefine("exec-28", "After Event %1, SubQuestJump to Phase %2 of Quest %3 (type %4)", [
+        {
+            "type": "field_input",
+            "name": "EventNo",
+            "text": "0000"
+        },
+        {
+            "type": "field_number",
+            "name": "ExecSubQuestJumpPhaseNo",
+            "value": 0,
+            "min": 0
+        },
+        {
+            "type": "field_input",
+            "name": "ExecSubQuestJumpQuestId",
+            "text": "0000"
+        },
+        {
+            "type": "field_number",
+            "name": "EventType",
+            "value": 0,
+            "min": 0
+        }
+    ]),
+
     execDefine("exec-30", "Call Task %1 (type %2)", [
         {
             "type": "field_number",
@@ -1178,11 +1203,12 @@ Blockly.defineBlocksWithJsonArray([
             "type": "field_dropdown",
             "name": "Type",
             "options": [
-                ["Default", "0"],
+                ["Ark Police Gear", "0"],
                 ["Lappy Costume", "1"],
                 ["Raven Armor", "2"],
                 ["Drab Civvies", "3"],
-                ["ARI Medical Gear", "4"]
+                ["ARI Medical Gear", "4"],
+                ["Default", "5"]
             ]
         }
     ]),
@@ -1399,6 +1425,11 @@ function loadReferences() {
                         // ternary statement not that reliable; need to check IFCommand too
                         addToReferences("em", (parseInt(command.IFValue) == 0) ? x + " Checked if EmSet defeated" : x + " Checked # of Ems in EmSet", i, command.IFGroupNo);
                         break;
+                    case 15:
+                        let str = ` Checked if Em ${command.IfEmSetNo} of EmSet ${command.IfEmGroupNo} inside`
+                        addToReferences("em", x + str, i, command.IfEmSetNo, command.IfEmGroupNo);
+                        addToReferences("area", x + str, i, command.IfAreaGroup, command.IfAreaIndex);
+                        break;
                 }
                 switch(command.typeEXEC) {
                     case 5:
@@ -1407,6 +1438,9 @@ function loadReferences() {
                         break;
                     case 6:
                         addToReferences("em", x + " EmSet unloaded", i, command.EXECGroupNo);
+                        break;
+                    case 31:
+                        addToReferences("em", x + ` Say TalkScript 0x${command.TalkId} of q${command.QuestId}`, i, command.GroupNo, command.SetNo);
                         break;
                     case 39:
                         // load astral plane area has a emSet part

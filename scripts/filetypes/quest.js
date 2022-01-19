@@ -475,6 +475,7 @@ function questUnlookup(id) {
   }
 }
 
+// Looks up an object based on its id in quests. Must convert to either number or stringified hex.
 function questLookup(id, returnId=false) {
   /*
   1 - pl/

@@ -79,7 +79,7 @@ async function clickFiles(event) {
 
 async function loadFiles(files) {
     if (files[0].name.endsWith(".dat")) {
-        $("#initial").css("display", "none")
+        $("#initial").css("display", "none");
         startQuestLoad(files[0])
     } else if (files[0].name.endsWith(".pkz")) {
         $('#pkzSelectorArea').replaceWith('<ul id="pkzSelectorArea"></ul>')
@@ -165,7 +165,108 @@ function deleteFile() {
 }
 
 function startQuestNew(event) {
-    alert("Coming soon!")
+    $("#initial").css("display", "none");
+    let defaultQuest = {
+        "fp":{
+            'name': 'New Quest.dat'
+        },
+        "files":{
+            "SignboardData.bxm":{
+                "offset":0,
+                "size":0,
+                "kind":"extracted",
+                "raw":{},
+                "extracted":{}
+            },
+            "ReliefSupplies.csv":{
+                "offset":0,
+                "size":0,
+                "kind":"extracted",
+                "raw":{},
+                "extracted":{}
+            },
+            "ResultData.csv":{
+                "offset":0,
+                "size":0,
+                "kind":"extracted",
+                "raw":{},
+                "extracted":{}
+            },
+            "ExData.csv":{
+                "offset":0,
+                "size":0,
+                "kind":"extracted",
+                "raw":{},
+                "extracted":{}
+            },
+            "TalkFlag_0c0f.csv":{
+                "offset":0,
+                "size":0,
+                "kind":"extracted",
+                "raw":{},
+                "extracted":{}
+            },
+            "TalkCondition_0c0f.csv":{
+                "offset":0,
+                "size":0,
+                "kind":"extracted",
+                "raw":{},
+                "extracted":{}
+            },
+            "TalkData_0c0f.csv":{
+                "offset":0,
+                "size":0,
+                "kind":"extracted",
+                "raw":{},
+                "extracted":{}
+            },
+            "SubtitleInfo_0c0f.csv":{
+                "offset":0,
+                "size":0,
+                "kind":"extracted",
+                "raw":{},
+                "extracted":{}
+            },
+            "SpeechBalloon_0c0f.csv":{
+                "offset":0,
+                "size":0,
+                "kind":"extracted",
+                "raw":{},
+                "extracted":{}
+            },
+            "TalkScript_0c0f.bxm":{
+                "offset":0,
+                "size":0,
+                "kind":"extracted",
+                "raw":{},
+                "extracted":{}
+            },
+            "TalkScript_speech_0c0f.bxm":{
+                "offset":0,
+                "size":0,
+                "kind":"extracted",
+                "raw":{},
+                "extracted":{}
+            },
+            "EnemySet.bxm":{
+                "offset":704,
+                "size":1123,
+                "kind":"extracted",
+                "raw":{},
+                "extracted":{"name":"EmSetRoot","value":"","attributes":{},"children":[{"name":"EmSetList","value":"","attributes":{},"children":[]},{"name":"GroupPosList","value":"","attributes":{},"children":[{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]},{"name":"GroupList","value":"","attributes":{},"children":[]}]}]}
+            },
+            "BezierData.bxm":{
+                "offset":1840,
+                "size":35,
+                "kind":"extracted","raw":{},"extracted":{"name":"BEZEIR","value":"","attributes":{},"children":[]}},
+                "QuestData.bxm":{
+                    "offset":1888,
+                    "size":3865,
+                    "kind":"extracted",
+                    "raw":{},
+                "extracted":{"name":"QuestRoot","value":"","attributes":{},"children":[{"name":"Version","value":"16","attributes":{},"children":[]},{"name":"QuestData","value":"","attributes":{},"children":[{"name":"TaskList","value":"","attributes":{"TaskName":"タスク1","TemplateName":""},"children":[{"name":"TaskEnable","value":"1","attributes":{},"children":[]},{"name":"TaskColor","value":"0","attributes":{},"children":[]},{"name":"LineListTree","value":"","attributes":{},"children":[{"name":"LineList","value":"","attributes":{},"children":[{"name":"CommandList","value":"","attributes":{},"children":[{"name":"typeIF","value":"0","attributes":{},"children":[]},{"name":"typeEXEC","value":"0","attributes":{},"children":[]}]}]}]}]}]},{"name":"QuestSub","value":"","attributes":{"SetMainScenarioValueStr":"case1_100"},"children":[{"name":"MinLevel","value":"1","attributes":{},"children":[]},{"name":"MaxLevel","value":"1","attributes":{},"children":[]},{"name":"bSetPlStartPos","value":"1","attributes":{},"children":[]},{"name":"PlStartPos","value":"1.000000 0.000000 0.000000 0.000000","attributes":{},"children":[]},{"name":"PlStartRotY","value":"0.000000","attributes":{},"children":[]},{"name":"bSetMainScenario","value":"0","attributes":{},"children":[]}]},{"name":"QuestFlagNameList","value":"","attributes":{},"children":[{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag00"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag01"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag02"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag03"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag04"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag05"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag06"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag07"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag08"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag09"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag10"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag11"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag12"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag13"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag14"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag15"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag16"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag17"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag18"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag19"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag20"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag21"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag22"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag23"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag24"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag25"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag26"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag27"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag28"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag29"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag30"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag31"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag32"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag33"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag34"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag35"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag36"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag37"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag38"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag39"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag40"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag41"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag42"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag43"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag44"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag45"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag46"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag47"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag48"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag49"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag50"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag51"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag52"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag53"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag54"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag55"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag56"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag57"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag58"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag59"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag60"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag61"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag62"},"children":[]},{"name":"Name","value":"","attributes":{"QuestFlagName":"Flag63"},"children":[]}]},{"name":"SaveFlagNameList","value":"","attributes":{},"children":[{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag00"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag01"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag02"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag03"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag04"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag05"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag06"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag07"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag08"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag09"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag10"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag11"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag12"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag13"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag14"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag15"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag16"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag17"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag18"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag19"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag20"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag21"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag22"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag23"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag24"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag25"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag26"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag27"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag28"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag29"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag30"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag31"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag32"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag33"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag34"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag35"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag36"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag37"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag38"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag39"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag40"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag41"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag42"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag43"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag44"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag45"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag46"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag47"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag48"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag49"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag50"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag51"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag52"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag53"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag54"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag55"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag56"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag57"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag58"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag59"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag60"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag61"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag62"},"children":[]},{"name":"Name","value":"","attributes":{"SaveFlagName":"SaveFlag63"},"children":[]}]},{"name":"AreaList","value":"","attributes":{},"children":[]}]}}},"fileOrder":["SignboardData.bxm","ReliefSupplies.csv","ResultData.csv","ExData.csv","TalkFlag_0c0f.csv","TalkCondition_0c0f.csv","TalkData_0c0f.csv","SubtitleInfo_0c0f.csv","SpeechBalloon_0c0f.csv","TalkScript_0c0f.bxm","TalkScript_speech_0c0f.bxm","EnemySet.bxm","BezierData.bxm","QuestData.bxm"],"hashMap":{},"id":"0c0f"}
+    loadedFile = defaultQuest;
+    startQuestLoad();
 }
 
 async function questRepack() {
@@ -290,56 +391,62 @@ async function questRepack() {
     return;
 }
 
-function startQuestLoad(file) {
+function startQuestLoad(file=null) {
     return new Promise((resolve, reject) => {
         var header = null;
         var hashes = null;
         var localFiles = {};
         var names = [];
         var reader = new FileReader();
-        reader.onloadend = async function(e) {
+
+        const loadEnd = async function(e) {
             if (e.target.readyState == FileReader.DONE) {
-            header = new Uint32Array(e.target.result.slice(0, 28));
-            // magic - 0
-            // filenumber - 1
-            // fileoffsetsoffset - 2
-            // fileextensionsoffset - 3
-            // filenamesoffset - 4
-            // filesizesoffset - 5
-            // hashmapoffset - 6
-            const fileOffsetsTable = new Uint32Array(e.target.result.slice(header[2], header[2] + header[1]*4));
-            const wholeFileExt = arrayBufferToString(e.target.result.slice(header[3], header[3] + header[1]*4));
-            const sizesTable = new Uint32Array(e.target.result.slice(header[5], header[5] + header[1]*4));
-            var substring = arrayBufferToString(e.target.result.slice(header[4], header[6])).replace(/[^\x20-\x7E]/g, '');
-            var tmpstr = "";
-            for (var i = 0; i < substring.length; i++) {
-                tmpstr += substring[i];
-                if (tmpstr.charAt(tmpstr.length-4) == ".") {
-                    names.push(tmpstr);
-                    tmpstr = "";
-                }
-            }
-            var firstOffset = 0;
-            for (var i = 0; i < header[1]; i++) {
-                localFiles[names[i]] = {'offset': fileOffsetsTable[i], 'size': sizesTable[i], 'kind': 'extracted', 'raw': e.target.result.slice(fileOffsetsTable[i], fileOffsetsTable[i] + sizesTable[i])}; // kinds: "extracted" and "custom"
-                // Sometimes the first offset is 0 (0-byte file), find the first real file
-                if (!firstOffset && fileOffsetsTable[i]) {
-                    firstOffset = fileOffsetsTable[i];
-                }
-                if (sizesTable[i] != 0) {
-                    if (wholeFileExt.substr(i*4, 3) == "bxm") {
-                        localFiles[names[i]]['extracted'] = QuestBXMLoader(localFiles[names[i]]['raw'])
-                    } else if (wholeFileExt.substr(i*4, 3) == "csv") {
-                        localFiles[names[i]]['extracted'] = QuestCSVLoader(localFiles[names[i]]['raw'])
+                header = new Uint32Array(e.target.result.slice(0, 28));
+                // magic - 0
+                // filenumber - 1
+                // fileoffsetsoffset - 2
+                // fileextensionsoffset - 3
+                // filenamesoffset - 4
+                // filesizesoffset - 5
+                // hashmapoffset - 6
+                const fileOffsetsTable = new Uint32Array(e.target.result.slice(header[2], header[2] + header[1]*4));
+                const wholeFileExt = arrayBufferToString(e.target.result.slice(header[3], header[3] + header[1]*4));
+                const sizesTable = new Uint32Array(e.target.result.slice(header[5], header[5] + header[1]*4));
+                var substring = arrayBufferToString(e.target.result.slice(header[4], header[6])).replace(/[^\x20-\x7E]/g, '');
+                var tmpstr = "";
+                for (var i = 0; i < substring.length; i++) {
+                    tmpstr += substring[i];
+                    if (tmpstr.charAt(tmpstr.length-4) == ".") {
+                        names.push(tmpstr);
+                        tmpstr = "";
                     }
-                } else {
-                    localFiles[names[i]]['extracted'] = {}
                 }
+                var firstOffset = 0;
+                for (var i = 0; i < header[1]; i++) {
+                    localFiles[names[i]] = {'offset': fileOffsetsTable[i], 'size': sizesTable[i], 'kind': 'extracted', 'raw': e.target.result.slice(fileOffsetsTable[i], fileOffsetsTable[i] + sizesTable[i])}; // kinds: "extracted" and "custom"
+                    // Sometimes the first offset is 0 (0-byte file), find the first real file
+                    if (!firstOffset && fileOffsetsTable[i]) {
+                        firstOffset = fileOffsetsTable[i];
+                    }
+                    if (sizesTable[i] != 0) {
+                        if (wholeFileExt.substr(i*4, 3) == "bxm") {
+                            localFiles[names[i]]['extracted'] = QuestBXMLoader(localFiles[names[i]]['raw'])
+                        } else if (wholeFileExt.substr(i*4, 3) == "csv") {
+                            localFiles[names[i]]['extracted'] = QuestCSVLoader(localFiles[names[i]]['raw'])
+                        }
+                    } else {
+                        localFiles[names[i]]['extracted'] = {}
+                    }
+                }
+                const questId = file.name.substr(5, 4);
+                emSets = [];
+                loadedFile = {'fp': file, 'files': localFiles, 'fileOrder': names.slice(0, Object.keys(localFiles).length), 'hashMap': e.target.result.slice(header[6], firstOffset), 'id': questId}
+                await afterFileLoad();
             }
-            const questId = file.name.substr(5, 4);
-            emSets = [];
-            loadedFile = {'fp': file, 'files': localFiles, 'fileOrder': names.slice(0, Object.keys(localFiles).length), 'hashMap': e.target.result.slice(header[6], firstOffset), 'id': questId}
-            
+        }
+        const afterFileLoad = async function() {
+            const questId = loadedFile['id'];
+            file = file || loadedFile['fp'];
             var area = questAreaLookup("q" + questId)
             if (area) {
                 changeMap(`li#${area}`, area)
@@ -350,7 +457,7 @@ function startQuestLoad(file) {
             */
             var rawEmSets = loadedFile['files']['EnemySet.bxm']['extracted']['children'][0]['children']
             
-            var emListOutput = "<ul id='emList' style='list-style: none; padding: 5px;'><li class='listheader'><span onclick='copyEmList(this, \"csv\")' class='listBtn'><span class='material-icons'>content_copy</span> CSV</span><span onclick='copyEmList(this, \"json\")' class='listBtn'><span class='material-icons'>content_copy</span> JSON</span></li>"
+            var emListOutput = "<ul id='emList' style='list-style: none; padding: 5px;'><li class='listheader'><span onclick='copyEmList(this, \"csv\")' class='listBtn'><span class='material-icons'>content_copy</span> CSV</span><span onclick='copyEmList(this, \"json\")' class='listBtn'><span class='material-icons'>content_copy</span> JSON</span><span onclick='addEmSet()' class='listBtn'><span class='material-icons'>add</span></span></li>"
             
             for (var i = 0; i < rawEmSets.length; i++) {
                 const emSetObj = new EmSet(rawEmSets[i], i);
@@ -422,9 +529,13 @@ function startQuestLoad(file) {
             renderTaskList(0, false);
             sidebarDisplay(editorSettings['activeTab'])
             resolve();
-            }
         }
-        reader.readAsArrayBuffer(file) // read whole file
+        if (!file) {
+            afterFileLoad();
+        } else {
+            reader.onloadend = loadEnd;
+            reader.readAsArrayBuffer(file) // read whole file
+        }
     })
 }
 
@@ -458,6 +569,12 @@ function addEmObj(elem, emSetNo, emToCopy=-1) {
         var emToAdd = new Em(emToCopy, emSetNo);
     }
     emSets[getIndexByEmSetNo(emSetNo)].addEm(emToAdd);
+}
+
+function addEmSet() {
+    const emSet = new EmSet("EmSet " + emSets.length, emSets.length);
+    emSets.push(emSet);
+    $('#emList').append(emSet.display());
 }
 
 function addAreaObj(areaGroupNo, areaToCopy=-1) {
@@ -511,11 +628,13 @@ function findItem(arr, name, returnIndex=false, multiple=false) {
     }
 }
 
-function updateEmAttribute(name, elem) {
+function updateEmAttribute(name, elem, isHex=false) {
     var val = $(elem).val()
     if (name == "Id") {
         // "em00a0" => "200a0"
         val = questUnlookup(val)
+    } else if (isHex) {
+        val = parseInt(val, 16);
     }
     const em = currentSelection['obj'];
     em['attributes'][name] = val;
@@ -623,6 +742,9 @@ async function showContextMenu(event, menuType, args, update=false) {
                 reflist += `<tr style="line-height: 30px"><th>This Em isn't referenced in any Task.</th></tr>`
             }
             // Basic
+            var cmbasic = "<table id='contextMenuBasicAttrs'>" + loadBasicView(em);
+
+
             if (emid.startsWith("2")) {
                 $('#contextMenu').find('#contextMenuImg').attr('src', 'https://www.nintendo.co.jp/switch/ab48a/assets/images/legion/detail/item/01/chara.png')
                     .css('top', targetMenuPos[0]-40)
@@ -634,6 +756,7 @@ async function showContextMenu(event, menuType, args, update=false) {
             }
             $('#contextMenu').find('#contextMenuAttrs').replaceWith(cmattrs + "</table>")
             $('#contextMenu').find('#contextMenuReferenceList').replaceWith(reflist + "</table>")
+            $('#contextMenu').find('#contextMenuBasicAttrs').replaceWith(cmbasic + "</table>")
             $('#contextMenuBasicAttrs').hide()
             $('#contextMenuAttrs').hide()
             $('#contextMenuReferenceList').hide()
@@ -694,7 +817,7 @@ async function showContextMenu(event, menuType, args, update=false) {
             var reflist = "<table id='contextMenuReferenceList'>"
             for (const [key, value] of Object.entries(area.references)) {
                 let text = $(`li#tl-${key}`).find('b').text();
-                reflist += `<tr style="background-color: var(--dark-grey) !important" class="clickableLi" onclick="jumpToTask(${key})"><th class='tablekey'>${key} <b translate="no">${text}</b></th></tr>`
+                reflist += `<tr style="background-color: var(--dark-grey) !important" class="clickableLi" onclick="jumpToTask(${key})"><th class='tablekey'>${key} <b translate="yes">${text}</b></th></tr>`
                 for (var i = 0; i < value.length; i++) {
                     reflist += `<tr><th>${value[i]}</th></tr>`
                 }

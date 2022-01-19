@@ -220,8 +220,10 @@ function downloadSubFile(fileType, name, subFile, returnFile = false) {
       await exportSubFileDAT(fileType, name, subFile, returnFile)
     } else if (fileType == 'gameData') {
       await exportSubFileGameData(fileType, name, subFile, returnFile)
+    } else if (fileType == 'bnk') {
+      await downloadSubFileBNK(fileType, name, subFile, returnFile);
     } else {
-      console.log(`unimplemented download of ${subFile} from ${name}`);
+      console.log(`unimplemented download of ${subFile} from ${name} (fileType ${fileType})`);
     }
     resolve()
   })
@@ -351,7 +353,7 @@ var fileInfo = {
   "gad": "Binary XML files. Deals with cutscene lighting, depth of field, shadows, fog, filters, etc.",
   "ccd": "Binary XML files. CCD files hold more environmental parameters (?).",
   "rld": "Binary XML files. RLD files hold lighting effects in environments (?).",
-  "bnk": "Audio bank.",
+  "bnk": "WWise Audio bank. Note that the extractor currently does not support ripping audio events in the data (read more <a href=\"https://github.com/bnnm/wwiser/blob/master/doc/WWISER.md\">here</a>).",
   "lay": "Layout files. Stores the objects the game will place in an area.<br><b>STILL IN BETA!</b> Some items may be interpreted incorrectly.",
   "pkz": "Compressed ZSTD archives containing most of the game's files.<br><b>NOTE: For most use cases, you do not need to repack these.</b> Usually, you can just place your files in the directory, and the game will load them fine.<br><b>You DO need to repack files in:</b> event/, core/, Text/",
   "dat": "DAT archive. Holds most of the game's files.",
