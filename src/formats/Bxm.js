@@ -41,11 +41,8 @@ export class Bxm extends ExplorerFile {
         }
     }
 
-    async load() {
-        if (this.metadata.size == 0) {
-            return `<div>${this.name} - file is empty</div>`;
-        }
-
+    // Reads the BXM and returns a JSON object of the nodes.
+    readBxmAsJson() {
         // node info starts at 0x10 (16)
         let nodes = [];
         let offset = 16;
@@ -119,9 +116,35 @@ export class Bxm extends ExplorerFile {
             }
             return outputJSON;
         }
-        console.log(`reading tree... ${this.header.nodeCount} nodes, ${this.header.dataCount} data offsets, ${this.header.dataSize} total data size`)
-        const output = readTree(0);
-        console.log(output) // woo
+
+        return readTree(0);
+    }
+
+    async load() {
+        if (this.metadata.size == 0) {
+            return `<div>${this.name} - file is empty</div>`;
+        }
+
+        const output = this.readBxmAsJson();
+
+        // Iterate to find identifiers:
+        
+        /*function findSpecialFields(js) {
+            for (let [key, value] of Object.entries(js.attributes)) {
+                switch(key) {
+                    case "Identifier":
+                        // identifier value is weird
+                        js.attributes.Identifier = value.replace(/\s+/g, '');
+                }
+            }
+
+            for (var i = 0; i < js['children'].length; i++) {
+                findSpecialFields(js['children'][i]);
+            }
+        }
+
+        findSpecialFields(output);*/
+
         function JSONtoXML(js) {
             var out = `&#60;${js['name']}`
             for (var i = 0; i < Object.keys(js['attributes']).length; i++) {

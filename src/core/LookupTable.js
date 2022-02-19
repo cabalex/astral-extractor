@@ -1523,7 +1523,59 @@ const questToArea = {
     "qcf00": "r840"
 }
 
-function questAreaLookup(name) {
+// Looks up an object based on its id in quests. Must convert to either number or stringified hex.
+export function questLookup(id, returnId=false) {
+    /*
+    1 - pl/
+    2 - em/
+    3 - ???
+    4 - ???
+    5 - ???
+    6 - ???
+    7 - ???
+    8 - ???
+    9 - ???
+    A - ???
+    B - ???
+    C - bg/?
+    D - ???
+    E - ???
+    F - ba/?
+    */
+    if (!id) {
+        return
+    }
+    if (typeof(id) == "number") {
+        id = id.toString(16)
+    }
+    switch(id[0]) {
+        case "1":
+            if (returnId) {
+            return "pl" + id.substr(1, 4);
+            }
+            return lookup("pl" + id.substr(1, 4));
+        case "2": // 2 == em
+            if (returnId) {
+            return "em" + id.substr(1, 4);
+            }
+            return lookup("em" + id.substr(1, 4));
+        case "c":
+        case "e":
+            if (returnId) {
+            return "bg" + id.substr(1, 4);
+            }
+            return lookup("bg" + id.substr(1, 4));
+        case "f":
+            if (returnId) {
+            return "ba" + id.substr(1, 4);
+            }
+            return lookup("ba" + id.substr(1, 4));
+        default:
+            return id;
+    }
+}
+
+export function questAreaLookup(name) {
     // Quest formatting ("qXXXX" and "questXXXX")
     var formatted = name.replace("quest", "q").substr(0, 5);
     if (questToArea[formatted] != undefined) {
@@ -1532,7 +1584,7 @@ function questAreaLookup(name) {
     return false;
 }
 
-function itemLookup(id) {
+export function itemLookup(id) {
     if (items[parseInt(id)] != undefined) {
         return items[parseInt(id)];
     } else {

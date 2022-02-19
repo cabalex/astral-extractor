@@ -195,15 +195,14 @@ a {
     overflow-y: auto;
     box-shadow: 0 0 10px var(--black);
 }
-#status, #file-data {
+#status {
+    user-select: none;
+    position: relative;
+    background-color: transparent;
     width: 100%;
     padding: 5px;
     background-color: var(--dark-grey);
     overflow-wrap: break-word;
-}
-#status {
-    position: relative;
-    background-color: transparent;
 }
 #status:before {
     content: '';
@@ -236,7 +235,7 @@ a {
     overflow-wrap: break-word;
     transition: background-color 0.1s, color 0.1s;
     background-color: lightgrey;
-    color: var(--black) !important;
+    color: var(--black);
     padding: 5px;
 }
 .sr-path {
@@ -253,6 +252,7 @@ input:focus-visible {
 
 .explorerFile, .folder {
     white-space: nowrap;
+    position: relative;
     transition: background-color 0.1s ease-in-out;
     cursor: pointer;
 }
@@ -264,6 +264,98 @@ input:focus-visible {
     vertical-align: text-top;
 }
 
+.viewer {
+    background-color: var(--grey);
+    border-radius: 5px;
+    padding: 5px;
+    width: calc(100% - 30px);
+    margin: 10px 0;
+    transition: background-color 0.1s ease-in-out;
+}
+.viewer:before {
+    content: url('https://img.icons8.com/color/20/000000/sparkling.png');
+    vertical-align: text-top;
+    margin-right: 3px;
+}
+.viewer:hover {
+    background-color: var(--dark-grey);
+}
+.threejs-hover-text {
+    position: absolute;
+    user-select: none;
+    padding: 5px;
+    background-color: #2225;
+    border-radius: 5px;
+    margin: 5px;
+    z-index: 5;
+    top: 0;
+    left: 0;
+}
+.threejs-panel {
+    text-align: left;
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: var(--dark-grey);
+    width: 25%;
+    margin: 10px;
+    border-radius: 10px;
+    height: calc(100% - 20px);
+    animation: slideFromRight 0.2s cubic-bezier(0.075, 0.82, 0.165, 1);
+    box-shadow: 0 0 10px var(--black);
+    z-index: 1;
+    overflow: hidden;
+}
+.threejs-panel > section:not(.panel-tablist) {
+    padding: 10px;
+    overflow-y: auto;
+}
+.panel-tablist {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    justify-content: left;
+    align-items: stretch;
+    background-color: var(--black);
+}
+.panel-tab {
+    text-align: center;
+    user-select: none;
+    cursor: pointer;
+    padding: 5px;
+    font-family: 'Work Sans', Arial, sans-serif;
+    font-size: 30px !important;
+    transition: background-color 0.1s ease-in-out;
+}
+.close-tab {
+    flex-grow: 1;
+    text-align: right;
+    transition: color 0.1s ease-in-out;
+}
+.active {
+    background-color: var(--primary);
+    color: white;
+}
+.panel-tab:hover {
+    background-color: var(--grey)
+}
+.active:hover {
+    background-color: var(--primary-dark);
+}
+.close-tab:hover {
+    background-color: transparent;
+    color: var(--secondary);
+}
+
+@keyframes slideFromRight {
+    from {
+        transform: translateX(100%);
+    }
+    to {
+        transform: 0;
+    }
+}
+
 .explorerFile:hover {
     background-color: var(--primary);
     color: white;
@@ -272,6 +364,21 @@ input:focus-visible {
     content: url('https://img.icons8.com/color/20/000000/file.png');
     vertical-align: text-top;
 }
+.file-size {
+    font-size: 12px;
+    position: absolute;
+    right: 2px;
+    top: 2px;
+    padding: 2px;
+    background-color: var(--black);
+    z-index: 1;
+    overflow: 0;
+    transition: filter 0.2s ease-in-out;
+}
+.explorerFile:hover .file-size {
+    filter: opacity(0.1);
+}
+
 .dat:before, .evn:before {
     content: url('https://img.icons8.com/color/20/000000/database.png');
 }
@@ -288,11 +395,14 @@ input:focus-visible {
 .wmb:before {
     content: url('https://img.icons8.com/color/20/000000/bookmark-page.png');
 }
-.bxm:before, .rld:before, .sop:before {
+.bxm:before, .rld:before, .sop:before, .gad:before, .seq:before {
     content: url('https://img.icons8.com/color/20/000000/xml-file.png');
 }
 .bnk:before {
     content: url('https://img.icons8.com/color/20/000000/audio-file.png');
+}
+.bk2:before {
+    content: url('https://img.icons8.com/color/20/000000/video-file.png');
 }
 .dtt {
     /*display: none;

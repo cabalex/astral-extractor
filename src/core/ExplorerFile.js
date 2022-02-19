@@ -6,7 +6,7 @@ export class ExplorerFile {
         this.type = 'file';
         this.name = name || "";
         this.id = `${this.name.replace('.', '')}-${Date.now()}`;
-        this.ext = name ? name.match(/\.([a-zA-Z]{3,})$/)[1] : '';
+        this.ext = name ? name.match(/\.([a-zA-Z0-9]{3,})$/)[1] : '';
         this.friendlyName = lookup(name);
         this.metadata = {
             size: size
@@ -37,33 +37,26 @@ export class ExplorerFile {
         // Nothing as the default loader does not contain any buttons
     }
 
-    // gets the file as an array buffer from the PAK.
+    // Gets a file's Array Buffer, or returns an empty one if it does not exist.
     async getFileArrayBuffer() {
-        if (this.originalFile) {
-            let offset = Number(this.metadata.offset) + this.metadata.byteLength;
-            let size = Number(this.metadata.size);
-            return this.originalFile.arrayBuffer.slice(offset, offset + size);
-        }
-        return new ArrayBuffer();
+        return this.arrayBuffer || new ArrayBuffer();
     }
 
     // downloads the file.
     async download(save=true) {
-        if (this.originalFile) {
-            const targetArrayBuffer = await this.getFileArrayBuffer();
-            
-            if (!save) return targetArrayBuffer;
-            
-            const uri = URL.createObjectURL(new Blob([targetArrayBuffer], {type: "application/octet-stream"}));
+        const targetArrayBuffer = await this.getFileArrayBuffer();
+        
+        if (!save) return targetArrayBuffer;
+        
+        const uri = URL.createObjectURL(new Blob([targetArrayBuffer], {type: "application/octet-stream"}));
 
-            const link = document.createElement("a");
-            link.setAttribute('download', this.name);
-            link.href = uri;
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            URL.revokeObjectURL(uri);
-        }
+        const link = document.createElement("a");
+        link.setAttribute('download', this.name);
+        link.href = uri;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(uri);
     }
 
     export() {
@@ -129,9 +122,9 @@ export class ExplorerFile {
         // only show formatted name if it is not the same as the file name
         if (this.ext == 'dtt') {
             // don't look up friendly name for dtt
-            return `<div class="explorerFile ${this.ext}" id="file-${this.id}">${this.name}</div>`
+            return `<div class="explorerFile ${this.ext}" id="file-${this.id}">${this.name}<span class="file-size">${readableBytes(Number(this.metadata.size))}</span></div>`
         }
         return `<div class="explorerFile ${this.ext}" id="file-${this.id}">${this.friendlyName}` +
-            (this.friendlyName == this.name ? '</div>' : `<div class="subtext">${this.name}</div></div>`);
+            (this.friendlyName == this.name ? '' : `<div class="subtext">${this.name}</div>`) + `<span class="file-size">${readableBytes(Number(this.metadata.size))}</span></div>`;
     }
 }

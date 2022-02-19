@@ -12,44 +12,33 @@ import { loadFile } from './core/LoadFile.js';
 import { Explorer } from './core/Explorer.js';
 import { StatusBar } from './core/StatusBar.js';
 import { ExplorerFile } from './core/ExplorerFile.js';
+import { Bk2 } from './formats/Bk2.js';
 
 // Loads a file using the File object.
 export async function loadFileByType(file) {
-    const fileTypeRegex = new RegExp(/\.([a-zA-Z]{3,})$/);
 
     // Regex gets the first capturing group (Excludes ., e.g. file.pkz becomes pkz)
-    switch(file.name.match(fileTypeRegex)[1]) {
-        case 'pkz':
-            return new Pkz(...await loadPkzHeader(file));
-        case 'dat':
-        case 'dtt':
-        case 'evn':
-            return new Dat(await loadFile(file), file);
-        case 'bxm':
-        case 'sop':
-            return new Bxm(await loadFile(file), file.name, file.size);
-        case 'csv':
-            return new Csv(await loadFile(file), file.name, file.size);
-        case 'wta':
-            return new Wta(arrayBuffer, name, size || arrayBuffer.byteLength);
-        case 'wtp':
-            return new Wtp(arrayBuffer, name, size || arrayBuffer.byteLength);
-        case 'wmb':
-            return new Wmb(arrayBuffer, name, size || arrayBuffer.byteLength);
-        default:
-            console.warn("Unsupported file: " + name);
-            return new ExplorerFile(file.name, file.size);
+    if (file.name.endsWith('.pkz')) {
+        return new Pkz(...await loadPkzHeader(file));
+    } else {
+        return loadArrayBufferByType(await loadFile(file), file.name, file.size);
     }
 }
 
 // Loads a file using an ArrayBuffer, name, and size. Used for loading files from already loaded files (e.g. DAT).
 export function loadArrayBufferByType(arrayBuffer, name, size) {
-    const fileTypeRegex = new RegExp(/\.([a-zA-Z]{3,})$/);
+    const fileTypeRegex = new RegExp(/\.([a-zA-Z0-9]{3,})$/);
 
     // Regex gets the first capturing group (Excludes ., e.g. file.pkz becomes pkz)
     switch(name.match(fileTypeRegex)[1]) {
+        case 'dat':
+        case 'dtt':
+        case 'evn':
+            return new Dat(arrayBuffer, {name, size});
         case 'bxm':
         case 'sop':
+        case 'seq':
+        case 'gad':
             return new Bxm(arrayBuffer, name, size || arrayBuffer.byteLength);
         case 'csv':
             return new Csv(arrayBuffer, name, size || arrayBuffer.byteLength);
@@ -59,6 +48,8 @@ export function loadArrayBufferByType(arrayBuffer, name, size) {
             return new Wtp(arrayBuffer, name, size || arrayBuffer.byteLength);
         case 'wmb':
             return new Wmb(arrayBuffer, name, size || arrayBuffer.byteLength);
+        case 'bk2':
+            return new Bk2(arrayBuffer, name, size);
         default:
             console.warn("Unsupported file: " + name);
             return new ExplorerFile(name, size);

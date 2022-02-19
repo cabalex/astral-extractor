@@ -10,8 +10,14 @@ export class Csv extends ExplorerFile {
     load() {
         return new Promise((resolve, reject) => {
             if (!window.TextDecoder) reject('<div>Browser does not support TextDecoder :(</div>');
+            
+            if (this.metadata.size == 0) {
+                return resolve(`<div>${this.name} - file is empty</div>`);
+            }
+            
             let decoder = new TextDecoder('shift-jis');
             let text = decoder.decode(new Uint8Array(this.arrayBuffer));
+            
             resolve(`<div class="text">${text}</div>`);
         })
     }

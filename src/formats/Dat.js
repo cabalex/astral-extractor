@@ -3,6 +3,9 @@ import { readableBytes } from '../core/Explorer.js';
 import { loadArrayBufferByType } from '../index.js';
 import { Folder } from '../core/Folder.js'
 
+import { QuestViewer } from '../viewers/Dat/QuestViewer.js';
+import { EventViewer } from '../viewers/Dat/EventViewer.js';
+
 export class Dat extends Folder {
     // Since partials need to return the full DAT to be loaded, we need to store the original file instead of just loading headers.
     constructor(arrayBuffer, file, fromPartial=false) {
@@ -65,6 +68,14 @@ export class Dat extends Folder {
             this.files.set(name, loadArrayBufferByType(fileData, name, fileSizesTable[i]));
         }
 
+        if (this.name.match(/^quest[0-9a-f]{4}/)) {
+            this.viewer = new QuestViewer(this);
+        } else if (this.name.match(/^ev[0-9a-f]{4}/)) {
+            this.viewer = new EventViewer(this);
+        } else {
+            this.viewer = null;
+        }
+
 
         if (fromPartial) {
             this.originalFile = null; // no "original file" as it came from PKZ, this class has everything we need
@@ -78,6 +89,24 @@ export class Dat extends Folder {
         } else {
             this.originalFile = file; // original file object (uploaded separately)
         }
+    }
+
+    addListener() {
+        $(`#folder-${this.id}`)
+            .off('click').off('contextmenu')
+            .on('click', (event) => {
+                this.toggle(this);
+                event.stopPropagation();
+            })
+            .on('contextmenu', (event) => {
+                event.preventDefault();
+                window.explorer.contextMenu.open(event, this.contextMenuOpts());
+                event.stopPropagation();
+            })
+        
+        if (this.viewer) this.viewer.addListener();
+
+        this.files.forEach(file => {file.addListener()});
     }
 
     contextMenuOpts() {
@@ -160,7 +189,7 @@ export class Dat extends Folder {
     render() {
         // only show formatted name if it is not the same as the file name
         let output = ''
-        if (this.ext == 'dtt' || this.friendlyName == this.name.replace('.' + this.ext, '')) {
+        if (this.ext == 'dtt' || (this.friendlyName == this.name && this.friendlyName != this.name.replace('.' + this.ext, ''))) {
             // don't look up friendly name for dtt
             output += `<div class="folder ${this.ext}" id="folder-${this.id}">${this.name}`
         } else {
@@ -168,11 +197,11 @@ export class Dat extends Folder {
         }
          
 
-        output += `<div class="folder-files" ${this.isOpen ? '' : 'style="display: none"'}>`;
+        output += `<span class="file-size">${readableBytes(Number(this.metadata.size))}</span><div class="folder-files" ${this.isOpen ? '' : 'style="display: none"'}>${this.viewer ? this.viewer.render() : ''}`;
         this.files.forEach(file => {
             output += file.render();
         })
     
-            return output + "</div></div>"
+        return output + "</div></div>"
     }
 }

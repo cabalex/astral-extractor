@@ -4,9 +4,12 @@ import { Folder } from './Folder.js';
 export class Search {
     constructor(explorer) {
         this.explorer = explorer;
+        this.selectedIndex = -1;
     }
     
     search() {
+        this.selectedIndex = -1;
+
         const val = $('#search > input').val().toLowerCase();
 
         $('.sr').off('click');
@@ -49,7 +52,45 @@ export class Search {
 
     addListener() {
         $('#search').off('keyup').off('blur')
-            .on('keyup', () => { this.search() })
+            .on('keyup', (event) => {
+                $('#search-completions').slideDown(100) // redundancy; fixes bug where textbox stays focused
+
+                switch(event.keyCode) {
+                    case 13: // enter - go to selected item if selected
+                        if (this.selectedIndex >= 0) {
+                            $('#search').blur();
+                            $('.sr').removeClass('active');
+                            $('.sr')[this.selectedIndex].click();
+                            this.selectedIndex = -1;
+                        }
+                        return;
+
+                    case 38: // up - move up
+                        if (this.selectedIndex > 0) {
+                            this.selectedIndex--;
+                        }
+                        break;
+
+                    case 40: // down - move down
+                        if (this.selectedIndex < $('.sr').length - 1 && this.selectedIndex >= 0) {
+                            this.selectedIndex++;
+                        }
+                        break;
+
+                    default: // if any other key, search with this query
+                        this.search();
+                        $('.sr').removeClass('active');
+                        return;
+                }
+                // up or down keys
+
+                if (this.selectedIndex == -1) {
+                    this.selectedIndex = 0;
+                }
+                
+                $('.sr').removeClass('active');
+                $('.sr')[this.selectedIndex].classList.add('active');
+            })
             .on('blur', () => { $('#search-completions').slideUp(100) })
         
         $(window).on('click', (e) => {
