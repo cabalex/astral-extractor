@@ -17,7 +17,7 @@ export class Csv extends ExplorerFile {
             let decoder = new TextDecoder('shift-jis');
             let text = decoder.decode(new Uint8Array(this.arrayBuffer));
             
-            resolve(`<div class="text">${text}</div>`);
+            resolve(`<div class="text" translate="yes">${text}</div>`);
         })
     }
 

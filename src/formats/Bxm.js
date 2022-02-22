@@ -160,6 +160,6 @@ export class Bxm extends ExplorerFile {
         }
         const xmlOutput = JSONtoXML(output)
 
-        return `<div class="text">${xmlOutput}</div>`;
+        return `<div class="text" translate="yes">${xmlOutput}</div>`;
     }
 }

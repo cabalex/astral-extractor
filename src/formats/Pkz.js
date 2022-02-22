@@ -3,6 +3,7 @@ import { readableBytes } from '../core/Explorer.js';
 import { Folder } from '../core/Folder.js';
 import { loadFile, loadText } from '../core/loadFile.js';
 import { Dat } from './Dat.js';
+import { loadArrayBufferByType } from '../index.js';
 
 /*
 Loads PKZ files. Usually PKZ files are very large so the file reader only reads the header.
@@ -19,7 +20,7 @@ export class PartialPkzFile extends ExplorerFile {
     }
 
     async convertToDAT() {
-        if (['dat', 'dtt', 'evn'].includes(this.ext)) {
+        if (['dat', 'dtt', 'evn', 'eff'].includes(this.ext)) {
             let folder = window.explorer.getFolderFromFile(this);
             let newDAT = new Dat(await this.getFileArrayBuffer(), this, true);
             folder.files.set(this.name, newDAT);
@@ -32,7 +33,7 @@ export class PartialPkzFile extends ExplorerFile {
     }
 
     async load() {
-        await this.convertToDAT();//await loadFile(this.originalFile.file);
+        await this.convertToDAT();
         return 'Loaded';
     }
 
@@ -78,8 +79,13 @@ class PkzFileFramework {
         this.name = name,
         this.parent = parent
     }
-    convertToPartialPkzFile() {
-        return new PartialPkzFile(this.nameOffset, this.size, this.offset, this.compressedSize, this.name, this.parent);
+    // Convert to full partial from header. If not a supported file type (.dat/.dtt) then returns the full file.
+    async convertToPartialPkzFile() {
+        let partialPkzFile = new PartialPkzFile(this.nameOffset, this.size, this.offset, this.compressedSize, this.name, this.parent);
+        if (['dat', 'dtt', 'evn', 'eff'].includes(partialPkzFile.ext)) return partialPkzFile; 
+        
+        // convert to full file if not a .DAT
+        return loadArrayBufferByType(await partialPkzFile.getFileArrayBuffer(), this.name, this.size);
     }
 }
 
@@ -124,7 +130,7 @@ export async function loadPkzHeader(file) {
     }
 
     // convert the frameworks into explorerfiles
-    return [header, partialFiles.map(f => f.convertToPartialPkzFile()), file];
+    return [header, await Promise.all(partialFiles.map(f => f.convertToPartialPkzFile())), file];
 }
 
 
@@ -137,10 +143,8 @@ export class Pkz extends Folder {
         this.rootFile = pkzFile;
         this.name = this.rootFile.name;
 
-        // set references
-        this.files.forEach(file => {file.originalFile = this; file.directory = [this.name]});
-
         files.forEach(file => this.files.set(file.name, file));
+        console.log(this.files)
     }
 
     async openAll() {

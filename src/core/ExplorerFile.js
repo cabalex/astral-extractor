@@ -6,7 +6,7 @@ export class ExplorerFile {
         this.type = 'file';
         this.name = name || "";
         this.id = `${this.name.replace('.', '')}-${Date.now()}`;
-        this.ext = name ? name.match(/\.([a-zA-Z0-9]{3,})$/)[1] : '';
+        this.ext = name && name.includes('.') ? name.match(/\.([a-zA-Z0-9]{3,})$/)[1] : '';
         this.friendlyName = lookup(name);
         this.metadata = {
             size: size

@@ -14,7 +14,7 @@ export class ContextMenu {
         this.close();
         this.activeOpts = json;
 
-        let output = `<ul style="transform: translateX(${event.pageX}px) translateY(${event.pageY}px)" class="contextMenu"><li>${json.scope.name}</li>`;
+        let output = `<ul style="transform: translateX(${event.pageX + 10}px) translateY(${event.pageY}px)" class="contextMenu"><li>${json.scope.name}</li>`;
         for (const [key, value] of Object.entries(json.items)) {
             if (key.includes('<!--spacing')) {
                 output += `<li class="spacing"></li>`;

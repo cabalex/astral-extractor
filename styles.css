@@ -379,7 +379,7 @@ input:focus-visible {
     filter: opacity(0.1);
 }
 
-.dat:before, .evn:before {
+.dat:before, .evn:before, .eff:before {
     content: url('https://img.icons8.com/color/20/000000/database.png');
 }
 .dtt:before {
