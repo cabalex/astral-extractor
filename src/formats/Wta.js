@@ -178,4 +178,9 @@ class WtaTextureFile extends ExplorerFile {
             }
         }
     }
+
+    render() {
+        // friendly names don't exist
+        return `<div class="explorerFile ${this.ext}" id="file-${this.id}">${this.name}<span class="file-size">${this.metadata.info.format} - ${readableBytes(Number(this.metadata.size))}</span></div>`
+    }
 }
