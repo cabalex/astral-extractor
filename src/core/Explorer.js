@@ -65,6 +65,7 @@ export class Explorer {
         return findPath(this.rootDirectory, []);
     }
 
+    // Gets the folder that a file is in.
     getFolderFromFile(file) {
         let searchByName = typeof file == 'string';
         let name = searchByName ? file : file.name;
@@ -117,7 +118,8 @@ export class Explorer {
 
     // gets a file from a path.
     getFileFromPath(path) {
-        path = path.split('/');
+        if (typeof path === 'string')
+            path = path.split('/');
 
         let currentFolder = this.rootDirectory;
         for (let i = 0; i < path.length - 1; i++) {

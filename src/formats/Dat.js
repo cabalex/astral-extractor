@@ -189,7 +189,7 @@ export class Dat extends Folder {
     render() {
         // only show formatted name if it is not the same as the file name
         let output = ''
-        if (this.ext == 'dtt' || (this.friendlyName == this.name && this.friendlyName != this.name.replace('.' + this.ext, ''))) {
+        if (this.ext == 'dtt' || (this.friendlyName == this.name || this.friendlyName == this.name.replace('.' + this.ext, ''))) {
             // don't look up friendly name for dtt
             output += `<div class="folder ${this.ext}" id="folder-${this.id}">${this.name}`
         } else {

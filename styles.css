@@ -517,3 +517,8 @@ select:focus-visible {
     padding: 0 5px;
     font-family: Consolas, sans-serif;
 }
+main > canvas {
+    height: 90% !important;
+    width: 90% !important;
+    object-fit: contain;
+}

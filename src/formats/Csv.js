@@ -3,8 +3,7 @@ import { readableBytes } from "../core/Explorer.js";
 
 export class Csv extends ExplorerFile {
     constructor(arrayBuffer, name, size) {
-        super(name, size || arrayBuffer.byteLength);
-        this.arrayBuffer = arrayBuffer;
+        super(name, size || arrayBuffer.byteLength, arrayBuffer);
     }
 
     load() {

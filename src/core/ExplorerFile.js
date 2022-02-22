@@ -2,7 +2,7 @@ import { lookup } from './LookupTable.js'
 import { readableBytes } from './Explorer.js'
 
 export class ExplorerFile {
-    constructor(name, size) {
+    constructor(name, size, arrayBuffer=null) {
         this.type = 'file';
         this.name = name || "";
         this.id = `${this.name.replace('.', '')}-${Date.now()}`;
@@ -10,6 +10,10 @@ export class ExplorerFile {
         this.friendlyName = lookup(name);
         this.metadata = {
             size: size
+        }
+
+        if (arrayBuffer) {
+            this.arrayBuffer = arrayBuffer;
         }
     }
 
@@ -120,7 +124,7 @@ export class ExplorerFile {
 
     render() {
         // only show formatted name if it is not the same as the file name
-        if (this.ext == 'dtt') {
+        if (this.ext == 'dtt' || (this.friendlyName == this.name || this.friendlyName == this.name.replace('.' + this.ext, ''))) {
             // don't look up friendly name for dtt
             return `<div class="explorerFile ${this.ext}" id="file-${this.id}">${this.name}<span class="file-size">${readableBytes(Number(this.metadata.size))}</span></div>`
         }
