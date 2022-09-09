@@ -1221,6 +1221,28 @@ Blockly.defineBlocksWithJsonArray([
             "min": 0
         }
     ]),
+    execDefine("exec-62", "%1 random number from %2 to %3", [
+        {
+            "type": "field_dropdown",
+            "name": "Type",
+            "options": [
+                ["Generate new", "0"],
+                ["Use last random", "1"] 
+            ]
+        },
+        {
+            "type": "field_number",
+            "name": "Begin",
+            "value": 0,
+            "min": 0
+        },
+        {
+            "type": "field_number",
+            "name": "End",
+            "value": 0,
+            "min": 0
+        }
+    ]),
 ]);
 
 // SCRIPTS
