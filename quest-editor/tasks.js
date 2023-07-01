@@ -1392,7 +1392,7 @@ function renderTaskList(taskListNo, saveExisting=true) {
         xml += "</block>"
     }
     xml += "</xml>"
-    Blockly.Xml.clearWorkspaceAndLoadFromXml(Blockly.Xml.textToDom(xml), workspace);
+    Blockly.Xml.clearWorkspaceAndLoadFromXml(Blockly.utils.xml.textToDom(xml), workspace);
     workspace.cleanUp()
     workspace.trashcan.emptyContents()
     workspaceCache = Blockly.Xml.workspaceToDom(Blockly.getMainWorkspace()).outerHTML;
