@@ -93,7 +93,7 @@ function loadInitialCSV(fileTypes, file, translateView = false) {
             form += `<th style="background-color: ${color}">`;
             if (!translateView) {
               if (x % 3 == 1) {
-                if (color != "transparent") form += `<input class="${file.name}-i" type="color" value='${color}' onChange='updateValsFromColor(this,${x})'></input>`;
+                if (color != "transparent") form += `<input class="${file.name}-i" type="color" value='${color}' onChange='updateValsFromColor(this,${x})'></input><br>`;
                 colorIndex = x;
               }
               form += `<input class="${file.name}-${x}" type="text" value='${unitext}'`;
