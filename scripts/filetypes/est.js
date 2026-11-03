@@ -35,22 +35,22 @@ function loadInitialEST(fileTypes, file, translateView = false) {
 
           form += `<th style="background-color: ${color}">`;
 
-          if (color != "transparent") form += `<input class="${file.name}-i" type="color" value='${color}' onChange='updateValsFromColor(this,${i})'></input><br>`;
+          if (color != "transparent") form += `<input class="${file.name}-${i}" type="color" value='${color}' onChange='updateValsFromColor(this,${i},"-rgb")'></input><br>`;
 
           form += `<input class="${file.name}-${i}-rgb" type="text" hexpos='${colorData[i]["r"]["pos"]}' value='${rgb[0]}'`;
-          form += `onChange='updateColorFromVals(this,1)'>`;
+          form += `onChange='updateColorFromVals(this,1,"-rgb")'>`;
           form += `</input></th>`;
 
           form += `<th style="background-color: ${color}">`;
 
           form += `<input class="${file.name}-${i}-rgb" type="text" hexpos='${colorData[i]["g"]["pos"]}' value='${rgb[1]}'`;
-          form += `onChange='updateColorFromVals(this,2)'>`;
+          form += `onChange='updateColorFromVals(this,2,"-rgb")'>`;
           form += `</input></th>`;
 
           form += `<th style="background-color: ${color}">`;
 
           form += `<input class="${file.name}-${i}-rgb" type="text" hexpos='${colorData[i]["b"]["pos"]}' value='${rgb[2]}'`;
-          form += `onChange='updateColorFromVals(this,3)'>`;
+          form += `onChange='updateColorFromVals(this,3,"-rgb")'>`;
           form += `</input></th>`;
 
           rgb = hexToRGB(`${colorData[i]["r"]["hex"][1]}${colorData[i]["g"]["hex"][1]}${colorData[i]["b"]["hex"][1]}`);

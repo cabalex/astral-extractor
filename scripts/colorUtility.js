@@ -31,29 +31,29 @@ function setColor(r, g, b) {
 }
 
 
-function updateValsFromColor(obj, index) {
+function updateValsFromColor(obj, index, classEnd="") {
     index = parseInt(index);
     var parent = obj.parentElement.parentElement;
-    let classBase = obj.classList[0].slice(0, -1);
+    let classBase = (obj.classList[0].replaceAll(classEnd,"")).slice(0, -1);
     for (let i = 0; i < 3; i++) {
         let newObj = parent.children[index + i];
         newObj.style.backgroundColor = obj.value;
         let newIndex = parseInt(index) + i;
-        newObj.getElementsByClassName(`${classBase}${newIndex}`)[0].value = RGBToArray(newObj.style.backgroundColor)[i];
+        newObj.getElementsByClassName(`${classBase}${newIndex}${classEnd}`)[0].value = RGBToArray(newObj.style.backgroundColor)[i];
     }
 }
 
-function updateColorFromVals(obj, index) {
+function updateColorFromVals(obj, index, classEnd="") {
     if (obj.value.length > 0) {
         index = parseInt(index);
         var parent = obj.parentElement.parentElement;
-        let classBase = obj.classList[0].slice(0, -1);
+        let classBase = (obj.classList[0].replaceAll(classEnd,"")).slice(0, -1);
         let newObjs = [];
         let rgb = [];
         for (let i = 0; i < 3; i++) {
             newObjs.push(parent.children[index + i]);
             let newIndex = parseInt(index) + i;
-            rgb.push(parent.getElementsByClassName(`${classBase}${newIndex}`)[0].value);
+            rgb.push(parent.getElementsByClassName(`${classBase}${newIndex}${classEnd}`)[0].value);
         }
         rgb = arrayToRGB(rgb);
         let selector = parent.getElementsByClassName(classBase + "i")[0];
