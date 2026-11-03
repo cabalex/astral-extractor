@@ -72,7 +72,7 @@ function updateBackgroundColor(obj, index, color) {
 }
 
 function colorValToHex(val) {
-    var hex = val.toString(16);
+    var hex = (parseInt(val)).toString(16);
     return hex.length == 1 ? "0" + hex : hex;
 }
 
