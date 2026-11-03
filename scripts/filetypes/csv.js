@@ -68,12 +68,14 @@ function loadInitialCSV(fileTypes, file, translateView = false) {
           var color = "transparent";
           var setColors = [];
           var colorIndex = -1;
+          let useColor = false;
           for (var x = 0; x < lines[i].length; x++) {
             // items in line
             let unitext = lines[i][x]
             unitext = decoder.decode(unitext.buffer);
             var color = 'transparent';
-            if (file.name.includes("Color")) {
+            useColor = (file.name.includes("Color") || (x == 0 && unitext.includes("Color")) || useColor);
+            if (useColor) {
               if (((x + 1) % 3 == 1) && (x + 3) < lines[i].length) {
                 let newColor = setColor(decoder.decode(lines[i][x + 1].buffer), decoder.decode(lines[i][x + 2].buffer), decoder.decode(lines[i][x + 3].buffer));
                 if (x == 0) setColors.push(color);
