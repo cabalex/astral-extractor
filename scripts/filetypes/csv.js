@@ -150,7 +150,20 @@ function downloadCSV(fileType, name, repack = false) {
       if (globalFiles[name]['translateView']) {
         itemstr = $(this).find('.csv-text').attr('title') + ",";
       } else {
-        itemstr = $(this).find('input').val() + ","
+
+        let items = $(this).find('input');
+        if (items.length > 1)
+        {
+          for (let x = 0; x < items.length; x++)
+          {
+            if (items[x]["type"] == "text") 
+              {
+                itemstr = items[x]["value"] + ",";
+                break;
+              }
+          }
+        }
+        else itemstr = items[0]["value"] + ",";
       }
       if (repack) {
         output = concatenateToUint8(output, convertChars(itemstr));
