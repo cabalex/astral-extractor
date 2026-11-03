@@ -22,11 +22,13 @@ function loadInitialEST(fileTypes, file, translateView = false) {
 
         var form = "<div class='scroll'><table>";
 
+        let fileClassName = file.name.replaceAll(" ","");
+
 
         for (let i = 0; i < colorData.length; i++) {
           form += "<tr>";
           form += `<th style="background-color: 'transparent'">`;
-          form += `<input class="${file.name}-${i}-rgb" type="text" value='Color ${i}'</input></th>`;
+          form += `<input class="${fileClassName}-${i}-rgb" type="text" value='Color ${i}'</input></th>`;
 
           let rgb = hexToRGB(`${colorData[i]["r"]["hex"][0]}${colorData[i]["g"]["hex"][0]}${colorData[i]["b"]["hex"][0]}`);
 
@@ -35,21 +37,21 @@ function loadInitialEST(fileTypes, file, translateView = false) {
 
           form += `<th style="background-color: ${color}">`;
 
-          if (color != "transparent") form += `<input class="${file.name}-${i}" type="color" value='${color}' onChange='updateValsFromColor(this,${i},"-rgb")'></input><br>`;
+          if (color != "transparent") form += `<input class="${fileClassName}-${i}" type="color" value='${color}' onChange='updateValsFromColor(this,${i},"-rgb")'></input><br>`;
 
-          form += `<input class="${file.name}-${i}-rgb" type="text" hexpos='${colorData[i]["r"]["pos"]}' value='${rgb[0]}'`;
+          form += `<input class="${fileClassName}-${i}-rgb" type="text" hexpos='${colorData[i]["r"]["pos"]}' value='${rgb[0]}'`;
           form += `onChange='updateColorFromVals(this,1,"-rgb")'>`;
           form += `</input></th>`;
 
           form += `<th style="background-color: ${color}">`;
 
-          form += `<input class="${file.name}-${i}-rgb" type="text" hexpos='${colorData[i]["g"]["pos"]}' value='${rgb[1]}'`;
+          form += `<input class="${fileClassName}-${i}-rgb" type="text" hexpos='${colorData[i]["g"]["pos"]}' value='${rgb[1]}'`;
           form += `onChange='updateColorFromVals(this,2,"-rgb")'>`;
           form += `</input></th>`;
 
           form += `<th style="background-color: ${color}">`;
 
-          form += `<input class="${file.name}-${i}-rgb" type="text" hexpos='${colorData[i]["b"]["pos"]}' value='${rgb[2]}'`;
+          form += `<input class="${fileClassName}-${i}-rgb" type="text" hexpos='${colorData[i]["b"]["pos"]}' value='${rgb[2]}'`;
           form += `onChange='updateColorFromVals(this,3,"-rgb")'>`;
           form += `</input></th>`;
 
@@ -59,22 +61,22 @@ function loadInitialEST(fileTypes, file, translateView = false) {
           form += "</tr><tr>";
 
           form += `<th style="background-color: 'transparent'">`;
-          form += `<input class="${file.name}-${i}-intensity" type="text" value='Intensity ${i}'</input></th>`;
+          form += `<input class="${fileClassName}-${i}-intensity" type="text" value='Intensity ${i}'</input></th>`;
 
           form += `<th style="background-color: 'transparent'">`;
 
 
-          form += `<input class="${file.name}-${i}-intensity" type="text" hexpos='${colorData[i]["r"]["pos"]}' value='${rgb[1]}'>`;
+          form += `<input class="${fileClassName}-${i}-intensity" type="text" hexpos='${colorData[i]["r"]["pos"]}' value='${rgb[1]}'>`;
           form += `</input></th>`;
 
           form += `<th style="background-color: 'transparent'">`;
 
-          form += `<input class="${file.name}-${i}-intensity" type="text" hexpos='${colorData[i]["g"]["pos"]}' value='${rgb[1]}'>`;
+          form += `<input class="${fileClassName}-${i}-intensity" type="text" hexpos='${colorData[i]["g"]["pos"]}' value='${rgb[1]}'>`;
           form += `</input></th>`;
 
           form += `<th style="background-color: 'transparent'">`;
 
-          form += `<input class="${file.name}-${i}-intensity" type="text" hexpos='${colorData[i]["b"]["pos"]}' value='${rgb[1]}'>`;
+          form += `<input class="${fileClassName}-${i}-intensity" type="text" hexpos='${colorData[i]["b"]["pos"]}' value='${rgb[1]}'>`;
           form += `</input></th>`;
 
 
@@ -94,7 +96,7 @@ function loadInitialEST(fileTypes, file, translateView = false) {
         globalFiles[file.name] = { 'fp': file, 'translateView': translateView }
         if (translateView) { resolve(); return }
         /*for (var i = 0; i < maxLengthLength; i++) {
-          $(`input[class="${file.name}-${i}"]`).attr('size', maxLength[i])
+          $(`input[class="${fileClassName}-${i}"]`).attr('size', maxLength[i])
         }*/
         resolve();
 
@@ -136,7 +138,7 @@ async function downloadEST(fileName) {
   let invalidInputCount = 0;
 
   for (let i = 0; i < inputs.length; i++) {
-    if (inputs[i].type == "text") {
+    if (inputs[i].type == "text" && inputs[i].classList[0].includes(fileName.replaceAll(" ",""))) {
       if ((i - invalidInputCount) % 4 != 0) {
         if (inputs[i].classList[0].includes("rgb")) hex[parseInt(inputs[i].getAttribute("hexpos"))] = colorValToHex(inputs[i].value);
         else if (inputs[i].classList[0].includes("intensity")) hex[parseInt(inputs[i].getAttribute("hexpos")) + 1] = colorValToHex(inputs[i].value);

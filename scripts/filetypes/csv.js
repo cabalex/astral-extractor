@@ -61,6 +61,7 @@ function loadInitialCSV(fileTypes, file, translateView = false) {
         var form = "<div class='scroll'><table>";
         var output = [];
         decoder = new TextDecoder("shift-jis");
+        let fileClassName = file.name.replaceAll(" ","");
         for (var i = 0; i < lines.length; i++) {
           // lines
           var currentLine = [];
@@ -93,17 +94,17 @@ function loadInitialCSV(fileTypes, file, translateView = false) {
             form += `<th style="background-color: ${color}">`;
             if (!translateView) {
               if (x % 3 == 1) {
-                if (color != "transparent") form += `<input class="${file.name}-i" type="color" value='${color}' onChange='updateValsFromColor(this,${x})'></input><br>`;
+                if (color != "transparent") form += `<input class="${fileClassName}-i" type="color" value='${color}' onChange='updateValsFromColor(this,${x})'></input><br>`;
                 colorIndex = x;
               }
-              form += `<input class="${file.name}-${x}" type="text" value='${unitext}'`;
+              form += `<input class="${fileClassName}-${x}" type="text" value='${unitext}'`;
               if (colorIndex > 0) form += `onChange='updateColorFromVals(this,${colorIndex})'>`;
               form += `</input></th>`;
             } else {
               if (unitext.length == 0) {
-                form += `<span class="csv-text" style="background-color: transparent" class="${file.name}-${x}" type="text">`
+                form += `<span class="csv-text" style="background-color: transparent" class="${fileClassName}-${x}" type="text">`
               } else {
-                form += `<span class="csv-text" class="${file.name}-${x}" type="text" title="${unitext}">`;
+                form += `<span class="csv-text" class="${fileClassName}-${x}" type="text" title="${unitext}">`;
                 if (unitext.startsWith("0x")) {
                   form += `${itemLookup(unitext)}`;
                 } else {
@@ -132,7 +133,7 @@ function loadInitialCSV(fileTypes, file, translateView = false) {
         globalFiles[file.name] = { 'fp': file, 'translateView': translateView }
         if (translateView) { resolve(); return }
         for (var i = 0; i < maxLengthLength; i++) {
-          $(`input[class="${file.name}-${i}"]`).attr('size', maxLength[i])
+          $(`input[class="${fileClassName}-${i}"]`).attr('size', maxLength[i])
         }
         resolve();
       }
