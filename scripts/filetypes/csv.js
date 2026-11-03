@@ -159,7 +159,7 @@ function downloadCSV(fileType, name, repack = false) {
     output = concatenateToUint8(output.slice(0, output.length - 1), Uint8Array.from([13, 10]))
   });
   var blob = new Blob([output], { type: "application/text" })
-  saveAs(blob, name);
+  saveAs(blob, `${name.slice(0,name.lastIndexOf("."))}.csv`);
 }
 
 function changeViewCSV(elem) {
