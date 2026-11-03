@@ -113,6 +113,7 @@ function loadInitialEST(fileTypes, file, translateView = false) {
 
 
     }
+    reader.readAsArrayBuffer(file);
   });
 }
 function parseESTHex() {
