@@ -139,7 +139,7 @@ async function downloadEST(fileName) {
     if (inputs[i].type == "text") {
       if ((i - invalidInputCount) % 4 != 0) {
         if (inputs[i].classList[0].includes("rgb")) hex[parseInt(inputs[i].getAttribute("hexpos"))] = colorValToHex(inputs[i].value);
-        else hex[parseInt(inputs[i].getAttribute("hexpos")) + 1] = colorValToHex(inputs[i].value);
+        else if (inputs[i].classList[0].includes("intensity")) hex[parseInt(inputs[i].getAttribute("hexpos")) + 1] = colorValToHex(inputs[i].value);
       }
     }
     else invalidInputCount += 1;
