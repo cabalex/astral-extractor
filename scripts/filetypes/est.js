@@ -18,20 +18,6 @@ function loadInitialEST(fileTypes, file, translateView = false) {
 
         let hex_list = chunks;
 
-        let input_str = "";
-
-        /*for (let string_index = 0; string_index < chunks.length; string_index++) {
-          if (string_index % 2 == 0) {
-            if (input_str.length > 0) {
-              hex_list.push(input_str);
-              input_str = "";
-            }
-          }
-          input_str += chunks[string_index];
-        }
-        console.log(hex_list);*/
-
-
         var colorData = parseESTHex(hex_list);
 
         var form = "<div class='scroll'><table>";
@@ -142,26 +128,36 @@ function parseESTHex(hex_list) {
 
 async function downloadEST(fileName) {
 
-  let hex = workingESTFiles["fileName"];
+  let hex = workingESTFiles[fileName];
 
   let baseDiv = document.getElementById(fileName);
 
   let inputs = baseDiv.getElementsByTagName("input");
+  let invalidInputCount = 0;
 
   for (let i = 0; i < inputs.length; i++) {
     if (inputs[i].type == "text") {
-      if (inputs[i].classList[0].includes("rgb")) hex[parseInt(inputs[i].getAttribute("hexpos"))] = colorValToHex(inputs[i].value);
-      else hex[parseInt(inputs[i].getAttribute("hexpos"))+1] = colorValToHex(inputs[i].value);
+      if ((i - invalidInputCount) % 4 != 0) {
+        if (inputs[i].classList[0].includes("rgb")) hex[parseInt(inputs[i].getAttribute("hexpos"))] = colorValToHex(inputs[i].value);
+        else hex[parseInt(inputs[i].getAttribute("hexpos")) + 1] = colorValToHex(inputs[i].value);
+      }
     }
+    else invalidInputCount += 1;
   }
 
+  let newHex = [];
+  for (let i = 0; i < hex.length; i++)
+  {
+    newHex.push(parseInt(hex[i], 16));
+  }
 
-  let binary = parseInt(hex.join(""), 10).toString(2);
+  var blob = new Blob([new Uint8Array(newHex)], { type: 'application/octet-stream' });
+  blob.name = fileName;
 
-  let blob = new Blob([binary], { type: "application/text" });
+
 
   saveAs(blob, fileName);
-  
+
 
 }
 
