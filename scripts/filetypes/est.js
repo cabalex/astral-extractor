@@ -17,14 +17,14 @@ function loadInitialEST(fileTypes, file, translateView = false) {
 
         let input_str = "";
 
-        for (let string_index = 0; string_index < character.length; string_index++) {
+        for (let string_index = 0; string_index < chunks.length; string_index++) {
           if (string_index % 1 == 0) {
             if (input_str.length > 0) {
               hex_list.push(input_str);
               input_str = "";
             }
           }
-          input_str += character[string_index];
+          input_str += chunks[string_index];
         }
 
         var colorData = parseESTHex(hex_list);
@@ -95,16 +95,16 @@ function loadInitialEST(fileTypes, file, translateView = false) {
         workingESTFiles[file.name] = hex_list;
 
 
-        $('div[id="' + file.name + '"]').find('h4').append(` - ${lines.length} lines <a class='download' onclick="downloadCSV(\'csv\', '${file.name}', false)"><span class='material-icons'>insert_drive_file</span> DOWNLOAD CSV</a>`)
+        $('div[id="' + file.name + '"]').find('h4').append(` - ${hex_list.length} lines <a class='download' onclick="downloadCSV(\'csv\', '${file.name}', false)"><span class='material-icons'>insert_drive_file</span> DOWNLOAD CSV</a>`)
         $('div[id="' + file.name + '"]').find('h4').append(` <a class='repack' title='Repack the file into a game-ready EST.' onclick="downloadEST('${file.name}')"><span class='material-icons'>auto_fix_high</span> REPACK</a>`)
         $('div[id="' + file.name + '"]').find('h4').prepend(`<a class='minimize' onclick="minimize(this)"><span class="material-icons">expand_less</span></a>`)
         $('div[id="' + file.name + '"]').find('h4').find('img').after(hamburgers['est'])
         $('div[id="' + file.name + '"]').append("<div id='files' class='scroll'>" + form + "</table></div>")
         globalFiles[file.name] = { 'fp': file, 'translateView': translateView }
         if (translateView) { resolve(); return }
-        for (var i = 0; i < maxLengthLength; i++) {
+        /*for (var i = 0; i < maxLengthLength; i++) {
           $(`input[class="${file.name}-${i}"]`).attr('size', maxLength[i])
-        }
+        }*/
         resolve();
 
 
@@ -116,7 +116,7 @@ function loadInitialEST(fileTypes, file, translateView = false) {
     reader.readAsArrayBuffer(file);
   });
 }
-function parseESTHex() {
+function parseESTHex(hex_list) {
   let colour_data = [];
   let val = 0;
   while (val + 36 < hex_list.length) {
