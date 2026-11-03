@@ -8,17 +8,20 @@ function loadInitialEST(fileTypes, file, translateView = false) {
       if (e.target.readyState == FileReader.DONE) {
         var chunks = [];
 
-        for (let i = 0; i < e.target.result.length; i++) {
-          let character = e.target.result.charCodeAt(i).toString(16);
+        var newArray = new Uint8Array(e.target.result)
+
+        for (let i = 0; i < newArray.length; i++) {
+          let character = newArray[i].toString(16).toUpperCase();
           if (character.length == 1) character = "0" + character;
           chunks.push(character);
         }
-        let hex_list = [];
+
+        let hex_list = chunks;
 
         let input_str = "";
 
-        for (let string_index = 0; string_index < chunks.length; string_index++) {
-          if (string_index % 1 == 0) {
+        /*for (let string_index = 0; string_index < chunks.length; string_index++) {
+          if (string_index % 2 == 0) {
             if (input_str.length > 0) {
               hex_list.push(input_str);
               input_str = "";
@@ -26,6 +29,8 @@ function loadInitialEST(fileTypes, file, translateView = false) {
           }
           input_str += chunks[string_index];
         }
+        console.log(hex_list);*/
+
 
         var colorData = parseESTHex(hex_list);
 
@@ -35,55 +40,55 @@ function loadInitialEST(fileTypes, file, translateView = false) {
         for (let i = 0; i < colorData.length; i++) {
           form += "<tr>";
           form += `<th style="background-color: 'transparent'">`;
-          form += `<input class="${file.name}-${x}-rgb" type="text" value='Color ${x}'</input></th>`;
+          form += `<input class="${file.name}-${i}-rgb" type="text" value='Color ${i}'</input></th>`;
 
-          let rgb = hexToRGB(colorData[i]["r"][0], colorData[i]["g"][0], colorData[i]["b"][0]);
+          let rgb = hexToRGB(`${colorData[i]["r"]["hex"][0]}${colorData[i]["g"]["hex"][0]}${colorData[i]["b"]["hex"][0]}`);
 
 
           let color = setColor(rgb[0], rgb[1], rgb[2]);
 
           form += `<th style="background-color: ${color}">`;
 
-          if (color != "transparent") form += `<input class="${file.name}-i" type="color" value='${color}' onChange='updateValsFromColor(this,${x})'></input>`;
+          if (color != "transparent") form += `<input class="${file.name}-i" type="color" value='${color}' onChange='updateValsFromColor(this,${i})'></input><br>`;
 
-          form += `<input class="${file.name}-${x}-rgb" type="text" hexpos='${colorData[i]["r"]["pos"]}' value='${rgb[0]}'`;
+          form += `<input class="${file.name}-${i}-rgb" type="text" hexpos='${colorData[i]["r"]["pos"]}' value='${rgb[0]}'`;
           form += `onChange='updateColorFromVals(this,1)'>`;
           form += `</input></th>`;
 
           form += `<th style="background-color: ${color}">`;
 
-          form += `<input class="${file.name}-${x}-rgb" type="text" hexpos='${colorData[i]["g"]["pos"]}' value='${rgb[1]}'`;
+          form += `<input class="${file.name}-${i}-rgb" type="text" hexpos='${colorData[i]["g"]["pos"]}' value='${rgb[1]}'`;
           form += `onChange='updateColorFromVals(this,2)'>`;
           form += `</input></th>`;
 
           form += `<th style="background-color: ${color}">`;
 
-          form += `<input class="${file.name}-${x}-rgb" type="text" hexpos='${colorData[i]["b"]["pos"]}' value='${rgb[2]}'`;
+          form += `<input class="${file.name}-${i}-rgb" type="text" hexpos='${colorData[i]["b"]["pos"]}' value='${rgb[2]}'`;
           form += `onChange='updateColorFromVals(this,3)'>`;
           form += `</input></th>`;
 
-          rgb = hexToRGB(colorData[i]["r"][1], colorData[i]["g"][1], colorData[i]["b"][1]);
+          rgb = hexToRGB(`${colorData[i]["r"]["hex"][1]}${colorData[i]["g"]["hex"][1]}${colorData[i]["b"]["hex"][1]}`);
 
 
           form += "</tr><tr>";
 
           form += `<th style="background-color: 'transparent'">`;
-          form += `<input class="${file.name}-${x}-intensity" type="text" value='Intensity ${x}'</input></th>`;
+          form += `<input class="${file.name}-${i}-intensity" type="text" value='Intensity ${i}'</input></th>`;
 
           form += `<th style="background-color: 'transparent'">`;
 
 
-          form += `<input class="${file.name}-${x}-intensity" type="text" hexpos='${colorData[i]["r"]["pos"]}' value='${rgb[1]}'>`;
+          form += `<input class="${file.name}-${i}-intensity" type="text" hexpos='${colorData[i]["r"]["pos"]}' value='${rgb[1]}'>`;
           form += `</input></th>`;
 
           form += `<th style="background-color: 'transparent'">`;
 
-          form += `<input class="${file.name}-${x}-intensity" type="text" hexpos='${colorData[i]["g"]["pos"]}' value='${rgb[1]}'>`;
+          form += `<input class="${file.name}-${i}-intensity" type="text" hexpos='${colorData[i]["g"]["pos"]}' value='${rgb[1]}'>`;
           form += `</input></th>`;
 
           form += `<th style="background-color: 'transparent'">`;
 
-          form += `<input class="${file.name}-${x}-intensity" type="text" hexpos='${colorData[i]["b"]["pos"]}' value='${rgb[1]}'>`;
+          form += `<input class="${file.name}-${i}-intensity" type="text" hexpos='${colorData[i]["b"]["pos"]}' value='${rgb[1]}'>`;
           form += `</input></th>`;
 
 
