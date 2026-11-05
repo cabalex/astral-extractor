@@ -37,7 +37,7 @@ function loadInitialEST(fileTypes, file, translateView = false) {
 
           form += `<th style="background-color: ${color}">`;
 
-          if (color != "transparent") form += `<input class="${fileClassName}-${i}" type="color" value='${color}' onChange='updateValsFromColor(this,${i},"-rgb")'></input><br>`;
+          if (color != "transparent") form += `<input class="${fileClassName}-i" type="color" value='${color}' onChange='updateValsFromColor(this,${i},"-rgb")'></input><br>`;
 
           form += `<input class="${fileClassName}-${i}-rgb" type="text" hexpos='${colorData[i]["r"]["pos"]}' value='${rgb[0]}'`;
           form += `onChange='updateColorFromVals(this,1,"-rgb")'>`;

@@ -94,17 +94,17 @@ function loadInitialCSV(fileTypes, file, translateView = false) {
             form += `<th style="background-color: ${color}">`;
             if (!translateView) {
               if (x % 3 == 1) {
-                if (color != "transparent") form += `<input class="${fileClassName}-i" type="color" value='${color}' onChange='updateValsFromColor(this,${x})'></input><br>`;
+                if (color != "transparent") form += `<input class="${fileClassName}-i" type="color" value='${color}' onChange='updateValsFromColor(this,${i})'></input><br>`;
                 colorIndex = x;
               }
-              form += `<input class="${fileClassName}-${x}" type="text" value='${unitext}'`;
+              form += `<input class="${fileClassName}-${i}" type="text" value='${unitext}'`;
               if (colorIndex > 0) form += `onChange='updateColorFromVals(this,${colorIndex})'>`;
               form += `</input></th>`;
             } else {
               if (unitext.length == 0) {
-                form += `<span class="csv-text" style="background-color: transparent" class="${fileClassName}-${x}" type="text">`
+                form += `<span class="csv-text" style="background-color: transparent" class="${fileClassName}-${i}" type="text">`
               } else {
-                form += `<span class="csv-text" class="${fileClassName}-${x}" type="text" title="${unitext}">`;
+                form += `<span class="csv-text" class="${fileClassName}-${i}" type="text" title="${unitext}">`;
                 if (unitext.startsWith("0x")) {
                   form += `${itemLookup(unitext)}`;
                 } else {

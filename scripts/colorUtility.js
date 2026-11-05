@@ -31,43 +31,42 @@ function setColor(r, g, b) {
 }
 
 
-function updateValsFromColor(obj, index, classEnd="") {
+function updateValsFromColor(obj, index, classEnd = "") {
     index = parseInt(index);
     var parent = obj.parentElement.parentElement;
-    let classBase = (obj.classList[0].replaceAll(classEnd,"")).slice(0, -1);
+    let classBase = obj.classList[0].slice(0, -1) + index;
     for (let i = 0; i < 3; i++) {
-        let newObj = parent.children[index + i];
+        let newObj = parent.children[i + 1];
         newObj.style.backgroundColor = obj.value;
-        let newIndex = parseInt(index) + i;
-        newObj.getElementsByClassName(`${classBase}${newIndex}${classEnd}`)[0].value = RGBToArray(newObj.style.backgroundColor)[i];
+        newObj.getElementsByClassName(`${classBase}${classEnd}`)[0].value = RGBToArray(newObj.style.backgroundColor)[i];
     }
 }
 
-function updateColorFromVals(obj, index, classEnd="") {
+function updateColorFromVals(obj, index, classEnd = "") {
     if (obj.value.length > 0) {
         index = parseInt(index);
         var parent = obj.parentElement.parentElement;
-        let classBase = (obj.classList[0].replaceAll(classEnd,"")).slice(0, -1);
-        let newObjs = [];
+        //let classBase = (obj.classList[0].replaceAll(classEnd,"")).slice(0, -1);
+        let classBase = obj.classList[0];
+        //let newObjs = [];
         let rgb = [];
-        for (let i = 0; i < 3; i++) {
-            newObjs.push(parent.children[index + i]);
-            let newIndex = parseInt(index) + i;
-            rgb.push(parent.getElementsByClassName(`${classBase}${newIndex}${classEnd}`)[0].value);
+        for (let i = 1; i < 4; i++) {
+            //newObjs.push(parent.children[i]);
+            //let newIndex = parseInt(index) + i;
+            rgb.push(parent.getElementsByClassName(`${classBase}`)[i].value);
         }
         rgb = arrayToRGB(rgb);
-        let selector = parent.getElementsByClassName(classBase + "i")[0];
+        let selector = parent.getElementsByClassName(classBase.replaceAll(classEnd, "").slice(0, -1) + "i")[0];
         if (selector != undefined) selector.value = rgb;
-        updateBackgroundColor(obj, index, rgb);
+        updateBackgroundColor(obj, rgb);
     }
 
 }
 
-function updateBackgroundColor(obj, index, color) {
+function updateBackgroundColor(obj, color) {
     var parent = obj.parentElement.parentElement;
-    index = parseInt(index);
-    for (let i = 0; i < 3; i++) {
-        parent.children[index + i].style.backgroundColor = color;
+    for (let i = 1; i < 4; i++) {
+        parent.children[i].style.backgroundColor = color;
     }
 }
 
