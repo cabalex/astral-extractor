@@ -134,6 +134,9 @@ function loadInitial(fileType, file) {
       case "bin":
         await loadInitialPTD('ptd', file);
         break;
+      case "est":
+        await loadInitialEST('est', file);
+        break;
       default:
         window.alert("Unsupported file type!")
     }
@@ -345,7 +348,7 @@ function readableBytes(bytes) {
   return (bytes / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + sizes[i];
 }
 
-var fileTypes = ['.pkz', '.dat', '.dtt', '.eff', '.evn', '.csv', '.wmb', '.lay', '.mot', '.bxm', '.sar', '.seq', '.gad', '.ccd', '.rld', '.mcd', '.bnk', '.bin', 'GameData.dat']
+var fileTypes = ['.pkz', '.dat', '.dtt', '.eff', '.evn', '.csv', '.wmb', '.lay', '.mot', '.bxm', '.sar', '.seq', '.gad', '.ccd', '.rld', '.mcd', '.bnk', '.bin', '.est', 'GameData.dat']
 var fileInfo = {
   "bxm": "Binary XML. Used for storing information about the game, especially events, cases, and cutscenes. Some strings are in Japanese, usually encoded with SHIFT-JIS; however, in quest/, they are encoded with UTF-8. It should autodetect this, but if it doesn't, click \"Change encoding\" in the dropdown menu.<br><b>BXM files are currently read-only right now.</b> I've  yet to come up with a clean editor, but it's coming soon!",
   "sar": "Binary XML files.",
@@ -364,7 +367,8 @@ var fileInfo = {
   "wmb": "Model files. Astral Extractor does not support re-adding models to the game- use Blender2AstralChain / AstralChain2Blender for that.<br><b>Model previews are still in development!</b> Some models may not display correctly, and textures (WTA/WTP) have not been implemented.",
   "mot": "Animation files. Stores animation data for their respective models.<br><strike><b>This won't do much on its own. Add a model and click 'Add Animations' to add this to the model.</b></strike> Currently does nothing right now. Implementation coming soon!",
   "mcd": "A hybrid of text and font files, this stores glyph positions and text strings contained in its corresponding texture.",
-  "bin": "Text files in PTD format. Stores most of the text in the game, except ones hardcoded (see MCD files in ui/).<br><b>Some of these files may take a while to load (especially TalkSubtitleMessage), so wait a bit!</b><br>IMPORTANT: When repacking files with multiple sections, there is a chance some text will be randomly offset forward by one place. This is an issue I've been trying to fix, but keep this in mind while editing."
+  "bin": "Text files in PTD format. Stores most of the text in the game, except ones hardcoded (see MCD files in ui/).<br><b>Some of these files may take a while to load (especially TalkSubtitleMessage), so wait a bit!</b><br>IMPORTANT: When repacking files with multiple sections, there is a chance some text will be randomly offset forward by one place. This is an issue I've been trying to fix, but keep this in mind while editing.",
+  "est": "Binary data for the effects. Contains rgb values that control the color of each part of the effect, and the intensity of that color on the effect."
 }
 var hamburgers = {
   'wmb': '<div class="hamburger" title=""><a onclick="showDropdown(this)"><span class="material-icons">menu</span></a><div style="display: none" class="dropdown"><span style="color: var(--light-grey)">MODEL PROPERTIES</span><a onclick="getHelp(this)"><span class="material-icons">help</span> What is this file?</a><a class="addTextures" onclick="addTexturesWMB(\'wmb\', this)"><span class="material-icons">collections</span> Add Textures <span class="nextArrow"><span class="material-icons">navigate_next</span></span></a><a class="addAnimations" onclick="addAnimationsWMB(\'wmb\', this)"><span class="material-icons">animation</span> Add Animations <span class="nextArrow"><span class="material-icons">navigate_next</span></span></a></div></div>',
